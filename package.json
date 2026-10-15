@@ -11,9 +11,15 @@
   },
   "dependencies": {
     "@nuxt/ui": "^4.11.3",
+    "googleapis": "^183.0.0",
     "nuxt": "^4.5.2",
     "tailwindcss": "^4.3.3",
     "vue": "^3.5.43",
     "vue-router": "^5.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.4",
+    "typescript": "^5.9.3",
+    "vue-tsc": "^3.3.12"
   }
 }
