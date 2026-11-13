@@ -17,11 +17,6 @@
         class="relative mx-auto flex min-h-[calc(100vh-4rem)] max-w-6xl items-center justify-center px-6 py-16 lg:px-8"
       >
         <div class="mx-auto max-w-4xl text-center">
-          <UBadge
-            label="Sertifikasi Sektor Publik"
-            color="primary"
-            variant="subtle"
-          />
 
           <h1
             class="mt-6 text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl lg:text-6xl"
@@ -44,7 +39,6 @@
             <UButton
               to="/pendaftaran"
               label="Daftar Sertifikasi"
-              icon="i-lucide-arrow-right"
               trailing
               size="lg"
               color="primary"

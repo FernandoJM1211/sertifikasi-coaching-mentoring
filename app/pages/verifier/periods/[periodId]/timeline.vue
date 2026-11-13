@@ -9,11 +9,11 @@
         </p>
 
         <h1 class="mt-1 text-2xl font-semibold text-slate-900">
-          Pengaturan Timeline Sertifikasi
+          Timeline Sertifikasi
         </h1>
 
         <p class="mt-1 text-sm text-slate-500">
-          Atur jadwal pelaksanaan setiap tahapan sertifikasi.
+          Lihat jadwal pelaksanaan setiap tahapan sertifikasi.
         </p>
       </div>
 
@@ -73,7 +73,7 @@
         </div>
       </UCard>
 
-      <!-- Form pengaturan tahapan -->
+      <!-- Tampilan tahapan (hanya-baca) -->
       <div>
         <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
           <div>
@@ -86,7 +86,7 @@
             </h2>
 
             <p class="mt-1 text-sm text-slate-500">
-              Atur waktu mulai dan selesai untuk seluruh 8 tahapan.
+              Jadwal mulai dan selesai untuk seluruh 8 tahapan sertifikasi.
             </p>
           </div>
 
@@ -101,8 +101,8 @@
               color="neutral"
               variant="outline"
               icon="i-lucide-refresh-cw"
-              :loading="loading || saving"
-              :disabled="loading || saving"
+               :loading="loading"
+              :disabled="loading"
               @click="fetchTimeline"
             >
               Muat Ulang
@@ -163,7 +163,7 @@
                   v-model="stage.startAt"
                   type="datetime-local"
                   class="w-full"
-                  :disabled="saving || loading"
+                  :disabled="true"
                 />
               </UFormField>
 
@@ -176,35 +176,14 @@
                   v-model="stage.endAt"
                   type="datetime-local"
                   class="w-full"
-                  :disabled="saving || loading"
+                  :disabled="true"
                 />
               </UFormField>
             </div>
           </UCard>
         </div>
 
-        <!-- Tombol aksi -->
-        <div class="mt-6 flex flex-col justify-end gap-3 sm:flex-row">
-          <UButton
-            color="neutral"
-            variant="outline"
-            icon="i-lucide-undo-2"
-            :disabled="saving || loading"
-            @click="fetchTimeline"
-          >
-            Batalkan Perubahan
-          </UButton>
-
-          <UButton
-            color="primary"
-            icon="i-lucide-save"
-            :loading="saving"
-            :disabled="loading || stages.length !== 8"
-            @click="saveTimeline"
-          >
-            Simpan Semua Jadwal
-          </UButton>
-        </div>
+        <!-- Halaman Verifikator hanya menampilkan jadwal; perubahan dilakukan oleh Super Admin. -->
       </div>
     </template>
 
@@ -308,6 +287,7 @@ type TimelineStageForm = {
 
 type NotificationType = 'success' | 'error'
 
+
 const REQUIRED_STAGES = [
   {
     stageOrder: 1,
@@ -326,13 +306,13 @@ const REQUIRED_STAGES = [
   },
   {
     stageOrder: 4,
-    stageCode: 'EVALUATION',
-    stageName: 'Evaluasi',
+    stageCode: 'SELF_ASSESSMENT_VERIFICATION',
+    stageName: 'Verifikasi Self Assessment',
   },
   {
     stageOrder: 5,
-    stageCode: 'SELF_ASSESSMENT_VERIFICATION',
-    stageName: 'Verifikasi Self Assessment',
+    stageCode: 'EVALUATION',
+    stageName: 'Evaluasi',
   },
   {
     stageOrder: 6,
@@ -350,6 +330,7 @@ const REQUIRED_STAGES = [
     stageName: 'Pengumuman',
   },
 ]
+
 
 const route = useRoute()
 const periodId = String(route.params.periodId || '')

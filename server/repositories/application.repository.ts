@@ -395,3 +395,37 @@ export async function supersedePendingApplicationsByNipAndPeriod(
 
   return supersededApplications
 }
+
+
+export async function findApplicationsByPersonId(
+  personId: string,
+): Promise<Application[]> {
+  const normalizedPersonId = personId.trim()
+
+  if (!normalizedPersonId) {
+    return []
+  }
+
+  const rows = await getSheetValues(SHEET_NAME)
+
+  if (rows.length <= 1) {
+    return []
+  }
+
+  return rows
+    .slice(1)
+    .map(rowToApplication)
+    .filter(
+      (application) =>
+        application.person_id.trim() === normalizedPersonId,
+    )
+    .sort((a, b) => {
+      const dateA = Date.parse(a.submitted_at)
+      const dateB = Date.parse(b.submitted_at)
+
+      return (
+        (Number.isFinite(dateB) ? dateB : 0) -
+        (Number.isFinite(dateA) ? dateA : 0)
+      )
+    })
+}

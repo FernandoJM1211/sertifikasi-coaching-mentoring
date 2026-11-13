@@ -11,7 +11,7 @@
       </h1>
 
       <p class="text-sm leading-6 text-slate-500">
-        Pilih periode sertifikasi yang ingin kamu pantau dan kelola.
+        Pilih periode sertifikasi yang ingin kamu pantau.
       </p>
     </div>
 
@@ -32,7 +32,7 @@
           Daftar Periode
         </h2>
         <p class="mt-1 text-sm text-slate-500">
-          Kelola jadwal tahapan dan verifikasi peserta untuk setiap periode.
+          Lihat timeline dan lakukan verifikasi peserta pada setiap periode.
         </p>
       </div>
 
@@ -40,14 +40,6 @@
   <UBadge color="primary" variant="subtle" size="lg">
     {{ periods.length }} periode
   </UBadge>
-
-  <UButton
-    to="/verifier/periods/create"
-    color="primary"
-    icon="i-lucide-plus"
-  >
-    Buat Periode
-  </UButton>
 
   <UButton
     color="neutral"
@@ -138,7 +130,7 @@ class="grid grid-cols-1 items-start gap-5 md:grid-cols-2"
               icon="i-lucide-calendar-clock"
               :to="`/verifier/periods/${period.period_id}/timeline`"
             >
-              Atur Timeline
+              Lihat Timeline
             </UButton>
 
             <UButton
@@ -149,63 +141,6 @@ class="grid grid-cols-1 items-start gap-5 md:grid-cols-2"
             >
               Verifikasi Peserta
             </UButton>
-
-            <!-- Draft menjadi Aktif -->
-            <UButton
-              v-if="period.period_status.toUpperCase() === 'DRAFT'"
-              block
-              color="success"
-              icon="i-lucide-check-circle"
-              class="sm:col-span-2"
-              :loading="activatingPeriodId === period.period_id"
-              :disabled="activatingPeriodId !== null"
-              @click="openStatusModal(period, 'ACTIVE')"
-            >
-              Aktifkan Periode
-            </UButton>
-
-            <!-- Aktif menjadi Ditutup -->
-            <UButton
-              v-else-if="period.period_status.toUpperCase() === 'ACTIVE'"
-              block
-              color="warning"
-              icon="i-lucide-lock"
-              class="sm:col-span-2"
-              :loading="activatingPeriodId === period.period_id"
-              :disabled="activatingPeriodId !== null"
-              @click="openStatusModal(period, 'CLOSED')"
-            >
-              Tutup Periode
-            </UButton>
-
-            <!-- Ditutup: buka kembali atau selesaikan -->
-            <template
-              v-else-if="period.period_status.toUpperCase() === 'CLOSED'"
-            >
-              <UButton
-                block
-                color="success"
-                icon="i-lucide-lock-open"
-                class="sm:col-span-2"
-                :loading="activatingPeriodId === period.period_id"
-                :disabled="activatingPeriodId !== null"
-                @click="openStatusModal(period, 'ACTIVE')"
-              >
-                Buka Kembali Periode
-              </UButton>
-
-              <UButton
-                block
-                color="primary"
-                icon="i-lucide-check-check"
-                class="sm:col-span-2"
-                :loading="activatingPeriodId === period.period_id"
-                :disabled="activatingPeriodId !== null"
-                @click="openStatusModal(period, 'COMPLETED')"
-              >
-                Selesaikan Periode
-              </UButton>
-            </template>
           </div>
         </div>
       </UCard>
@@ -232,154 +167,6 @@ class="grid grid-cols-1 items-start gap-5 md:grid-cols-2"
         </p>
       </div>
     </UCard>
-
-    <!-- Modal konfirmasi -->
-    <UModal
-      v-model:open="activationModalOpen"
-      :dismissible="activatingPeriodId === null"
-    >
-      <template #content>
-        <div class="space-y-5 p-6">
-          <div class="flex items-start gap-4">
-            <div
-              class="flex size-12 shrink-0 items-center justify-center rounded-xl ring-1"
-              :class="statusModalHeaderClass"
-            >
-              <UIcon
-                :name="statusModalIcon"
-                class="size-6"
-              />
-            </div>
-
-            <div class="min-w-0">
-              <h2 class="text-lg font-semibold text-slate-900">
-                {{ statusModalTitle }}
-              </h2>
-
-              <p class="mt-1 text-sm leading-6 text-slate-500">
-                {{ statusModalSubtitle }}
-              </p>
-            </div>
-          </div>
-
-          <!-- Periode yang dipilih -->
-          <div
-            v-if="selectedPeriod"
-            class="rounded-xl border border-slate-200 bg-slate-50 p-4"
-          >
-            <p class="text-xs font-medium text-slate-500">
-              Periode yang akan diubah
-            </p>
-
-            <p class="mt-1 font-semibold text-slate-900">
-              {{ selectedPeriod.period_name }}
-            </p>
-
-            <p class="mt-1 text-sm text-slate-500">
-              ID Periode: {{ selectedPeriod.period_id }}
-            </p>
-
-            <div class="mt-3">
-              <UBadge
-                :color="getStatusColor(targetPeriodStatus)"
-                variant="subtle"
-              >
-                {{ formatStatus(selectedPeriod.period_status) }}
-                →
-                {{ formatStatus(targetPeriodStatus) }}
-              </UBadge>
-            </div>
-          </div>
-
-          <!-- Peringatan -->
-          <UAlert
-            :icon="statusAlertIcon"
-            :color="statusAlertColor"
-            variant="soft"
-            :title="statusAlertTitle"
-            :description="statusAlertDescription"
-          />
-
-          <p class="text-sm leading-6 text-slate-600">
-            {{ statusModalNote }}
-          </p>
-
-          <!-- Tombol modal -->
-          <div
-            class="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end"
-          >
-            <UButton
-              color="neutral"
-              variant="outline"
-              :disabled="activatingPeriodId !== null"
-              @click="closeActivationModal"
-            >
-              Batal
-            </UButton>
-
-            <UButton
-              :color="statusActionButtonColor"
-              :icon="statusActionButtonIcon"
-              :loading="activatingPeriodId !== null"
-              :disabled="!selectedPeriod || activatingPeriodId !== null"
-              @click="confirmActivation"
-            >
-              {{ statusActionButtonLabel }}
-            </UButton>
-          </div>
-        </div>
-      </template>
-    </UModal>
-
-    <!-- Modal error -->
-    <UModal v-model:open="errorModalOpen" :dismissible="true">
-      <template #content>
-        <div class="space-y-5 p-6">
-          <div class="flex items-start gap-4">
-            <div
-              class="flex size-12 shrink-0 items-center justify-center rounded-xl bg-red-50 text-red-600 ring-1 ring-red-200"
-            >
-              <UIcon
-                name="i-lucide-circle-alert"
-                class="size-6"
-              />
-            </div>
-
-            <div class="min-w-0">
-              <h2 class="text-lg font-semibold text-slate-900">
-                Status Periode Tidak Dapat Diubah
-              </h2>
-
-              <p class="mt-1 text-sm leading-6 text-slate-500">
-                Permintaan perubahan status belum dapat diproses.
-              </p>
-            </div>
-          </div>
-
-          <UAlert
-            icon="i-lucide-alert-triangle"
-            color="error"
-            variant="soft"
-            :title="actionErrorMessage"
-          />
-
-          <p class="text-sm leading-6 text-slate-600">
-            Periksa kembali status periode dan ketentuan proses sertifikasi.
-            Jika masalah masih terjadi, periksa data periode dan log server
-            sebelum mencoba kembali.
-          </p>
-
-          <div class="flex justify-end">
-            <UButton
-              color="primary"
-              @click="errorModalOpen = false"
-            >
-              Mengerti
-            </UButton>
-          </div>
-        </div>
-      </template>
-    </UModal>
   </div>
 </template>
 
@@ -442,8 +229,10 @@ function getStatusColor(
       return 'success'
 
     case 'CLOSED':
+      return 'error'
+
     case 'COMPLETED':
-      return 'neutral'
+      return 'primary'
 
     case 'DRAFT':
       return 'warning'
@@ -513,9 +302,9 @@ const statusModalHeaderClass = computed(() => {
   }
 
   const classes: Record<TargetPeriodStatus, string> = {
-    ACTIVE: 'bg-amber-50 text-amber-600 ring-amber-200',
-    CLOSED: 'bg-orange-50 text-orange-600 ring-orange-200',
-    COMPLETED: 'bg-emerald-50 text-emerald-600 ring-emerald-200',
+    ACTIVE: 'bg-emerald-50 text-emerald-600 ring-emerald-200',
+    CLOSED: 'bg-red-50 text-red-600 ring-red-200',
+    COMPLETED: 'bg-blue-50 text-blue-600 ring-blue-200',
   }
 
   return classes[targetPeriodStatus.value]
@@ -528,9 +317,15 @@ const statusAlertIcon = computed(() => {
 })
 
 const statusAlertColor = computed(() => {
-  return targetPeriodStatus.value === 'COMPLETED'
-    ? 'success'
-    : 'warning'
+  if (isReopeningPeriod.value || targetPeriodStatus.value === 'ACTIVE') {
+    return 'success'
+  }
+
+  if (targetPeriodStatus.value === 'CLOSED') {
+    return 'error'
+  }
+
+  return 'primary'
 })
 
 const statusAlertTitle = computed(() => {
@@ -582,9 +377,9 @@ const statusModalNote = computed(() => {
 })
 
 const statusActionButtonColor = computed(() => {
-  const colors: Record<TargetPeriodStatus, 'success' | 'warning' | 'primary'> = {
+  const colors: Record<TargetPeriodStatus, 'success' | 'error' | 'primary'> = {
     ACTIVE: 'success',
-    CLOSED: 'warning',
+    CLOSED: 'error',
     COMPLETED: 'primary',
   }
 

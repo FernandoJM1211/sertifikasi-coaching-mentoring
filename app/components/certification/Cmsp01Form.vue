@@ -1,6 +1,13 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 
+const props = defineProps<{ applicationId?: string }>()
+const draftStorageKey = computed(() =>
+  props.applicationId
+    ? `cmsp-01-draft:${props.applicationId}`
+    : 'cmsp-01-draft:legacy',
+)
+
 definePageMeta({
   layout: 'user',
 })
@@ -13,6 +20,26 @@ const activeCategory =
   'Certified Public Sector Performance Coach and Mentor'
 
 const certificationPeriod = 'Periode Sertifikasi September 2026'
+
+const rankNameOptions = [
+  'Penata',
+  'Penata Tingkat I',
+  'Pembina',
+  'Pembina Tingkat I',
+  'Pembina Utama Muda',
+  'Pembina Utama Madya',
+  'Pembina Utama',
+]
+
+const rankGroupOptions = [
+  'III/c',
+  'III/d',
+  'IV/a',
+  'IV/b',
+  'IV/c',
+  'IV/d',
+  'IV/e',
+]
 
 const formStatus = ref<'draft' | 'saved'>('draft')
 
@@ -29,7 +56,8 @@ const declarationAccepted = ref(false)
 const applicant = ref({
   fullName: 'Fernando Manalu',
   nip: '199001012020121001',
-  rank: 'III/a',
+  rankName: '',
+  rankGroup: '',
   birthPlace: 'Jakarta',
   birthDate: '1990-01-01',
   gender: '',
@@ -212,7 +240,8 @@ const requiredApplicantFields = computed(() => [
 const applicantCompletedCount = computed(() => {
   const basicFields = [
     applicant.value.fullName,
-    applicant.value.rank,
+    applicant.value.rankName,
+    applicant.value.rankGroup,
     applicant.value.birthPlace,
     applicant.value.birthDate,
     applicant.value.gender,
@@ -355,7 +384,7 @@ function saveDraft() {
   }
 
   localStorage.setItem(
-    'cmsp-01-draft',
+    draftStorageKey.value,
     JSON.stringify(draftData),
   )
 
@@ -371,7 +400,7 @@ function saveDraft() {
  * ======================================== */
 
 onMounted(() => {
-  const savedDraft = localStorage.getItem('cmsp-01-draft')
+  const savedDraft = localStorage.getItem(draftStorageKey.value)
 
   if (!savedDraft) return
 
@@ -382,6 +411,16 @@ onMounted(() => {
       applicant.value = {
         ...applicant.value,
         ...draftData.applicant,
+      }
+
+      // Draft versi lama menyimpan pangkat dan golongan dalam satu field.
+      // Field lama tidak digunakan lagi pada form dengan dropdown terpisah.
+      if (!rankOptions.some((item) => item.value === applicant.value.rankName)) {
+        applicant.value.rankName = ''
+      }
+
+      if (!availableRankGroups.value.includes(applicant.value.rankGroup)) {
+        applicant.value.rankGroup = ''
       }
     }
 
@@ -463,47 +502,34 @@ onBeforeUnmount(() => {
         </p>
       </div>
 
-      <UCard class="bg-white/90 shadow-sm">
+      <UCard class="border border-primary/30 bg-white/90 shadow-sm">
         <div class="space-y-5">
-
           <div>
-            <p
-              class="text-xs font-semibold uppercase tracking-wide text-primary"
-            >
+            <p class="text-sm font-medium text-primary">
               Nama Sertifikasi
             </p>
-
-            <p class="mt-1.5 text-base font-medium text-slate-900">
+            <p class="mt-1.5 text-base font-semibold text-slate-900">
               Coach dan Mentor Sektor Publik
             </p>
           </div>
 
           <div>
-            <p
-              class="text-xs font-semibold uppercase tracking-wide text-primary"
-            >
+            <p class="text-sm font-medium text-primary">
               Kategori
             </p>
-
-            <p class="mt-1.5 text-base font-medium text-slate-900">
+            <p class="mt-1.5 text-base font-semibold text-slate-900">
               {{ activeCategory }}
             </p>
           </div>
 
-          <div class="flex flex-wrap gap-2">
-            <UBadge
-              label="Periode Aktif"
-              color="primary"
-              variant="subtle"
-            />
-
-            <UBadge
-              :label="certificationPeriod"
-              color="neutral"
-              variant="subtle"
-            />
+          <div>
+            <p class="text-sm font-medium text-primary">
+              Periode
+            </p>
+            <p class="mt-1.5 text-base font-semibold text-slate-900">
+              {{ certificationPeriod }}
+            </p>
           </div>
-
         </div>
       </UCard>
     </section>
@@ -523,7 +549,7 @@ onBeforeUnmount(() => {
         </p>
       </div>
 
-      <UCard class="bg-white/90 shadow-sm">
+      <UCard class="border border-primary/30 bg-white/90 shadow-sm">
 
         <!-- INPUT GRID -->
         <div class="grid grid-cols-2 gap-x-6 gap-y-5">
@@ -568,19 +594,36 @@ onBeforeUnmount(() => {
             </p>
           </UFormField>
 
-          <!-- Pangkat -->
-          <UFormField
-            label="Pangkat / Gol. Ruang"
-            required
-            class="min-w-0"
-          >
-            <UInput
-              v-model="applicant.rank"
+          <!-- Pangkat dan Golongan Ruang -->
+          <div class="grid grid-cols-4 gap-x-3">
+            <UFormField
+              label="Pangkat"
               required
-              placeholder="Contoh: III/a"
-              class="w-full my-2"
-            />
-          </UFormField>
+              class="col-span-3 min-w-0"
+            >
+              <USelect
+                v-model="applicant.rankName"
+                :items="rankNameOptions"
+                required
+                placeholder="Pilih pangkat"
+                class="my-2 w-full"
+              />
+            </UFormField>
+
+            <UFormField
+              label="Golongan Ruang"
+              required
+              class="col-span-1 min-w-0"
+            >
+              <USelect
+                v-model="applicant.rankGroup"
+                :items="rankGroupOptions"
+                required
+                placeholder="Pilih golongan"
+                class="my-2 w-full"
+              />
+            </UFormField>
+          </div>
 
           <!-- Jenis Kelamin -->
           <UFormField
@@ -796,7 +839,7 @@ onBeforeUnmount(() => {
   </div>
 
   <!-- Card -->
-  <UCard class="bg-white/90 shadow-sm">
+  <UCard class="border border-primary/30 bg-white/90 shadow-sm">
     <div class="space-y-4">
 
       <div
@@ -938,7 +981,7 @@ onBeforeUnmount(() => {
   </div>
 
   <!-- Card -->
-  <UCard class="bg-white/90 shadow-sm">
+  <UCard class="border border-primary/30 bg-white/90 shadow-sm">
     <div class="space-y-4">
 
       <div
@@ -1068,7 +1111,7 @@ onBeforeUnmount(() => {
   </div>
 
   <!-- Card -->
-  <UCard class="bg-white/90 shadow-sm">
+  <UCard class="border border-primary/30 bg-white/90 shadow-sm">
     <div class="space-y-3">
 
       <!-- ====================================
@@ -1336,7 +1379,7 @@ onBeforeUnmount(() => {
   </div>
 
   <!-- Card -->
-  <UCard class="bg-white/90 shadow-sm">
+  <UCard class="border border-primary/30 bg-white/90 shadow-sm">
 
     <div v-if="applicantProgress < 100" class="text-sm leading-6 text-slate-500">
       Lengkapi seluruh data dan dokumen yang dipersyaratkan pada CMSP.01
@@ -1403,7 +1446,7 @@ onBeforeUnmount(() => {
 
       <!-- Checkbox Persetujuan -->
       <div
-        class="rounded-xl bg-primary/5 p-4 ring-1 ring-primary/10"
+        class="rounded-xl border border-primary/50 bg-primary/5 p-4"
       >
         <UCheckbox
           v-model="declarationAccepted"
@@ -1430,7 +1473,7 @@ onBeforeUnmount(() => {
   class="sticky bottom-4 z-10 transition-shadow duration-200"
 >
   <UCard
-    class="bg-white/90"
+    class="border border-primary/30 bg-white/90"
     :class="isDraftBarFloating ? 'shadow-lg' : 'shadow-sm'"
   >
     <div class="flex items-center gap-6">

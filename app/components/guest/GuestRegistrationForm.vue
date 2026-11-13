@@ -448,19 +448,14 @@ function resetForm() {
     <template v-else>
       <!-- Header -->
       <section class="space-y-3">
-        <UBadge
-          label="Pendaftaran Sertifikasi"
-          color="primary"
-          variant="subtle"
-        />
 
         <h1
-          class="text-2xl font-semibold tracking-tight text-slate-900 lg:text-3xl"
+          class="text-2xl font-semibold tracking-tight text-blue-500 lg:text-3xl"
         >
           Pendaftaran Sertifikasi
         </h1>
 
-        <p class="max-w-3xl text-sm leading-6 text-slate-500">
+        <p class="max-w text-sm leading-6 text-slate-500">
           Silakan lengkapi data dan dokumen persyaratan pendaftaran dengan benar.
           Seluruh data dan dokumen wajib diisi sebelum pendaftaran dikirim.
         </p>

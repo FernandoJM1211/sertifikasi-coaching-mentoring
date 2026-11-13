@@ -1,3 +1,4 @@
+
 import {
   getSheetValues,
   appendSheetValues,
@@ -17,22 +18,35 @@ export interface CertificationPeriod {
   updated_at: string;
 }
 
+function rowToCertificationPeriod(
+  row: string[],
+): CertificationPeriod {
+  return {
+    period_id: row[0] ?? "",
+    certification_type_id: row[1] ?? "",
+    category_id: row[2] ?? "",
+    period_name: row[3] ?? "",
+    period_status: row[4] ?? "",
+    created_by: row[5] ?? "",
+    created_at: row[6] ?? "",
+    updated_at: row[7] ?? "",
+  };
+}
+
 function generatePeriodId(rows: string[][]): string {
   let maxNumber = 0;
 
-  for (const row of rows) {
-    const periodId = row[0];
-
-    if (!periodId) continue;
+  for (const row of rows.slice(1)) {
+    const periodId = (row[0] ?? "").trim();
 
     const match = periodId.match(/^PER-(\d+)$/);
 
-    if (match) {
-      const number = Number(match[1]);
+    if (!match) continue;
 
-      if (number > maxNumber) {
-        maxNumber = number;
-      }
+    const number = Number(match[1]);
+
+    if (number > maxNumber) {
+      maxNumber = number;
     }
   }
 
@@ -42,50 +56,41 @@ function generatePeriodId(rows: string[][]): string {
 export async function findCertificationPeriodById(
   periodId: string,
 ): Promise<CertificationPeriod | null> {
+  const normalizedId = periodId.trim().toUpperCase();
+  if (!normalizedId) return null;
+
   const rows = await getSheetValues(SHEET_NAME);
 
   if (!rows || rows.length <= 1) {
     return null;
   }
 
-  for (const row of rows.slice(1)) {
-    if (row[0] === periodId) {
-      return {
-        period_id: row[0] || "",
-        certification_type_id: row[1] || "",
-        category_id: row[2] || "",
-        period_name: row[3] || "",
-        period_status: row[4] || "",
-        created_by: row[5] || "",
-        created_at: row[6] || "",
-        updated_at: row[7] || "",
-      };
-    }
-  }
+  const foundRow = rows
+    .slice(1)
+    .find(
+      (row) =>
+        (row[0] ?? "").trim().toUpperCase() === normalizedId,
+    );
 
-  return null;
+  return foundRow
+    ? rowToCertificationPeriod(foundRow)
+    : null;
 }
 
-
-export async function findAllCertificationPeriods(): Promise<CertificationPeriod[]> {
-  const rows = await getSheetValues(SHEET_NAME)
+export async function findAllCertificationPeriods(): Promise<
+  CertificationPeriod[]
+> {
+  const rows = await getSheetValues(SHEET_NAME);
 
   if (!rows || rows.length <= 1) {
-    return []
+    return [];
   }
 
-  return rows.slice(1).map((row) => ({
-    period_id: row[0] || '',
-    certification_type_id: row[1] || '',
-    category_id: row[2] || '',
-    period_name: row[3] || '',
-    period_status: row[4] || '',
-    created_by: row[5] || '',
-    created_at: row[6] || '',
-    updated_at: row[7] || '',
-  }))
+  return rows
+    .slice(1)
+    .filter((row) => (row[0] ?? "").trim() !== "")
+    .map(rowToCertificationPeriod);
 }
-
 
 export async function createCertificationPeriod(
   data: Omit<
@@ -96,7 +101,6 @@ export async function createCertificationPeriod(
   const rows = await getSheetValues(SHEET_NAME);
 
   const periodId = generatePeriodId(rows);
-
   const now = new Date().toISOString();
 
   const period: CertificationPeriod = {
@@ -111,21 +115,18 @@ export async function createCertificationPeriod(
   };
 
   await appendSheetValues(SHEET_NAME, [
-
-      period.period_id,
-      period.certification_type_id,
-      period.category_id,
-      period.period_name,
-      period.period_status,
-      period.created_by,
-      period.created_at,
-      period.updated_at,
-
+    period.period_id,
+    period.certification_type_id,
+    period.category_id,
+    period.period_name,
+    period.period_status,
+    period.created_by,
+    period.created_at,
+    period.updated_at,
   ]);
 
   return period;
 }
-
 
 export async function updateCertificationPeriod(
   periodId: string,
@@ -140,8 +141,12 @@ export async function updateCertificationPeriod(
     return null;
   }
 
+  const normalizedId = periodId.trim().toUpperCase();
+
   const rowIndex = rows.findIndex(
-    (row, index) => index > 0 && row[0] === periodId,
+    (row, index) =>
+      index > 0 &&
+      (row[0] ?? "").trim().toUpperCase() === normalizedId,
   );
 
   if (rowIndex === -1) {
@@ -157,13 +162,13 @@ export async function updateCertificationPeriod(
   const now = new Date().toISOString();
 
   const period: CertificationPeriod = {
-    period_id: existing[0] || "",
+    period_id: existing[0] ?? "",
     certification_type_id: data.certification_type_id,
     category_id: data.category_id,
     period_name: data.period_name,
     period_status: data.period_status,
-    created_by: existing[5] || "",
-    created_at: existing[6] || "",
+    created_by: existing[5] ?? "",
+    created_at: existing[6] ?? "",
     updated_at: now,
   };
 

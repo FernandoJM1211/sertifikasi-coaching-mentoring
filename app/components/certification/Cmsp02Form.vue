@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 
+const props = defineProps<{ applicationId: string }>()
+const draftStorageKey = computed(() => `cmsp-02-draft:${props.applicationId}`)
+
 type Evidence = {
   type: 'file' | 'url'
   evidenceName: string
@@ -339,7 +342,7 @@ function saveDraft() {
     savedAt: new Date().toISOString(),
   }
 
-  localStorage.setItem('cmsp-02-draft', JSON.stringify(draftData))
+  localStorage.setItem(draftStorageKey.value, JSON.stringify(draftData))
   savedMessage.value = 'Draft CMSP.02 berhasil disimpan.'
 
   window.setTimeout(() => {
@@ -348,7 +351,7 @@ function saveDraft() {
 }
 
 onMounted(() => {
-  const savedDraft = localStorage.getItem('cmsp-02-draft')
+  const savedDraft = localStorage.getItem(draftStorageKey.value)
 
   if (!savedDraft) return
 

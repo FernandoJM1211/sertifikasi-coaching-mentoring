@@ -100,22 +100,6 @@
           />
         </div>
 
-        <!-- Status periode -->
-        <div class="space-y-1.5">
-          <label class="text-sm font-medium text-slate-700">
-            Status Periode
-          </label>
-
-          <UInput
-            model-value="Draft"
-            disabled
-            class="w-full"
-          />
-
-          <p class="text-xs text-slate-500">
-            Periode baru dibuat sebagai Draft dan belum dibuka untuk pendaftaran.
-          </p>
-        </div>
 
         <!-- Tombol aksi -->
         <div
@@ -302,8 +286,6 @@ async function submitForm() {
           form.certificationTypeId,
         categoryId: form.categoryId,
         periodName: form.periodName.trim(),
-        periodStatus: 'DRAFT',
-        createdBy: 'USR-000001',
       },
     })
 

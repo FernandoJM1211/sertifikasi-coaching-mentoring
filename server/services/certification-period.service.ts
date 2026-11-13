@@ -1,3 +1,4 @@
+
 import {
   createCertificationPeriod as createCertificationPeriodRecord,
   updateCertificationPeriod as updateCertificationPeriodRecord,
@@ -37,11 +38,6 @@ function validatePayload(
       'Nama periode wajib diisi.'
   }
 
-  if (!payload.periodStatus?.trim()) {
-    errors.periodStatus =
-      'Status periode wajib diisi.'
-  }
-
   if (!payload.createdBy?.trim()) {
     errors.createdBy =
       'Pembuat periode wajib diisi.'
@@ -72,8 +68,7 @@ export async function createCertificationPeriod(
         payload.categoryId!.trim(),
       period_name:
         payload.periodName!.trim(),
-      period_status:
-        payload.periodStatus!.trim(),
+      period_status: 'DRAFT',
       created_by:
         payload.createdBy!.trim(),
     })
@@ -94,16 +89,18 @@ const ALLOWED_STATUS_TRANSITIONS: Record<string, string[]> = {
   COMPLETED: [],
 }
 
+
 const REQUIRED_STAGES = [
   'REGISTRATION',
   'DOCUMENT_VERIFICATION',
   'SELF_ASSESSMENT',
-  'EVALUATION',
   'SELF_ASSESSMENT_VERIFICATION',
+  'EVALUATION',
   'ASSESSOR_ASSESSMENT',
   'ASSESSMENT_VERIFICATION',
   'ANNOUNCEMENT',
 ]
+
 
 function validateTimelineForActivation(
   timelines: Awaited<
@@ -115,10 +112,15 @@ function validateTimelineForActivation(
   }
 
   const orderedTimelines = [...timelines].sort(
-    (a, b) => Number(a.stage_order) - Number(b.stage_order),
+    (a, b) =>
+      Number(a.stage_order) - Number(b.stage_order),
   )
 
-  for (let index = 0; index < REQUIRED_STAGES.length; index++) {
+  for (
+    let index = 0;
+    index < REQUIRED_STAGES.length;
+    index++
+  ) {
     const timeline = orderedTimelines[index]
     const requiredStageCode = REQUIRED_STAGES[index]
 
@@ -149,13 +151,15 @@ function validateTimelineForActivation(
     }
 
     if (index > 0) {
-      const previousTimeline = orderedTimelines[index - 1]
+      const previousTimeline =
+        orderedTimelines[index - 1]
 
       if (!previousTimeline) {
         return 'Data tahapan sebelumnya tidak ditemukan.'
       }
 
-      const previousEnd = new Date(previousTimeline.end_at)
+      const previousEnd =
+        new Date(previousTimeline.end_at)
 
       if (start < previousEnd) {
         return `Tahap ${index + 1} tidak boleh dimulai sebelum tahap ${index} selesai.`
@@ -171,7 +175,9 @@ export async function updateCertificationPeriodStatus(
   newStatus: string,
 ) {
   const normalizedPeriodId =
-    typeof periodId === 'string' ? periodId.trim() : ''
+    typeof periodId === 'string'
+      ? periodId.trim()
+      : ''
 
   const normalizedStatus =
     typeof newStatus === 'string'
@@ -186,16 +192,21 @@ export async function updateCertificationPeriodStatus(
   }
 
   const period =
-    await findCertificationPeriodById(normalizedPeriodId)
+    await findCertificationPeriodById(
+      normalizedPeriodId,
+    )
 
   if (!period) {
     throw createError({
       statusCode: 404,
-      statusMessage: 'Periode sertifikasi tidak ditemukan.',
+      statusMessage:
+        'Periode sertifikasi tidak ditemukan.',
     })
   }
 
-  const currentStatus = period.period_status.trim().toUpperCase()
+  const currentStatus =
+    period.period_status.trim().toUpperCase()
+
   const allowedStatuses =
     ALLOWED_STATUS_TRANSITIONS[currentStatus] ?? []
 
@@ -207,13 +218,16 @@ export async function updateCertificationPeriodStatus(
     })
   }
 
-  // Aktivasi atau pembukaan kembali hanya diizinkan jika
-  // tidak ada periode lain yang masih berjalan atau ditutup.
+  // Aktivasi atau pembukaan kembali hanya diizinkan
+  // jika tidak ada periode lain yang masih berjalan
+  // atau ditutup.
   if (normalizedStatus === 'ACTIVE') {
-    const allPeriods = await findAllCertificationPeriods()
+    const allPeriods =
+      await findAllCertificationPeriods()
 
     const unfinishedPeriod = allPeriods.find((item) => {
-      const itemStatus = item.period_status.trim().toUpperCase()
+      const itemStatus =
+        item.period_status.trim().toUpperCase()
 
       return (
         item.period_id !== normalizedPeriodId &&
@@ -226,7 +240,9 @@ export async function updateCertificationPeriodStatus(
         unfinishedPeriod.period_status.trim().toUpperCase()
 
       const statusLabel =
-        unfinishedStatus === 'ACTIVE' ? 'Aktif' : 'Ditutup'
+        unfinishedStatus === 'ACTIVE'
+          ? 'Aktif'
+          : 'Ditutup'
 
       throw createError({
         statusCode: 409,
@@ -236,8 +252,8 @@ export async function updateCertificationPeriodStatus(
     }
   }
 
-  // Periode harus memiliki delapan tahapan timeline yang valid
-  // sebelum dapat diaktifkan atau dibuka kembali.
+  // Periode harus memiliki delapan tahapan timeline
+  // yang valid sebelum dapat diaktifkan kembali.
   if (normalizedStatus === 'ACTIVE') {
     const timelines =
       await findCertificationTimelinesByPeriodId(
@@ -259,7 +275,8 @@ export async function updateCertificationPeriodStatus(
     await updateCertificationPeriodRecord(
       normalizedPeriodId,
       {
-        certification_type_id: period.certification_type_id,
+        certification_type_id:
+          period.certification_type_id,
         category_id: period.category_id,
         period_name: period.period_name,
         period_status: normalizedStatus,
@@ -270,7 +287,8 @@ export async function updateCertificationPeriodStatus(
   if (!updatedPeriod) {
     throw createError({
       statusCode: 500,
-      statusMessage: 'Gagal memperbarui status periode.',
+      statusMessage:
+        'Gagal memperbarui status periode.',
     })
   }
 

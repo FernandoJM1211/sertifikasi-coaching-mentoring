@@ -1,5 +1,7 @@
+
 import {
   createApplicationVerification,
+  findApplicationVerificationsByApplicationId,
   type ApplicationVerification,
   type CreateApplicationVerificationInput,
 } from '../repositories/application-verification.repository'
@@ -11,6 +13,11 @@ import {
   supersedePendingApplicationsByNipAndPeriod,
 } from '../repositories/application.repository'
 
+import {
+  prepareParticipantAccount,
+  sendParticipantActivationEmail,
+} from './participant-account-provisioning.service'
+
 export type CreateApplicationVerificationServiceInput = {
   applicationId: string
   verifiedBy: string
@@ -21,46 +28,20 @@ export type CreateApplicationVerificationServiceInput = {
 export async function createApplicationVerificationService(
   input: CreateApplicationVerificationServiceInput,
 ): Promise<ApplicationVerification> {
-  const applicationId =
-    input.applicationId?.trim() ?? ''
-
-  const verifiedBy =
-    input.verifiedBy?.trim() ?? ''
-
+  const applicationId = input.applicationId?.trim() ?? ''
+  const verifiedBy = input.verifiedBy?.trim() ?? ''
   const verificationStatus =
     input.verificationStatus?.trim().toUpperCase() ?? ''
 
-  if (!applicationId) {
+  if (!applicationId || !verifiedBy || !verificationStatus) {
     throw createError({
       statusCode: 400,
       statusMessage:
-        'applicationId wajib diisi.',
+        'applicationId, verifiedBy, dan verificationStatus wajib diisi.',
     })
   }
 
-  if (!verifiedBy) {
-    throw createError({
-      statusCode: 400,
-      statusMessage:
-        'verifiedBy wajib diisi.',
-    })
-  }
-
-  if (!verificationStatus) {
-    throw createError({
-      statusCode: 400,
-      statusMessage:
-        'verificationStatus wajib diisi.',
-    })
-  }
-
-  // Keputusan verifikasi application hanya memiliki
-  // dua hasil resmi: DITERIMA atau DITOLAK.
-  if (
-    !['DITERIMA', 'DITOLAK'].includes(
-      verificationStatus,
-    )
-  ) {
+  if (!['DITERIMA', 'DITOLAK'].includes(verificationStatus)) {
     throw createError({
       statusCode: 400,
       statusMessage:
@@ -68,37 +49,60 @@ export async function createApplicationVerificationService(
     })
   }
 
-  // Pastikan application yang diverifikasi memang
-  // terdaftar di database.
-  const application =
-    await findApplicationById(
-      applicationId,
-    )
+  const application = await findApplicationById(applicationId)
 
   if (!application) {
     throw createError({
       statusCode: 404,
-      statusMessage:
-        'Application tidak ditemukan.',
+      statusMessage: 'Application tidak ditemukan.',
     })
   }
 
-  // Application hanya dapat diverifikasi
-  // ketika masih berada pada tahap verifikasi.
+  const histories =
+    await findApplicationVerificationsByApplicationId(applicationId)
+
+  if (histories.length > 1) {
+    throw createError({
+      statusCode: 409,
+      statusMessage:
+        'Ditemukan lebih dari satu riwayat verifikasi. Periksa data sebelum melanjutkan.',
+    })
+  }
+
+  const existingVerification = histories[0]
+
   if (
-    application.application_status !==
-    'pending_verification'
+    existingVerification &&
+    existingVerification.verification_status !== verificationStatus
   ) {
     throw createError({
       statusCode: 409,
       statusMessage:
-        'Application tidak dapat diverifikasi karena statusnya bukan pending_verification.',
+        'Pengajuan sudah memiliki riwayat dengan keputusan berbeda.',
     })
   }
 
-  // Cegah NIP yang sama diterima lebih dari sekali
-  // pada periode yang sama.
-  if (verificationStatus === 'DITERIMA') {
+  const isAccepted = verificationStatus === 'DITERIMA'
+  const nextStatus = isAccepted ? 'accepted' : 'rejected'
+
+  // Jika status sudah sesuai dan riwayat tersedia, proses dapat
+  // dilanjutkan untuk memulihkan tahap yang sebelumnya gagal.
+  const isResume =
+    Boolean(existingVerification) &&
+    application.application_status === nextStatus
+
+  if (
+    application.application_status !== 'pending_verification' &&
+    !isResume
+  ) {
+    throw createError({
+      statusCode: 409,
+      statusMessage:
+        'Application tidak dapat diverifikasi atau dilanjutkan dari status saat ini.',
+    })
+  }
+
+  if (isAccepted) {
     const acceptedApplication =
       await findAcceptedApplicationByNipAndPeriod(
         application.nip_snapshot,
@@ -115,56 +119,65 @@ export async function createApplicationVerificationService(
     }
   }
 
+  // Siapkan akun dan token terlebih dahulu, tanpa mengirim email.
+  // Penolakan tidak menjalankan proses pembuatan akun.
+  const preparedAccount = isAccepted
+    ? await prepareParticipantAccount({
+        person_id: application.person_id,
+        full_name_snapshot: application.full_name_snapshot,
+        nip_snapshot: application.nip_snapshot,
+        institution_name: application.institution_name,
+        region: application.region,
+        email_snapshot: application.email_snapshot,
+        phone_snapshot: application.phone_snapshot,
+        last_education: application.last_education,
+        position: application.position,
+      })
+    : null
+
   const payload: CreateApplicationVerificationInput = {
-    application_id:
-      applicationId,
-
-    verified_by:
-      verifiedBy,
-
-    verification_status:
-      verificationStatus,
-
-    verification_note:
-      '',
-
+    application_id: applicationId,
+    verified_by: verifiedBy,
+    verification_status: verificationStatus,
+    verification_note: existingVerification?.verification_note ?? '',
     verified_at:
-      input.verifiedAt,
+      existingVerification?.verified_at ?? input.verifiedAt,
   }
 
+  // Buat riwayat hanya jika belum ada, agar percobaan ulang
+  // tidak membuat riwayat verifikasi kedua.
   const verification =
-    await createApplicationVerification(
-      payload,
-    )
+    existingVerification ??
+    await createApplicationVerification(payload)
 
-  const nextApplicationStatus =
-    verificationStatus === 'DITERIMA'
-      ? 'accepted'
-      : 'rejected'
-
-  const updatedApplication =
-    await updateApplicationStatus(
+  if (application.application_status !== nextStatus) {
+    const updatedApplication = await updateApplicationStatus(
       applicationId,
-      nextApplicationStatus,
+      nextStatus,
     )
 
-  if (!updatedApplication) {
-    throw createError({
-      statusCode: 404,
-      statusMessage:
-        'Application tidak ditemukan saat memperbarui status.',
-    })
+    if (!updatedApplication) {
+      throw createError({
+        statusCode: 404,
+        statusMessage:
+          'Application tidak ditemukan saat memperbarui status.',
+      })
+    }
   }
 
-  // Jika pengajuan diterima, tandai pengajuan lain
-  // dengan NIP dan periode yang sama yang masih pending
-  // sebagai superseded agar tidak ikut diproses lagi.
-  if (verificationStatus === 'DITERIMA') {
+  if (isAccepted) {
     await supersedePendingApplicationsByNipAndPeriod(
       application.nip_snapshot,
       application.period_id,
       application.application_id,
     )
+
+    // Email hanya dikirim setelah status accepted berhasil disimpan.
+    // Jika pengiriman gagal, pemanggilan ulang dapat menyiapkan
+    // token baru dan mencoba mengirim kembali.
+    if (preparedAccount) {
+      await sendParticipantActivationEmail(preparedAccount)
+    }
   }
 
   return verification

@@ -1,10 +1,13 @@
+
 import {
   createApplication as createApplicationRecord,
+  findAcceptedApplicationByNipAndPeriod,
 } from '../repositories/application.repository'
 
 import {
   createPerson,
   findPersonByNip,
+  findPersonByEmail,
 } from '../repositories/person.repository'
 
 import {
@@ -73,34 +76,6 @@ function validatePayload(payload: ApplicationPayload) {
   return errors
 }
 
-async function findOrCreatePerson(payload: ApplicationPayload) {
-  const nip = payload.nip!.trim()
-  const existingPerson = await findPersonByNip(nip)
-
-  if (existingPerson) {
-    return {
-      person: existingPerson,
-      created: false,
-    }
-  }
-
-  const newPerson = await createPerson({
-    full_name: payload.fullName!.trim(),
-    nip,
-    email: payload.email!.trim(),
-    phone_number: payload.whatsapp!.trim(),
-    institution_name: payload.institution!.trim(),
-    region: payload.region!.trim(),
-    education_level: payload.education!.trim(),
-    position_name: payload.position!.trim(),
-  })
-
-  return {
-    person: newPerson,
-    created: true,
-  }
-}
-
 async function getOpenRegistrationPeriod() {
   const periods = await findAllCertificationPeriods()
 
@@ -130,8 +105,7 @@ async function getOpenRegistrationPeriod() {
   if (!period) {
     throw createError({
       statusCode: 409,
-      statusMessage:
-        'Periode sertifikasi aktif tidak ditemukan.',
+      statusMessage: 'Periode sertifikasi aktif tidak ditemukan.',
     })
   }
 
@@ -159,14 +133,26 @@ async function getOpenRegistrationPeriod() {
     })
   }
 
-  if (
-    registrationTimeline.is_override_open.trim().toUpperCase() ===
-    'TRUE'
-  ) {
+  const overrideMode = (
+    registrationTimeline.is_override_open || ''
+  ).trim().toUpperCase()
+
+  if (overrideMode === 'OPEN' || overrideMode === 'TRUE') {
     return period
   }
 
-  if (!registrationTimeline.start_at || !registrationTimeline.end_at) {
+  if (overrideMode === 'CLOSED') {
+    throw createError({
+      statusCode: 409,
+      statusMessage:
+        'Pendaftaran sedang ditutup secara manual oleh Super Admin.',
+    })
+  }
+
+  if (
+    !registrationTimeline.start_at ||
+    !registrationTimeline.end_at
+  ) {
     throw createError({
       statusCode: 409,
       statusMessage:
@@ -208,8 +194,7 @@ async function getOpenRegistrationPeriod() {
   if (now > endAt.getTime()) {
     throw createError({
       statusCode: 409,
-      statusMessage:
-        'Masa pendaftaran telah berakhir.',
+      statusMessage: 'Masa pendaftaran telah berakhir.',
     })
   }
 
@@ -227,13 +212,80 @@ export async function createApplication(payload: ApplicationPayload) {
     })
   }
 
-  // Periksa periode dan jadwal sebelum membuat Person atau Application.
+  const nip = payload.nip!.trim()
+  const email = payload.email!.trim().toLowerCase()
+
+  // Periksa periode dan jadwal sebelum membuat data.
   const activePeriod = await getOpenRegistrationPeriod()
 
-  const {
-    person,
-    created: personCreated,
-  } = await findOrCreatePerson(payload)
+  // Cegah pengajuan baru jika NIP sudah diterima pada periode ini.
+  const acceptedApplication =
+    await findAcceptedApplicationByNipAndPeriod(
+      nip,
+      activePeriod.period_id,
+    )
+
+  if (acceptedApplication) {
+    throw createError({
+      statusCode: 409,
+      statusMessage:
+        'Pengajuan dengan NIP ini sudah diterima pada periode sertifikasi yang sama.',
+    })
+  }
+
+  // Periksa konflik identitas sebelum membuat atau menghubungkan profil.
+  const [personByNip, personByEmail] = await Promise.all([
+    findPersonByNip(nip),
+    findPersonByEmail(email),
+  ])
+
+  if (
+    personByNip &&
+    personByEmail &&
+    personByNip.person_id !== personByEmail.person_id
+  ) {
+    throw createError({
+      statusCode: 409,
+      statusMessage:
+        'NIP dan email terhubung ke profil yang berbeda. Pendaftaran memerlukan pemeriksaan identitas manual.',
+    })
+  }
+
+  if (personByNip && personByNip.email.trim().toLowerCase() !== email) {
+    throw createError({
+      statusCode: 409,
+      statusMessage:
+        'NIP sudah terdaftar dengan email berbeda. Silakan lakukan pemeriksaan identitas sebelum melanjutkan.',
+    })
+  }
+
+  if (personByEmail && personByEmail.nip.trim() !== nip) {
+    throw createError({
+      statusCode: 409,
+      statusMessage:
+        'Email sudah terdaftar dengan NIP berbeda. Silakan lakukan pemeriksaan identitas sebelum melanjutkan.',
+    })
+  }
+
+  // Gunakan profil yang cocok; buat profil baru hanya jika NIP dan email
+  // belum ditemukan pada profil mana pun.
+  let person = personByNip ?? personByEmail
+  let personCreated = false
+
+  if (!person) {
+    person = await createPerson({
+      full_name: payload.fullName!.trim(),
+      nip,
+      email,
+      phone_number: payload.whatsapp!.trim(),
+      institution_name: payload.institution!.trim(),
+      region: payload.region!.trim(),
+      education_level: payload.education!.trim(),
+      position_name: payload.position!.trim(),
+    })
+
+    personCreated = true
+  }
 
   const submittedAt = new Date().toISOString()
 
@@ -241,16 +293,14 @@ export async function createApplication(payload: ApplicationPayload) {
     person_id: person.person_id,
     period_id: activePeriod.period_id,
     category_id: activePeriod.category_id,
-
     full_name_snapshot: payload.fullName!.trim(),
-    nip_snapshot: payload.nip!.trim(),
+    nip_snapshot: nip,
     institution_name: payload.institution!.trim(),
     region: payload.region!.trim(),
-    email_snapshot: payload.email!.trim(),
+    email_snapshot: email,
     phone_snapshot: payload.whatsapp!.trim(),
     last_education: payload.education!.trim(),
     position: payload.position!.trim(),
-
     application_status: 'pending_verification',
     submitted_at: submittedAt,
   })

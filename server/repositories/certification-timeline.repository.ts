@@ -214,3 +214,64 @@ const now = new Date().toISOString();
 
   return timeline;
 }
+
+
+export async function updateCertificationTimelineOverride(
+  timelineId: string,
+  mode: 'NORMAL' | 'OPEN' | 'CLOSED',
+  updatedBy: string,
+): Promise<CertificationTimeline | null> {
+  const rows = await getSheetValues(SHEET_NAME)
+
+  if (!rows || rows.length <= 1) {
+    return null
+  }
+
+  const rowIndex = rows.findIndex(
+    (row, index) => index > 0 && row[0] === timelineId,
+  )
+
+  if (rowIndex === -1) {
+    return null
+  }
+
+  const existing = rows[rowIndex]
+
+  if (!existing) {
+    return null
+  }
+
+  const now = new Date().toISOString()
+
+  const timeline: CertificationTimeline = {
+    timeline_id: existing[0] || '',
+    period_id: existing[1] || '',
+    stage_order: existing[2] || '',
+    stage_code: existing[3] || '',
+    stage_name: existing[4] || '',
+    start_at: existing[5] || '',
+    end_at: existing[6] || '',
+    is_override_open: mode,
+    override_by: mode === 'NORMAL' ? '' : updatedBy,
+    override_at: mode === 'NORMAL' ? '' : now,
+    created_at: existing[10] || '',
+    updated_at: now,
+  }
+
+  await updateSheetRow(SHEET_NAME, rowIndex + 1, [
+    timeline.timeline_id,
+    timeline.period_id,
+    timeline.stage_order,
+    timeline.stage_code,
+    timeline.stage_name,
+    timeline.start_at,
+    timeline.end_at,
+    timeline.is_override_open,
+    timeline.override_by,
+    timeline.override_at,
+    timeline.created_at,
+    timeline.updated_at,
+  ])
+
+  return timeline
+}

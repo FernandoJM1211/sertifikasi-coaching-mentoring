@@ -919,7 +919,6 @@ const documentPreviewUrl = computed(() => {
 
  */
 
-const verifierId = 'USR-VER-000001'
 
 const applicationId = computed(() => {
   return String(route.params.applicationId)
@@ -1144,14 +1143,9 @@ async function submitApplicationDecision() {
         method: 'POST',
 
         body: {
-
-          applicationId: applicationId.value,
-
-          verifiedBy: verifierId,
-
-          verificationStatus,
-
-        },
+  applicationId: applicationId.value,
+  verificationStatus,
+},
 
       },
 

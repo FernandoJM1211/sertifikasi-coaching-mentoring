@@ -22,6 +22,8 @@ type CertificationTimelinePayload = {
   stages?: TimelineStagePayload[]
 }
 
+
+
 const REQUIRED_STAGES = [
   {
     stageOrder: 1,
@@ -40,13 +42,13 @@ const REQUIRED_STAGES = [
   },
   {
     stageOrder: 4,
-    stageCode: 'EVALUATION',
-    stageName: 'Evaluasi',
+    stageCode: 'SELF_ASSESSMENT_VERIFICATION',
+    stageName: 'Verifikasi Self Assessment',
   },
   {
     stageOrder: 5,
-    stageCode: 'SELF_ASSESSMENT_VERIFICATION',
-    stageName: 'Verifikasi Self Assessment',
+    stageCode: 'EVALUATION',
+    stageName: 'Evaluasi',
   },
   {
     stageOrder: 6,
@@ -64,6 +66,8 @@ const REQUIRED_STAGES = [
     stageName: 'Pengumuman',
   },
 ]
+
+
 
 function validatePayload(
   payload: CertificationTimelinePayload,
