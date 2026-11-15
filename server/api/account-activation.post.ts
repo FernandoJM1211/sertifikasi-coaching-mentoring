@@ -1,16 +1,16 @@
-
-import { activateParticipantAccount } from '../services/account-activation.service'
+import { activatePesertaAccount } from '../services/account-activation.service'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody<{
-    token?: string
-    password?: string
-    confirmPassword?: string
+    token?: unknown
+    password?: unknown
+    confirmPassword?: unknown
   }>(event)
 
-  const token = body?.token?.trim() ?? ''
-  const password = body?.password ?? ''
-  const confirmPassword = body?.confirmPassword ?? ''
+  const token = typeof body?.token === 'string' ? body.token.trim() : ''
+  const password = typeof body?.password === 'string' ? body.password : ''
+  const confirmPassword =
+    typeof body?.confirmPassword === 'string' ? body.confirmPassword : ''
 
   if (!token || !password || !confirmPassword) {
     throw createError({
@@ -28,8 +28,11 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  return await activateParticipantAccount({
-    token,
-    password,
-  })
+  assertRateLimit(
+    `activation:ip:${getClientIp(event)}`,
+    20,
+    15 * 60 * 1000,
+  )
+
+  return await activatePesertaAccount({ token, password })
 })

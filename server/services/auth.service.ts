@@ -8,6 +8,7 @@ import {
 import {
   findUserByEmail,
   findUserById,
+  updateUserLastLogin,
   updateUserPassword,
   type User,
 } from '../repositories/user.repository'
@@ -15,10 +16,18 @@ import {
   generateAuthToken,
   hashAuthToken,
 } from '../utils/auth-token'
-import { hashPassword,
-  verifyPassword } from '../utils/password'
+import {
+  hashPassword,
+  verifyPassword,
+  validateNewPassword,
+} from '../utils/password'
 
 const SESSION_DURATION_MS = 8 * 60 * 60 * 1000
+
+// Kolom last_seen_at cukup diperbarui berkala agar tidak ada
+// penulisan ke Google Sheets pada setiap request.
+const SESSION_LAST_SEEN_UPDATE_INTERVAL_MS = 5 * 60 * 1000
+
 
 export type AuthenticatedUser = {
   user_id: string
@@ -63,19 +72,12 @@ export async function loginWithPassword(input: {
 
   const user = await findUserByEmail(email)
 
-  if (!user) {
-    throw createError({
-      statusCode: 401,
-      statusMessage: 'Email atau kata sandi tidak sesuai.',
-    })
-  }
-
   const passwordMatches = await verifyPassword(
     password,
-    user.password_hash,
+    user?.password_hash,
   )
 
-  if (!passwordMatches) {
+  if (!user || !passwordMatches) {
     throw createError({
       statusCode: 401,
       statusMessage: 'Email atau kata sandi tidak sesuai.',
@@ -101,6 +103,13 @@ export async function loginWithPassword(input: {
     expires_at: expiresAt,
     ip_address: input.ipAddress,
   })
+
+  try {
+    await updateUserLastLogin(user.user_id)
+  } catch (error) {
+    // Kegagalan mencatat waktu login tidak boleh menggagalkan login.
+    console.error('Gagal memperbarui last_login_at:', error)
+  }
 
   return {
     user: toAuthenticatedUser(user),
@@ -159,7 +168,14 @@ export async function getAuthenticatedUser(
     })
   }
 
-  await updateSessionLastSeen(session.session_id)
+  const lastSeenAt = Date.parse(session.last_seen_at)
+
+  if (
+    Number.isNaN(lastSeenAt) ||
+    Date.now() - lastSeenAt > SESSION_LAST_SEEN_UPDATE_INTERVAL_MS
+  ) {
+    await updateSessionLastSeen(session.session_id)
+  }
 
   return toAuthenticatedUser(user)
 }
@@ -181,13 +197,7 @@ export async function changeUserPassword(input: {
     })
   }
 
-  if (newPassword.length < 12) {
-    throw createError({
-      statusCode: 400,
-      statusMessage:
-        'Kata sandi baru minimal 12 karakter.',
-    })
-  }
+  validateNewPassword(newPassword)
 
   if (newPassword === currentPassword) {
     throw createError({

@@ -1,21 +1,18 @@
+import { createError } from 'h3'
+import {
+  normalizeUserRole,
+  USER_ROLES,
+  ACCOUNT_STATUSES,
+  type AccountStatus,
+  type UserRole,
+} from '../../shared/utils/roles'
 import {
   appendAuthSheetValues,
   getAuthSheetValues,
   updateAuthSheetRow,
-} from '../utils/google-auth-sheets'
+} from '../utils/google-sheets'
 
-export type UserRole =
-  | 'PARTICIPANT'
-  | 'VERIFIER'
-  | 'TECHNICAL_ASSESSOR'
-  | 'PUBLIC_ASSESSOR'
-  | 'SUPER_ADMIN'
-
-export type UserAccountStatus =
-  | 'PENDING_ACTIVATION'
-  | 'ACTIVE'
-  | 'SUSPENDED'
-  | 'DISABLED'
+export type { UserRole, AccountStatus as UserAccountStatus }
 
 export type User = {
   user_id: string
@@ -24,7 +21,7 @@ export type User = {
   username_email: string
   password_hash: string
   role: UserRole
-  account_status: UserAccountStatus
+  account_status: AccountStatus
   email_verified_at: string
   password_changed_at: string
   created_at: string
@@ -38,32 +35,10 @@ export type CreateUserPayload = {
   username_email: string
   password_hash: string
   role: UserRole
-  account_status: UserAccountStatus
+  account_status: AccountStatus
 }
 
 const SHEET_NAME = 'users'
-
-const ALLOWED_ROLES: UserRole[] = [
-  'PARTICIPANT',
-  'VERIFIER',
-  'TECHNICAL_ASSESSOR',
-  'PUBLIC_ASSESSOR',
-  'SUPER_ADMIN',
-]
-
-const ALLOWED_ACCOUNT_STATUSES: UserAccountStatus[] = [
-  'PENDING_ACTIVATION',
-  'ACTIVE',
-  'SUSPENDED',
-  'DISABLED',
-]
-
-const STAFF_ROLES: UserRole[] = [
-  'VERIFIER',
-  'TECHNICAL_ASSESSOR',
-  'PUBLIC_ASSESSOR',
-  'SUPER_ADMIN',
-]
 
 function rowToUser(row: string[]): User {
   return {
@@ -72,8 +47,8 @@ function rowToUser(row: string[]): User {
     full_name: row[2] ?? '',
     username_email: row[3] ?? '',
     password_hash: row[4] ?? '',
-    role: (row[5] ?? '') as UserRole,
-    account_status: (row[6] ?? '') as UserAccountStatus,
+    role: normalizeUserRole(row[5] ?? '') as UserRole,
+    account_status: (row[6] ?? '') as AccountStatus,
     email_verified_at: row[7] ?? '',
     password_changed_at: row[8] ?? '',
     created_at: row[9] ?? '',
@@ -158,25 +133,6 @@ export async function findUserById(
 }
 
 
-export async function findUserByPersonId(
-  personId: string,
-): Promise<User | null> {
-  const normalizedPersonId = personId.trim().toUpperCase()
-
-  if (!normalizedPersonId) {
-    return null
-  }
-
-  const rows = await getAuthSheetValues(SHEET_NAME)
-
-  const foundRow = rows.slice(1).find(
-    (row) =>
-      (row[1] ?? '').trim().toUpperCase() === normalizedPersonId,
-  )
-
-  return foundRow ? rowToUser(foundRow) : null
-}
-
 export async function findUsersByPersonId(
   personId: string,
 ): Promise<User[]> {
@@ -186,7 +142,7 @@ export async function findUsersByPersonId(
     return []
   }
 
-  const rows = await getAuthSheetValues('users')
+  const rows = await getAuthSheetValues(SHEET_NAME)
 
   return rows
     .slice(1)
@@ -195,20 +151,7 @@ export async function findUsersByPersonId(
         String(row[1] ?? '').trim().toUpperCase() ===
         normalizedPersonId,
     )
-    .map((row) => ({
-      user_id: String(row[0] ?? ''),
-      person_id: String(row[1] ?? ''),
-      full_name: String(row[2] ?? ''),
-      username_email: String(row[3] ?? ''),
-      password_hash: String(row[4] ?? ''),
-      role: String(row[5] ?? '') as User['role'],
-      account_status: String(row[6] ?? '') as User['account_status'],
-      email_verified_at: String(row[7] ?? ''),
-      password_changed_at: String(row[8] ?? ''),
-      created_at: String(row[9] ?? ''),
-      updated_at: String(row[10] ?? ''),
-      last_login_at: String(row[11] ?? ''),
-    }))
+    .map((row) => rowToUser(row))
 }
 
 
@@ -252,21 +195,21 @@ export async function createUser(
     })
   }
 
-  if (!ALLOWED_ROLES.includes(role)) {
+  if (!USER_ROLES.includes(role)) {
     throw createError({
       statusCode: 400,
       statusMessage: 'Role akun tidak valid.',
     })
   }
 
-  if (!ALLOWED_ACCOUNT_STATUSES.includes(accountStatus)) {
+  if (!ACCOUNT_STATUSES.includes(accountStatus)) {
     throw createError({
       statusCode: 400,
       statusMessage: 'Status akun tidak valid.',
     })
   }
 
-  if (role === 'PARTICIPANT' && !personId) {
+  if (role === 'PESERTA' && !personId) {
     throw createError({
       statusCode: 400,
       statusMessage:
@@ -275,7 +218,7 @@ export async function createUser(
   }
 
   if (
-    role !== 'PARTICIPANT' &&
+    role !== 'PESERTA' &&
     accountStatus === 'PENDING_ACTIVATION'
   ) {
     throw createError({
@@ -312,7 +255,7 @@ export async function createUser(
     account_status: accountStatus,
     email_verified_at: '',
     password_changed_at:
-      role !== 'PARTICIPANT' && accountStatus === 'ACTIVE'
+      role !== 'PESERTA' && accountStatus === 'ACTIVE'
         ? now
         : '',
     created_at: now,
@@ -368,7 +311,7 @@ export async function activateUserAccount(
 
   const user = rowToUser(row)
 
-  if (user.role !== 'PARTICIPANT') {
+  if (user.role !== 'PESERTA') {
     throw createError({
       statusCode: 403,
       statusMessage:
@@ -403,89 +346,6 @@ export async function activateUserAccount(
 
   return updatedUser
 }
-
-/**
- * Menyiapkan akun pegawai tanpa token aktivasi peserta.
- * Pemanggil wajib memverifikasi otorisasi Super Admin
- * sebelum menggunakan fungsi ini.
- */
-export async function activateStaffAccount(
-  userId: string,
-  passwordHash: string,
-): Promise<User> {
-  const normalizedUserId = userId.trim().toUpperCase()
-  const normalizedPasswordHash = passwordHash.trim()
-
-  if (!normalizedUserId || !normalizedPasswordHash) {
-    throw createError({
-      statusCode: 400,
-      statusMessage:
-        'ID akun dan hash kata sandi wajib diisi.',
-    })
-  }
-
-  const rows = await getAuthSheetValues(SHEET_NAME)
-
-  const rowIndex = rows.slice(1).findIndex(
-    (row) =>
-      (row[0] ?? '').trim().toUpperCase() === normalizedUserId,
-  )
-
-  if (rowIndex === -1) {
-    throw createError({
-      statusCode: 404,
-      statusMessage: 'Akun pegawai tidak ditemukan.',
-    })
-  }
-
-  const row = rows[rowIndex + 1]
-
-  if (!row) {
-    throw createError({
-      statusCode: 404,
-      statusMessage: 'Data akun pegawai tidak ditemukan.',
-    })
-  }
-
-  const user = rowToUser(row)
-
-  if (!STAFF_ROLES.includes(user.role)) {
-    throw createError({
-      statusCode: 403,
-      statusMessage: 'Fungsi ini hanya untuk akun pegawai.',
-    })
-  }
-
-  if (
-    user.account_status !== 'PENDING_ACTIVATION' &&
-    user.account_status !== 'ACTIVE'
-  ) {
-    throw createError({
-      statusCode: 409,
-      statusMessage:
-        'Status akun tidak memungkinkan penetapan kata sandi.',
-    })
-  }
-
-  const now = new Date().toISOString()
-
-  const updatedUser: User = {
-    ...user,
-    password_hash: normalizedPasswordHash,
-    account_status: 'ACTIVE',
-    password_changed_at: now,
-    updated_at: now,
-  }
-
-  await updateAuthSheetRow(
-    SHEET_NAME,
-    rowIndex + 2,
-    userToRow(updatedUser),
-  )
-
-  return updatedUser
-}
-
 
 /**
  * Memperbarui hash kata sandi pengguna.
@@ -632,4 +492,78 @@ export async function updateUserStatus(
   )
 
   return updatedUser
+}
+
+/**
+ * Mencatat waktu login terakhir pengguna.
+ */
+export async function updateUserLastLogin(
+  userId: string,
+): Promise<void> {
+  const normalizedUserId = userId.trim().toUpperCase()
+
+  if (!normalizedUserId) return
+
+  const rows = await getAuthSheetValues(SHEET_NAME)
+
+  const rowIndex = rows.slice(1).findIndex(
+    (row) =>
+      (row[0] ?? '').trim().toUpperCase() === normalizedUserId,
+  )
+
+  const row = rowIndex === -1 ? undefined : rows[rowIndex + 1]
+
+  if (!row) return
+
+  const updatedUser: User = {
+    ...rowToUser(row),
+    last_login_at: new Date().toISOString(),
+  }
+
+  await updateAuthSheetRow(
+    SHEET_NAME,
+    rowIndex + 2,
+    userToRow(updatedUser),
+  )
+}
+
+/**
+ * Memperbarui nama lengkap pada akun (disinkronkan dari profil).
+ */
+export async function updateUserFullName(
+  userId: string,
+  fullName: string,
+): Promise<void> {
+  const normalizedUserId = userId.trim().toUpperCase()
+  const normalizedName = fullName.trim()
+
+  if (!normalizedUserId || !normalizedName) return
+
+  const rows = await getAuthSheetValues(SHEET_NAME)
+
+  const rowIndex = rows.slice(1).findIndex(
+    (row) =>
+      (row[0] ?? '').trim().toUpperCase() === normalizedUserId,
+  )
+
+  const row = rowIndex === -1 ? undefined : rows[rowIndex + 1]
+
+  if (!row) {
+    throw createError({
+      statusCode: 404,
+      statusMessage: 'Akun pengguna tidak ditemukan.',
+    })
+  }
+
+  const updatedUser: User = {
+    ...rowToUser(row),
+    full_name: normalizedName,
+    updated_at: new Date().toISOString(),
+  }
+
+  await updateAuthSheetRow(
+    SHEET_NAME,
+    rowIndex + 2,
+    userToRow(updatedUser),
+  )
 }

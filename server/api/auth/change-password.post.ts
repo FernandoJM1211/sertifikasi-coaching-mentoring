@@ -1,20 +1,7 @@
-
-import {
-  changeUserPassword,
-} from '../../services/auth.service'
-
-const SESSION_COOKIE_NAME = 'cmsp_session'
-
-type ChangePasswordBody = {
-  currentPassword?: string
-  newPassword?: string
-}
+import { changeUserPassword } from '../../services/auth.service'
 
 export default defineEventHandler(async (event) => {
-  const sessionToken = getCookie(
-    event,
-    SESSION_COOKIE_NAME,
-  )
+  const sessionToken = getSessionToken(event)
 
   if (!sessionToken) {
     throw createError({
@@ -23,12 +10,15 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const body = await readBody<ChangePasswordBody>(event)
+  const body = await readBody<{
+    currentPassword?: unknown
+    newPassword?: unknown
+  }>(event)
 
   if (
-    !body ||
-    typeof body.currentPassword !== 'string' ||
-    typeof body.newPassword !== 'string'
+    typeof body?.currentPassword !== 'string' ||
+    typeof body?.newPassword !== 'string' ||
+    body.currentPassword.length > 1024
   ) {
     throw createError({
       statusCode: 400,
@@ -41,6 +31,9 @@ export default defineEventHandler(async (event) => {
     currentPassword: body.currentPassword,
     newPassword: body.newPassword,
   })
+
+  // Seluruh sesi sudah dicabut oleh service; hapus juga cookie-nya.
+  clearSessionCookie(event)
 
   return {
     success: true,

@@ -1,5 +1,3 @@
-
-import 'dotenv/config'
 import { createInterface } from 'node:readline/promises'
 import { stdin, stdout } from 'node:process'
 
@@ -7,7 +5,11 @@ import {
   createUser,
   findUserByEmail,
 } from '../server/repositories/user.repository'
-import { hashPassword } from '../server/utils/password'
+import {
+  hashPassword,
+  PASSWORD_MAX_LENGTH,
+  PASSWORD_MIN_LENGTH,
+} from '../server/utils/password'
 
 async function main() {
   const terminal = createInterface({
@@ -37,14 +39,19 @@ async function main() {
     }
 
     const password = await terminal.question(
-      'Kata sandi awal (minimal 12 karakter): ',
+      `Kata sandi awal (minimal ${PASSWORD_MIN_LENGTH} karakter): `,
     )
     const confirmation = await terminal.question(
       'Konfirmasi kata sandi: ',
     )
 
-    if (password.length < 12) {
-      throw new Error('Kata sandi minimal 12 karakter.')
+    if (
+      password.length < PASSWORD_MIN_LENGTH ||
+      password.length > PASSWORD_MAX_LENGTH
+    ) {
+      throw new Error(
+        `Kata sandi harus ${PASSWORD_MIN_LENGTH}-${PASSWORD_MAX_LENGTH} karakter.`,
+      )
     }
 
     if (password !== confirmation) {

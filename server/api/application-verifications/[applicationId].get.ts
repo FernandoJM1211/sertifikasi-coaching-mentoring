@@ -1,56 +1,12 @@
-
-import {
-  defineEventHandler,
-  getRouterParam,
-  createError,
-  getCookie,
-} from 'h3'
-
-import {
-  getApplicationVerificationDetail,
-} from '../../services/application-verification-detail.service'
-
-import {
-  getAuthenticatedUser,
-} from '../../services/auth.service'
-
-const SESSION_COOKIE_NAME = 'cmsp_session'
+import { getApplicationVerificationDetail } from '../../services/application-verification-detail.service'
 
 export default defineEventHandler(async (event) => {
-  const sessionToken = getCookie(event, SESSION_COOKIE_NAME)
+  await requireUser(event, ['VERIFIKATOR', 'SUPER_ADMIN'])
 
-  if (!sessionToken) {
-    throw createError({
-      statusCode: 401,
-      statusMessage: 'Silakan login terlebih dahulu.',
-    })
-  }
-
-  const user = await getAuthenticatedUser(sessionToken)
-
-  if (
-  user.account_status !== 'ACTIVE' ||
-  !['VERIFIER', 'SUPER_ADMIN'].includes(user.role)
-) {
-    throw createError({
-      statusCode: 403,
-      statusMessage: 'Anda tidak memiliki akses ke detail verifikasi.',
-    })
-  }
-
-  const applicationId = getRouterParam(event, 'applicationId')
-
-  if (!applicationId) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: 'Application ID wajib diberikan.',
-    })
-  }
-
-  const detail = await getApplicationVerificationDetail(applicationId)
+  const applicationId = requireRouterParam(event, 'applicationId', 'ID pengajuan')
 
   return {
     success: true,
-    data: detail,
+    data: await getApplicationVerificationDetail(applicationId),
   }
 })

@@ -1,52 +1,32 @@
-
-import {
-  createApplicationVerificationService,
-} from '../../services/application-verification.service'
-
-import {
-  getAuthenticatedUser,
-} from '../../services/auth.service'
-
-const SESSION_COOKIE_NAME = 'cmsp_session'
+import { createApplicationVerificationService } from '../../services/application-verification.service'
 
 export default defineEventHandler(async (event) => {
-  const sessionToken = getCookie(
-    event,
-    SESSION_COOKIE_NAME,
-  )
+  const user = await requireUser(event, ['VERIFIKATOR', 'SUPER_ADMIN'])
 
-  if (!sessionToken) {
+  const body = await readBody<{
+    applicationId?: unknown
+    verificationStatus?: unknown
+  }>(event)
+
+  if (
+    typeof body?.applicationId !== 'string' ||
+    typeof body?.verificationStatus !== 'string'
+  ) {
     throw createError({
-      statusCode: 401,
-      statusMessage: 'Silakan login terlebih dahulu.',
+      statusCode: 400,
+      statusMessage: 'Data verifikasi tidak valid.',
     })
   }
 
-  const user = await getAuthenticatedUser(sessionToken)
-
-  if (
-  user.account_status !== 'ACTIVE' ||
-  !['VERIFIER', 'SUPER_ADMIN'].includes(user.role)
-) {
-  throw createError({
-    statusCode: 403,
-    statusMessage: 'Anda tidak memiliki hak akses untuk memverifikasi pengajuan.',
+  const verification = await createApplicationVerificationService({
+    applicationId: body.applicationId,
+    verifiedBy: user.user_id,
+    verificationStatus: body.verificationStatus,
   })
-}
-
-  const body = await readBody(event)
-
-  const verification =
-    await createApplicationVerificationService({
-      applicationId: body.applicationId,
-      verifiedBy: user.user_id,
-      verificationStatus: body.verificationStatus,
-      verifiedAt: body.verifiedAt,
-    })
 
   return {
     success: true,
-    message: 'Verifikasi application berhasil dibuat.',
+    message: 'Verifikasi pengajuan berhasil disimpan.',
     data: verification,
   }
 })

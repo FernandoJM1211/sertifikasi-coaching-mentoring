@@ -7,8 +7,26 @@ export default defineNuxtConfig({
   css: ['~/assets/css/main.css'],
 
   colorMode: {
-    preference: 'light'
+    preference: 'light',
   },
 
-  devtools: { enabled: true }
+  devtools: { enabled: true },
+
+  routeRules: {
+    '/**': {
+      headers: {
+        // Preview dokumen ditampilkan lewat iframe dari origin yang sama.
+        'X-Frame-Options': 'SAMEORIGIN',
+        'X-Content-Type-Options': 'nosniff',
+        // Mencegah token aktivasi di URL bocor lewat header Referer.
+        'Referrer-Policy': 'no-referrer',
+        'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
+      },
+    },
+    '/api/**': {
+      headers: {
+        'Cache-Control': 'no-store',
+      },
+    },
+  },
 })

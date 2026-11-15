@@ -1,57 +1,49 @@
+import type { UserRole } from '~~/shared/utils/roles'
+
+/**
+ * Halaman yang memerlukan login beserta role yang diizinkan.
+ *
+ * Catatan: ini hanya untuk pengalaman pengguna (redirect).
+ * Otorisasi sesungguhnya tetap ditegakkan di setiap endpoint API.
+ */
+const PROTECTED_ROUTES: { prefix: string, roles: UserRole[] }[] = [
+  { prefix: '/super-admin', roles: ['SUPER_ADMIN'] },
+  { prefix: '/verifikator', roles: ['VERIFIKATOR', 'SUPER_ADMIN'] },
+  { prefix: '/peserta', roles: ['PESERTA'] },
+]
 
 export default defineNuxtRouteMiddleware(async (to) => {
-  // Halaman yang memerlukan autentikasi beserta role yang diizinkan.
-  const protectedRoutes: {
-    prefix: string
-    roles: string[]
-  }[] = [
-    {
-      prefix: '/verifier',
-      roles: ['VERIFIER', 'SUPER_ADMIN'],
-    },
-    {
-      prefix: '/super-admin',
-      roles: ['SUPER_ADMIN'],
-    },
-  ]
-
-  // Cari aturan akses berdasarkan prefix halaman.
-  const matchedRoute = protectedRoutes.find(
+  const matchedRoute = PROTECTED_ROUTES.find(
     (route) =>
       to.path === route.prefix ||
       to.path.startsWith(`${route.prefix}/`),
   )
 
-  // Halaman publik tidak memerlukan pemeriksaan middleware ini.
-  if (!matchedRoute) {
-    return
-  }
+  // Halaman publik tidak memerlukan pemeriksaan.
+  if (!matchedRoute) return
+
+  let role: UserRole | ''
 
   try {
-    const requestFetch = useRequestFetch()
-
-    const response = await requestFetch<{
-      success: boolean
-      user: {
-        role: string
-        account_status: string
-      }
+    const response = await useRequestFetch()<{
+      user: { role: string, account_status: string }
     }>('/api/auth/me')
 
-    const user = response.user
-
-    const isAuthenticated = user.account_status === 'ACTIVE'
-    const hasAllowedRole = matchedRoute.roles.includes(user.role)
-
-    if (!isAuthenticated || !hasAllowedRole) {
-      return navigateTo('/login', {
-        replace: true,
-      })
+    if (response.user.account_status !== 'ACTIVE') {
+      return navigateTo('/login', { replace: true })
     }
+
+    role = normalizeUserRole(response.user.role)
   } catch {
     // Sesi tidak tersedia atau tidak valid.
-    return navigateTo('/login', {
-      replace: true,
-    })
+    return navigateTo('/login', { replace: true })
+  }
+
+  if (!role || !matchedRoute.roles.includes(role)) {
+    // Sudah login tetapi role tidak sesuai: arahkan ke halaman miliknya.
+    return navigateTo(
+      (role && ROLE_HOME_PATHS[role]) || '/login',
+      { replace: true },
+    )
   }
 })

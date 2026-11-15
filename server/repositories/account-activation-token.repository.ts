@@ -3,7 +3,7 @@ import {
   appendAuthSheetValues,
   getAuthSheetValues,
   updateAuthSheetRow,
-} from '../utils/google-auth-sheets'
+} from '../utils/google-sheets'
 
 export type AccountActivationToken = {
   activation_token_id: string

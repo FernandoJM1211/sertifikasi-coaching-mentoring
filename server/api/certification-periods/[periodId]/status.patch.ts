@@ -1,54 +1,17 @@
-import {
-  updateCertificationPeriodStatus,
-} from '../../../services/certification-period.service'
-
-import {
-  getAuthenticatedUser,
-} from '../../../services/auth.service'
-
-const SESSION_COOKIE_NAME = 'cmsp_session'
+import { updateCertificationPeriodStatus } from '../../../services/certification-period.service'
 
 export default defineEventHandler(async (event) => {
-  const sessionToken = getCookie(event, SESSION_COOKIE_NAME)
+  await requireUser(event, ['SUPER_ADMIN'])
 
-  if (!sessionToken) {
-    throw createError({
-      statusCode: 401,
-      statusMessage: 'Silakan login terlebih dahulu.',
-    })
-  }
+  const periodId = requireRouterParam(event, 'periodId', 'ID periode')
+  const body = await readBody<{ periodStatus?: unknown }>(event)
 
-  const user = await getAuthenticatedUser(sessionToken)
-
-  if (
-    user.account_status !== 'ACTIVE' ||
-    user.role !== 'SUPER_ADMIN'
-  ) {
-    throw createError({
-      statusCode: 403,
-      statusMessage: 'Anda tidak memiliki akses untuk mengubah status periode sertifikasi.',
-    })
-  }
-
-  const periodId = getRouterParam(event, 'periodId')?.trim()
-  const body = await readBody(event)
-
-  if (!periodId) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: 'ID periode wajib diisi.',
-    })
-  }
-
-  if (!body || typeof body !== 'object' || !body.periodStatus) {
+  if (typeof body?.periodStatus !== 'string' || !body.periodStatus) {
     throw createError({
       statusCode: 400,
       statusMessage: 'Status periode sertifikasi wajib diisi.',
     })
   }
 
-  return await updateCertificationPeriodStatus(
-    periodId,
-    body.periodStatus,
-  )
+  return await updateCertificationPeriodStatus(periodId, body.periodStatus)
 })

@@ -29,8 +29,31 @@ type ApplicationPayload = {
   position?: string
 }
 
+const MAX_TEXT_LENGTH = 200
+
+/**
+ * Validasi data pendaftaran. Melempar 400 beserta daftar error per field.
+ */
+export function assertValidApplicationPayload(payload: ApplicationPayload) {
+  const errors = validatePayload(payload)
+
+  if (Object.keys(errors).length > 0) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: 'Data pendaftaran tidak valid.',
+      data: { errors },
+    })
+  }
+}
+
 function validatePayload(payload: ApplicationPayload) {
   const errors: Record<string, string> = {}
+
+  for (const [field, value] of Object.entries(payload)) {
+    if (typeof value === 'string' && value.length > MAX_TEXT_LENGTH) {
+      errors[field] = `Maksimal ${MAX_TEXT_LENGTH} karakter.`
+    }
+  }
 
   if (!payload.fullName?.trim()) {
     errors.fullName = 'Nama lengkap wajib diisi.'
@@ -76,7 +99,7 @@ function validatePayload(payload: ApplicationPayload) {
   return errors
 }
 
-async function getOpenRegistrationPeriod() {
+export async function getOpenRegistrationPeriod() {
   const periods = await findAllCertificationPeriods()
 
   const activePeriods = periods.filter(
@@ -202,15 +225,7 @@ async function getOpenRegistrationPeriod() {
 }
 
 export async function createApplication(payload: ApplicationPayload) {
-  const errors = validatePayload(payload)
-
-  if (Object.keys(errors).length > 0) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: 'Data pendaftaran tidak valid.',
-      data: { errors },
-    })
-  }
+  assertValidApplicationPayload(payload)
 
   const nip = payload.nip!.trim()
   const email = payload.email!.trim().toLowerCase()

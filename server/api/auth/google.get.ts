@@ -1,34 +1,26 @@
+import { randomUUID } from 'node:crypto'
 import {
   createGoogleAuthorizationUrl,
+  GOOGLE_OAUTH_STATE_COOKIE,
 } from '../../services/google-oauth.service'
 
-function generateState() {
-  return crypto.randomUUID()
-}
+/**
+ * Menghubungkan Google Drive aplikasi (penyimpanan dokumen peserta).
+ * Hanya Super Admin yang boleh menjalankan alur ini, karena refresh token
+ * yang diperoleh akan dipakai untuk seluruh unggahan dokumen.
+ */
+export default defineEventHandler(async (event) => {
+  await requireUser(event, ['SUPER_ADMIN'])
 
-export default defineEventHandler(
-  async (event) => {
-    const state = generateState()
+  const state = randomUUID()
 
-    setCookie(
-      event,
-      'google_oauth_state',
-      state,
-      {
-        httpOnly: true,
-        sameSite: 'lax',
-        secure: false,
-        maxAge: 600,
-        path: '/',
-      },
-    )
+  setCookie(event, GOOGLE_OAUTH_STATE_COOKIE, state, {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 600,
+    path: '/',
+  })
 
-    const authorizationUrl =
-      createGoogleAuthorizationUrl(state)
-
-    return sendRedirect(
-      event,
-      authorizationUrl,
-    )
-  },
-)
+  return sendRedirect(event, createGoogleAuthorizationUrl(state))
+})

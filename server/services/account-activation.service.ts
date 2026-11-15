@@ -12,9 +12,10 @@ import {
 } from '../utils/auth-token'
 import {
   hashPassword,
+  validateNewPassword,
 } from '../utils/password'
 
-export async function activateParticipantAccount(input: {
+export async function activatePesertaAccount(input: {
   token: string
   password: string
 }): Promise<{ success: true }> {
@@ -28,12 +29,7 @@ export async function activateParticipantAccount(input: {
     })
   }
 
-  if (password.length < 12) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: 'Kata sandi minimal 12 karakter.',
-    })
-  }
+  validateNewPassword(password)
 
   const tokenHash = hashAuthToken(token)
   const activationToken =
@@ -64,7 +60,7 @@ export async function activateParticipantAccount(input: {
 
   const user = await findUserById(activationToken.user_id)
 
-  if (!user || user.role !== 'PARTICIPANT') {
+  if (!user || user.role !== 'PESERTA') {
     throw createError({
       statusCode: 404,
       statusMessage: 'Akun peserta tidak ditemukan.',

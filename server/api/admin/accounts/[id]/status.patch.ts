@@ -1,70 +1,9 @@
-
-import { getAuthenticatedUser } from '../../../../services/auth.service'
 import { updateUserStatus } from '../../../../repositories/user.repository'
 import { revokeAllUserSessions } from '../../../../repositories/session.repository'
 
-const SESSION_COOKIE_NAME = 'cmsp_session'
-
-type StatusBody = {
-  account_status?: unknown
-}
-
 export default defineEventHandler(async (event) => {
-  // Validasi origin untuk permintaan berbasis cookie.
-  const origin = getRequestHeader(event, 'origin')
-  const host = getRequestHeader(event, 'host')
-
-  if (!origin || !host) {
-    throw createError({
-      statusCode: 403,
-      statusMessage: 'Asal permintaan tidak dapat diverifikasi.',
-    })
-  }
-
-  let originHost = ''
-
-  try {
-    originHost = new URL(origin).host
-  } catch {
-    throw createError({
-      statusCode: 403,
-      statusMessage: 'Asal permintaan tidak valid.',
-    })
-  }
-
-  if (originHost !== host) {
-    throw createError({
-      statusCode: 403,
-      statusMessage: 'Asal permintaan tidak diizinkan.',
-    })
-  }
-
-  const sessionToken = getCookie(event, SESSION_COOKIE_NAME)
-
-  if (!sessionToken) {
-    throw createError({
-      statusCode: 401,
-      statusMessage: 'Silakan login terlebih dahulu.',
-    })
-  }
-
-  const currentUser = await getAuthenticatedUser(sessionToken)
-
-  if (currentUser.role !== 'SUPER_ADMIN') {
-    throw createError({
-      statusCode: 403,
-      statusMessage: 'Anda tidak memiliki akses untuk mengubah status akun.',
-    })
-  }
-
-  const userId = getRouterParam(event, 'id')?.trim()
-
-  if (!userId) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: 'ID akun wajib diisi.',
-    })
-  }
+  const currentUser = await requireUser(event, ['SUPER_ADMIN'])
+  const userId = requireRouterParam(event, 'id', 'ID akun')
 
   if (userId.toUpperCase() === currentUser.user_id.toUpperCase()) {
     throw createError({
@@ -73,7 +12,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const body = await readBody<StatusBody>(event)
+  const body = await readBody<{ account_status?: unknown }>(event)
   const accountStatus = body?.account_status
 
   if (accountStatus !== 'ACTIVE' && accountStatus !== 'DISABLED') {
@@ -83,10 +22,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const updatedUser = await updateUserStatus(
-    userId,
-    accountStatus,
-  )
+  const updatedUser = await updateUserStatus(userId, accountStatus)
 
   if (accountStatus === 'DISABLED') {
     await revokeAllUserSessions(updatedUser.user_id)

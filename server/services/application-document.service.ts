@@ -1,72 +1,63 @@
-import {
-  createApplicationDocument,
-  type ApplicationDocument,
-  type CreateApplicationDocumentInput,
-} from '../repositories/application-document.repository'
+import type { H3Event } from 'h3'
 
-export type CreateApplicationDocumentServiceInput = {
-  applicationId: string
-  documentType: string
-  fileId: string
-  isRequired: boolean
-  uploadedAt?: string
-  status?: string
+import { findApplicationDocumentsByApplicationId } from '../repositories/application-document.repository'
+import {
+  findFileById,
+  type FileRecord,
+} from '../repositories/file.repository'
+import { downloadGoogleDriveFile } from './google-drive.service'
+
+/** Metadata berkas yang aman dikirim ke frontend (tanpa ID/URL Drive). */
+export function toPublicFile(file: FileRecord | null | undefined) {
+  if (!file) return null
+
+  return {
+    file_id: file.file_id,
+    original_file_name: file.original_file_name,
+    mime_type: file.mime_type,
+    file_size_bytes: Number(file.file_size_bytes) || 0,
+    uploaded_at: file.uploaded_at,
+  }
 }
 
-export async function createApplicationDocumentService(
-  input: CreateApplicationDocumentServiceInput,
-): Promise<ApplicationDocument> {
-  const applicationId =
-    input.applicationId?.trim() ?? ''
+export type PublicFile = NonNullable<ReturnType<typeof toPublicFile>>
 
-  const documentType =
-    input.documentType?.trim() ?? ''
-
-  const fileId =
-    input.fileId?.trim() ?? ''
-
-  if (!applicationId) {
+/** Mengirim isi berkas dari Google Drive (lewat backend, bukan link publik). */
+export async function sendStoredFile(event: H3Event, file: FileRecord | null) {
+  if (!file || file.storage_provider !== 'GOOGLE_DRIVE') {
     throw createError({
-      statusCode: 400,
-      statusMessage:
-        'applicationId wajib diisi.',
+      statusCode: 404,
+      statusMessage: 'Berkas tidak ditemukan atau penyimpanan tidak didukung.',
     })
   }
 
-  if (!documentType) {
-    throw createError({
-      statusCode: 400,
-      statusMessage:
-        'documentType wajib diisi.',
-    })
-  }
+  const buffer = await downloadGoogleDriveFile(file.storage_file_id)
+  setFileResponseHeaders(event, file)
 
-  if (!fileId) {
-    throw createError({
-      statusCode: 400,
-      statusMessage:
-        'fileId wajib diisi.',
-    })
-  }
+  return buffer
+}
 
-  if (typeof input.isRequired !== 'boolean') {
-    throw createError({
-      statusCode: 400,
-      statusMessage:
-        'isRequired harus berupa boolean.',
-    })
-  }
+/**
+ * Preview dokumen pendaftaran untuk Verifikator/Super Admin.
+ * Dokumen harus benar-benar milik pengajuan pada URL.
+ */
+export async function sendApplicationDocumentPreview(
+  event: H3Event,
+  applicationId: string,
+  applicationDocumentId: string,
+) {
+  const documents = await findApplicationDocumentsByApplicationId(applicationId)
 
-  const payload: CreateApplicationDocumentInput = {
-    application_id: applicationId,
-    document_type: documentType,
-    file_id: fileId,
-    is_required: input.isRequired,
-    uploaded_at: input.uploadedAt,
-    status: input.status?.trim() || undefined,
-  }
-
-  return await createApplicationDocument(
-    payload,
+  const document = documents.find(
+    (item) => item.application_document_id === applicationDocumentId,
   )
+
+  if (!document) {
+    throw createError({
+      statusCode: 404,
+      statusMessage: 'Dokumen pengajuan tidak ditemukan.',
+    })
+  }
+
+  return sendStoredFile(event, await findFileById(document.file_id))
 }

@@ -1,29 +1,7 @@
-import { google } from 'googleapis'
 import { Readable } from 'node:stream'
+import { google } from 'googleapis'
 
-import {
-  googleOAuthClient,
-  loadGoogleOAuthTokens,
-} from './google-oauth.service'
-
-const googleDriveFolderId =
-  process.env.GOOGLE_DRIVE_FOLDER_ID
-
-if (!googleDriveFolderId) {
-  throw new Error(
-    'GOOGLE_DRIVE_FOLDER_ID belum dikonfigurasi.',
-  )
-}
-
-function getGoogleDriveFolderId(): string {
-  if (!googleDriveFolderId) {
-    throw new Error(
-      'GOOGLE_DRIVE_FOLDER_ID belum dikonfigurasi.',
-    )
-  }
-
-  return googleDriveFolderId
-}
+import { getAuthorizedGoogleClient } from './google-oauth.service'
 
 export interface UploadToGoogleDriveInput {
   fileName: string
@@ -39,25 +17,41 @@ export interface UploadedGoogleDriveFile {
   fileSizeBytes: number
 }
 
-async function getGoogleDriveClient() {
-  const tokens =
-    await loadGoogleOAuthTokens()
+function getGoogleDriveFolderId(): string {
+  const folderId = process.env.GOOGLE_DRIVE_FOLDER_ID?.trim()
 
-  if (!tokens?.refresh_token) {
+  if (!folderId) {
+    throw new Error('GOOGLE_DRIVE_FOLDER_ID belum dikonfigurasi.')
+  }
+
+  return folderId
+}
+
+/**
+ * Mengubah error otorisasi Google menjadi pesan yang jelas.
+ * `invalid_grant` = refresh token dicabut/kedaluwarsa (mis. aplikasi OAuth
+ * masih berstatus "Testing" sehingga token hanya berlaku 7 hari).
+ */
+function handleDriveError(error: unknown): never {
+  const message = error instanceof Error ? error.message : String(error)
+
+  if (message.includes('invalid_grant')) {
+    console.error('Google Drive OAuth: refresh token tidak valid (invalid_grant).')
+
     throw createError({
-      statusCode: 500,
+      statusCode: 503,
       statusMessage:
-        'OAuth Google Drive belum terhubung. Refresh token tidak ditemukan.',
+        'Koneksi Google Drive sistem sudah kedaluwarsa. Silakan hubungi Super Admin untuk menghubungkan ulang Google Drive.',
     })
   }
 
-  googleOAuthClient.setCredentials({
-    refresh_token: tokens.refresh_token,
-  })
+  throw error
+}
 
+async function getGoogleDriveClient() {
   return google.drive({
     version: 'v3',
-    auth: googleOAuthClient,
+    auth: await getAuthorizedGoogleClient(),
   })
 }
 
@@ -85,28 +79,19 @@ export async function uploadToGoogleDrive(
     })
   }
 
-  const drive =
-    await getGoogleDriveClient()
+  const drive = await getGoogleDriveClient()
 
-  const createFileRequest = {
+  const response = await drive.files.create({
     requestBody: {
       name: input.fileName,
-      parents: [
-        getGoogleDriveFolderId(),
-      ],
+      parents: [getGoogleDriveFolderId()],
     },
     media: {
       mimeType: input.mimeType,
       body: Readable.from(input.buffer),
     },
-    fields:
-      'id,name,mimeType,size,webViewLink',
-  }
-
-  const response =
-    await drive.files.create(
-      createFileRequest,
-    )
+    fields: 'id,name,mimeType,size,webViewLink',
+  }).catch(handleDriveError)
 
   const file = response.data
 
@@ -123,44 +108,32 @@ export async function uploadToGoogleDrive(
     fileUrl:
       file.webViewLink ??
       `https://drive.google.com/file/d/${file.id}/view`,
-    fileName:
-      file.name ?? input.fileName,
-    mimeType:
-      file.mimeType ?? input.mimeType,
-    fileSizeBytes:
-      Number(
-        file.size ??
-          input.buffer.length,
-      ),
+    fileName: file.name ?? input.fileName,
+    mimeType: file.mimeType ?? input.mimeType,
+    fileSizeBytes: Number(file.size ?? input.buffer.length),
   }
 }
 
 /**
- * Mengambil isi berkas dari Google Drive untuk kebutuhan preview.
- * Menggunakan autentikasi OAuth aplikasi, bukan URL publik.
+ * Mengunduh isi berkas dari Google Drive melalui backend,
+ * sehingga berkas tidak perlu dibagikan secara publik.
  */
-export async function getGoogleDriveFileForPreview(
+export async function downloadGoogleDriveFile(
   storageFileId: string,
-) {
+): Promise<Buffer> {
   if (!storageFileId.trim()) {
     throw createError({
       statusCode: 400,
-      statusMessage:
-        'ID file Google Drive wajib diisi.',
+      statusMessage: 'ID file Google Drive wajib diisi.',
     })
   }
 
   const drive = await getGoogleDriveClient()
 
   const response = await drive.files.get(
-    {
-      fileId: storageFileId,
-      alt: 'media',
-    },
-    {
-      responseType: 'stream',
-    },
-  )
+    { fileId: storageFileId, alt: 'media' },
+    { responseType: 'arraybuffer' },
+  ).catch(handleDriveError)
 
-  return response.data
+  return Buffer.from(response.data as ArrayBuffer)
 }

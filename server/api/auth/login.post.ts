@@ -1,19 +1,20 @@
+import { loginWithPassword } from '../../services/auth.service'
 
-import {
-  loginWithPassword,
-} from '../../services/auth.service'
-
-const SESSION_COOKIE_NAME = 'cmsp_session'
+const LOGIN_WINDOW_MS = 15 * 60 * 1000
+const LOGIN_LIMIT_PER_EMAIL = 5
+const LOGIN_LIMIT_PER_IP = 30
 
 export default defineEventHandler(async (event) => {
   const body = await readBody<{
-    email?: string
-    password?: string
+    email?: unknown
+    password?: unknown
   }>(event)
 
   if (
     typeof body?.email !== 'string' ||
-    typeof body?.password !== 'string'
+    typeof body?.password !== 'string' ||
+    body.email.length > 254 ||
+    body.password.length > 1024
   ) {
     throw createError({
       statusCode: 400,
@@ -21,25 +22,32 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const forwardedFor = getHeader(event, 'x-forwarded-for')
-  const ipAddress =
-    forwardedFor?.split(',')[0]?.trim() ||
-    getRequestIP(event) ||
-    ''
+  const email = body.email.trim().toLowerCase()
+  const ipAddress = getClientIp(event)
+  const emailKey = `login:email:${email}`
+
+  // Batasi percobaan login per akun dan per IP untuk mencegah brute force.
+  assertRateLimit(
+    emailKey,
+    LOGIN_LIMIT_PER_EMAIL,
+    LOGIN_WINDOW_MS,
+    'Terlalu banyak percobaan login. Silakan coba lagi dalam 15 menit.',
+  )
+  assertRateLimit(
+    `login:ip:${ipAddress}`,
+    LOGIN_LIMIT_PER_IP,
+    LOGIN_WINDOW_MS,
+    'Terlalu banyak percobaan login. Silakan coba lagi dalam 15 menit.',
+  )
 
   const result = await loginWithPassword({
-    email: body.email,
+    email,
     password: body.password,
     ipAddress,
   })
 
-  setCookie(event, SESSION_COOKIE_NAME, result.sessionToken, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    path: '/',
-    expires: new Date(result.expiresAt),
-  })
+  resetRateLimit(emailKey)
+  setSessionCookie(event, result.sessionToken, result.expiresAt)
 
   return {
     success: true,

@@ -4,55 +4,18 @@ import {
   updateCertificationTimelineOverride,
 } from '../../../repositories/certification-timeline.repository'
 
-import {
-  getAuthenticatedUser,
-} from '../../../services/auth.service'
-
-
-const SESSION_COOKIE_NAME = 'cmsp_session'
-
 const ALLOWED_MODES = ['NORMAL', 'OPEN', 'CLOSED'] as const
 
 type OverrideMode = typeof ALLOWED_MODES[number]
 
 export default defineEventHandler(async (event) => {
-  // Validasi sesi login.
-  const sessionToken = getCookie(event, SESSION_COOKIE_NAME)
-
-  if (!sessionToken) {
-    throw createError({
-      statusCode: 401,
-      statusMessage: 'Silakan login terlebih dahulu.',
-    })
-  }
-
-  const user = await getAuthenticatedUser(sessionToken)
-
-  // Hanya Super Admin aktif yang boleh mengubah mode akses.
-  if (
-    user.account_status !== 'ACTIVE' ||
-    user.role !== 'SUPER_ADMIN'
-  ) {
-    throw createError({
-      statusCode: 403,
-      statusMessage:
-        'Hanya Super Admin yang dapat mengubah akses timeline.',
-    })
-  }
-
-  // Validasi ID timeline.
-  const timelineId = getRouterParam(event, 'timelineId')?.trim()
-
-  if (!timelineId) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: 'ID timeline wajib diisi.',
-    })
-  }
+  const user = await requireUser(event, ['SUPER_ADMIN'])
+  const timelineId = requireRouterParam(event, 'timelineId', 'ID timeline')
 
   // Validasi mode yang diminta.
-  const body = await readBody<{ mode?: string }>(event)
-  const mode = body?.mode?.trim().toUpperCase()
+  const body = await readBody<{ mode?: unknown }>(event)
+  const mode =
+    typeof body?.mode === 'string' ? body.mode.trim().toUpperCase() : ''
 
   if (!mode || !ALLOWED_MODES.includes(mode as OverrideMode)) {
     throw createError({

@@ -436,10 +436,10 @@
       class="mt-5 rounded-xl border border-slate-200 bg-slate-50 p-4"
     >
       <p class="font-semibold text-slate-900">
-        {{ selectedAccount.full_name }}
+        {{ selectedAccount.name }}
       </p>
       <p class="mt-1 break-all text-sm text-slate-500">
-        {{ selectedAccount.username_email }}
+        {{ selectedAccount.email }}
       </p>
       <p class="mt-1 text-xs text-slate-400">
         ID: {{ selectedAccount.id }}
@@ -608,23 +608,13 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
+import type { AccountStatus, StaffRole, UserRole } from '~~/shared/utils/roles'
 
 definePageMeta({
   layout: 'super-admin',
 })
 
-type AccountRole =
-  | 'SUPER_ADMIN'
-  | 'VERIFIER'
-  | 'TECHNICAL_ASSESSOR'
-  | 'PUBLIC_ASSESSOR'
-  | 'PARTICIPANT'
-
-type AccountStatus =
-  | 'ACTIVE'
-  | 'PENDING_ACTIVATION'
-  | 'SUSPENDED'
-  | 'DISABLED'
+type AccountRole = UserRole
 
 type Account = {
   id: string
@@ -675,18 +665,10 @@ const isChangingAccountStatus = ref(false)
 const isAddAccountModalOpen = ref(false)
 const isSubmittingAccount = ref(false)
 
-type StaffRole =
-  | 'SUPER_ADMIN'
-  | 'VERIFIER'
-  | 'TECHNICAL_ASSESSOR'
-  | 'PUBLIC_ASSESSOR'
-
-const staffRoleOptions = [
-  { label: 'Verifier', value: 'VERIFIER' },
-  { label: 'Asesor Teknis', value: 'TECHNICAL_ASSESSOR' },
-  { label: 'Asesor Publik', value: 'PUBLIC_ASSESSOR' },
-  { label: 'Super Admin', value: 'SUPER_ADMIN' },
-]
+const staffRoleOptions = STAFF_ROLES.map((role) => ({
+  label: ROLE_LABELS[role],
+  value: role,
+}))
 
 const newAccount = ref<{
   full_name: string
@@ -696,17 +678,13 @@ const newAccount = ref<{
 }>({
   full_name: '',
   username_email: '',
-  role: 'VERIFIER',
+  role: 'VERIFIKATOR',
   password: '',
 })
 
 const roleOptions = [
   { label: 'Semua Role', value: 'ALL' },
-  { label: 'Super Admin', value: 'SUPER_ADMIN' },
-  { label: 'Verifier', value: 'VERIFIER' },
-  { label: 'Asesor Teknis', value: 'TECHNICAL_ASSESSOR' },
-  { label: 'Asesor Publik', value: 'PUBLIC_ASSESSOR' },
-  { label: 'Peserta', value: 'PARTICIPANT' },
+  ...USER_ROLES.map((role) => ({ label: ROLE_LABELS[role], value: role })),
 ]
 
 const filteredAccounts = computed(() => {
@@ -787,7 +765,7 @@ async function refreshAccounts() {
       // Indikator ini hanya menunjukkan keterhubungan ke data Person,
       // bukan hasil pemeriksaan kelengkapan seluruh kolom profil.
       profileComplete:
-        user.role === 'PARTICIPANT' && Boolean(user.person_id?.trim()),
+        user.role === 'PESERTA' && Boolean(user.person_id?.trim()),
     }))
 
     currentPage.value = 1
@@ -808,18 +786,6 @@ async function refreshAccounts() {
   }
 }
 
-function getRoleLabel(role: AccountRole) {
-  const labels: Record<AccountRole, string> = {
-    SUPER_ADMIN: 'Super Admin',
-    VERIFIER: 'Verifier',
-    TECHNICAL_ASSESSOR: 'Asesor Teknis',
-    PUBLIC_ASSESSOR: 'Asesor Publik',
-    PARTICIPANT: 'Peserta',
-  }
-
-  return labels[role] ?? role
-}
-
 function getRoleColor(
   role: AccountRole,
 ): 'primary' | 'info' | 'success' | 'warning' | 'neutral' {
@@ -828,10 +794,10 @@ function getRoleColor(
     'primary' | 'info' | 'success' | 'warning' | 'neutral'
   > = {
     SUPER_ADMIN: 'primary',
-    VERIFIER: 'info',
+    VERIFIKATOR: 'info',
     TECHNICAL_ASSESSOR: 'success',
     PUBLIC_ASSESSOR: 'warning',
-    PARTICIPANT: 'neutral',
+    PESERTA: 'neutral',
   }
 
   return colors[role] ?? 'neutral'
@@ -1064,7 +1030,7 @@ function closeAddAccountModal() {
   newAccount.value = {
     full_name: '',
     username_email: '',
-    role: 'VERIFIER',
+    role: 'VERIFIKATOR',
     password: '',
   }
 }
@@ -1096,7 +1062,7 @@ async function submitAddAccount() {
     newAccount.value = {
       full_name: '',
       username_email: '',
-      role: 'VERIFIER',
+      role: 'VERIFIKATOR',
       password: '',
     }
 

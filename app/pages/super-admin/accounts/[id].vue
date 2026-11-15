@@ -2,28 +2,30 @@
 <template>
   <div class="mx-auto max-w-6xl space-y-6">
     <!-- Header -->
-    <div>
+    <div class="flex flex-wrap items-start justify-between gap-4">
+      <div class="min-w-0">
+        <p class="text-sm font-semibold text-primary">
+          Pengaturan Akun
+        </p>
+
+        <h1 class="mt-2 text-3xl font-bold tracking-tight text-slate-900">
+          Profil Akun Staf
+        </h1>
+
+        <p class="mt-2 text-slate-500">
+          Informasi akun dan status akses pengguna dalam sistem sertifikasi.
+        </p>
+      </div>
+
       <UButton
         color="neutral"
-        variant="ghost"
+        variant="outline"
         icon="i-lucide-arrow-left"
-        class="-ml-3 mb-3"
+        class="shrink-0"
         @click="goBack"
       >
-        Kembali ke Manajemen Akun
+        Kembali
       </UButton>
-
-      <p class="text-sm font-semibold text-primary">
-        Pengaturan Akun
-      </p>
-
-      <h1 class="mt-2 text-3xl font-bold tracking-tight text-slate-900">
-        Profil Akun Staf
-      </h1>
-
-      <p class="mt-2 text-slate-500">
-        Informasi akun dan status akses pengguna dalam sistem sertifikasi.
-      </p>
     </div>
 
     <!-- Loading -->
@@ -189,16 +191,6 @@
         </div>
       </UCard>
 
-      <div class="flex justify-end">
-        <UButton
-          color="neutral"
-          variant="outline"
-          icon="i-lucide-arrow-left"
-          @click="goBack"
-        >
-          Kembali ke Daftar Akun
-        </UButton>
-      </div>
     </template>
   </div>
 </template>
@@ -248,29 +240,11 @@ const {
 
 const account = computed(() => response.value?.account ?? null)
 
-const roleLabels: Record<string, string> = {
-  PARTICIPANT: 'Peserta',
-  VERIFIER: 'Verifikator',
-  TECHNICAL_ASSESSOR: 'Asesor Teknis',
-  PUBLIC_ASSESSOR: 'Asesor Publik',
-}
+const roleLabel = computed(() => getRoleLabel(account.value?.role))
 
-const statusLabels: Record<string, string> = {
-  PENDING_ACTIVATION: 'Menunggu Aktivasi',
-  ACTIVE: 'Aktif',
-  SUSPENDED: 'Ditangguhkan',
-  DISABLED: 'Dinonaktifkan',
-}
-
-const roleLabel = computed(() => {
-  const role = account.value?.role ?? ''
-  return roleLabels[role] ?? role
-})
-
-const statusLabel = computed(() => {
-  const statusValue = account.value?.account_status ?? ''
-  return statusLabels[statusValue] ?? statusValue
-})
+const statusLabel = computed(() =>
+  getAccountStatusLabel(account.value?.account_status),
+)
 
 const statusColor = computed(() => {
   switch (account.value?.account_status) {

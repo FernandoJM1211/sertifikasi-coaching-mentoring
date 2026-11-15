@@ -149,27 +149,6 @@ export async function createApplication(
   return application
 }
 
-export async function findApplicationsByStatus(
-  status: string,
-): Promise<Application[]> {
-  const rows = await getSheetValues(SHEET_NAME)
-
-  if (rows.length <= 1) {
-    return []
-  }
-
-  // Hanya mengambil application dengan status yang diminta.
-  // Digunakan oleh Verifikator untuk melihat antrean pengajuan
-  // yang masih membutuhkan tindakan pada tahap tertentu.
-  return rows
-    .slice(1)
-    .map(rowToApplication)
-    .filter(
-      (application) =>
-        application.application_status === status,
-    )
-}
-
 export async function findApplicationsByPeriod(
   periodId: string,
 ): Promise<Application[]> {

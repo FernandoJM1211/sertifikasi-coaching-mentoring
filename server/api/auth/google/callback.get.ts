@@ -1,84 +1,49 @@
 import {
-  googleOAuthClient,
+  exchangeGoogleAuthorizationCode,
+  GOOGLE_OAUTH_STATE_COOKIE,
   saveGoogleOAuthTokens,
 } from '../../../services/google-oauth.service'
 
-export default defineEventHandler(
-  async (event) => {
-    const query = getQuery(event)
+export default defineEventHandler(async (event) => {
+  await requireUser(event, ['SUPER_ADMIN'])
 
-    const code =
-      typeof query.code === 'string'
-        ? query.code
-        : ''
+  const query = getQuery(event)
+  const code = typeof query.code === 'string' ? query.code : ''
+  const state = typeof query.state === 'string' ? query.state : ''
+  const savedState = getCookie(event, GOOGLE_OAUTH_STATE_COOKIE)
 
-    const state =
-      typeof query.state === 'string'
-        ? query.state
-        : ''
+  deleteCookie(event, GOOGLE_OAUTH_STATE_COOKIE, { path: '/' })
 
-    const savedState = getCookie(
-      event,
-      'google_oauth_state',
-    )
+  if (!code) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: 'Authorization code dari Google tidak ditemukan.',
+    })
+  }
 
-    if (!code) {
-      throw createError({
-        statusCode: 400,
-        statusMessage:
-          'Authorization code dari Google tidak ditemukan.',
-      })
-    }
+  if (!state || !savedState || state !== savedState) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: 'OAuth state tidak valid.',
+    })
+  }
 
-    if (!state || !savedState) {
-      throw createError({
-        statusCode: 400,
-        statusMessage:
-          'OAuth state tidak ditemukan.',
-      })
-    }
+  const tokens = await exchangeGoogleAuthorizationCode(code)
 
-    if (state !== savedState) {
-      throw createError({
-        statusCode: 400,
-        statusMessage:
-          'OAuth state tidak valid.',
-      })
-    }
+  if (!tokens.refresh_token) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: 'Refresh token Google tidak diperoleh.',
+    })
+  }
 
-    deleteCookie(
-      event,
-      'google_oauth_state',
-      {
-        path: '/',
-      },
-    )
+  await saveGoogleOAuthTokens(tokens)
 
-    const { tokens } =
-      await googleOAuthClient.getToken(code)
-
-    if (!tokens.refresh_token) {
-      throw createError({
-        statusCode: 400,
-        statusMessage:
-          'Refresh token Google tidak diperoleh.',
-      })
-    }
-
-    await saveGoogleOAuthTokens(tokens)
-
-    googleOAuthClient.setCredentials(tokens)
-
-    return {
-      success: true,
-      message:
-        'Google OAuth berhasil dan refresh token berhasil disimpan.',
-      data: {
-        hasRefreshToken:
-          Boolean(tokens.refresh_token),
-        scope:
-          tokens.scope ?? null,
-      },
-    }
-  },
-)
+  return {
+    success: true,
+    message: 'Google Drive berhasil terhubung dan refresh token tersimpan.',
+    data: {
+      scope: tokens.scope ?? null,
+    },
+  }
+})

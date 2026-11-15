@@ -1,25 +1,91 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, ref } from 'vue'
+import { GENDER_OPTIONS, normalizeGender } from '~~/shared/utils/person'
+import {
+  getApplicationDocumentIcon,
+  getApplicationDocumentLabel,
+} from '~~/shared/utils/documents'
+import {
+  SELF_ASSESSMENT_UPLOAD_ACCEPT,
+  type SelfAssessmentUploadPurpose,
+} from '~~/shared/utils/self-assessment'
+import {
+  formatFileInfo,
+  useSelfAssessmentFiles,
+  type SelfAssessmentFile,
+} from '~/composables/useSelfAssessmentFiles'
 
-const props = defineProps<{ applicationId?: string }>()
-const draftStorageKey = computed(() =>
-  props.applicationId
-    ? `cmsp-01-draft:${props.applicationId}`
-    : 'cmsp-01-draft:legacy',
-)
+/* ========================================
+ * PROPS (data awal dari server)
+ * ======================================== */
 
-definePageMeta({
-  layout: 'user',
-})
+type Applicant = {
+  fullName: string
+  nip: string
+  rankName: string
+  rankGroup: string
+  birthPlace: string
+  birthDate: string
+  gender: string
+  latestEducation: string
+  educationQualification: string
+  position: string
+  workUnit: string
+  institution: string
+  phoneNumber: string
+  email: string
+  domicileAddress: string
+}
+
+type Training = { trainingName: string, organizer: string, year: string, jp: string }
+type Practice = { year: string, coacheeMentee: string, topic: string, duration: string }
+type DocumentItem = { documentType: string, file: SelfAssessmentFile | null }
+
+export type Cmsp01Initial = {
+  certification: { type_name: string, category_name: string, period_name: string }
+  /** Data profil; hanya dipakai jika draft belum pernah disimpan. */
+  profile: {
+    full_name: string
+    nip: string
+    email: string
+    gender: string
+    birth_place: string
+    birth_date: string
+    institution_name: string
+    phone_number: string
+    education_level: string
+    position_name: string
+  } | null
+  cmsp01: {
+    applicant: Applicant | null
+    trainings: Training[]
+    practices: Practice[]
+    documents: DocumentItem[]
+    declarationAccepted: boolean
+  }
+}
+
+const props = defineProps<{
+  applicationId: string
+  initial: Cmsp01Initial
+  readonly: boolean
+  /** Status gabungan self assessment, mis. NEW/DRAFT/SUBMITTED. */
+  status: string
+}>()
+
+const genderItems: string[] = [...GENDER_OPTIONS]
+
+const { upload, previewUrl } = useSelfAssessmentFiles(() => props.applicationId)
 
 /* ========================================
  * INFORMASI SERTIFIKASI
  * ======================================== */
 
-const activeCategory =
-  'Certified Public Sector Performance Coach and Mentor'
-
-const certificationPeriod = 'Periode Sertifikasi September 2026'
+const certificationName = computed(
+  () => props.initial.certification.type_name || 'Coach dan Mentor Sektor Publik',
+)
+const activeCategory = computed(() => props.initial.certification.category_name || '-')
+const certificationPeriod = computed(() => props.initial.certification.period_name || '-')
 
 const rankNameOptions = [
   'Penata',
@@ -41,25 +107,17 @@ const rankGroupOptions = [
   'IV/e',
 ]
 
-const formStatus = ref<'draft' | 'saved'>('draft')
-
-/* ========================================
- * PERNYATAAN PEMOHON
- * ======================================== */
-
-const declarationAccepted = ref(false)
-
 /* ========================================
  * DATA PEMOHON
  * ======================================== */
 
-const applicant = ref({
-  fullName: 'Fernando Manalu',
-  nip: '199001012020121001',
+const emptyApplicant = (): Applicant => ({
+  fullName: '',
+  nip: '',
   rankName: '',
   rankGroup: '',
-  birthPlace: 'Jakarta',
-  birthDate: '1990-01-01',
+  birthPlace: '',
+  birthDate: '',
   gender: '',
   latestEducation: '',
   educationQualification: '',
@@ -71,26 +129,52 @@ const applicant = ref({
   domicileAddress: '',
 })
 
+/**
+ * Jika draft sudah pernah disimpan, isian draft dipakai apa adanya.
+ * Jika belum, form diisi dari Profil (disalin, bukan ditautkan).
+ */
+function buildInitialApplicant(): Applicant {
+  const saved = props.initial.cmsp01.applicant
+
+  if (saved) {
+    return { ...emptyApplicant(), ...saved, gender: normalizeGender(saved.gender) }
+  }
+
+  const profile = props.initial.profile
+
+  return {
+    ...emptyApplicant(),
+    fullName: profile?.full_name ?? '',
+    nip: profile?.nip ?? '',
+    gender: normalizeGender(profile?.gender),
+    birthPlace: profile?.birth_place ?? '',
+    birthDate: profile?.birth_date ?? '',
+    latestEducation: profile?.education_level ?? '',
+    position: profile?.position_name ?? '',
+    institution: profile?.institution_name ?? '',
+    phoneNumber: profile?.phone_number ?? '',
+    email: profile?.email ?? '',
+  }
+}
+
+const applicant = ref<Applicant>(buildInitialApplicant())
+
+const declarationAccepted = ref(props.initial.cmsp01.declarationAccepted)
+
 /* ========================================
  * RIWAYAT PELATIHAN
  * ======================================== */
 
-const trainingHistories = ref([
-  {
-    trainingName: '',
-    organizer: '',
-    year: '',
-    jp: '',
-  },
-])
+const emptyTraining = (): Training => ({ trainingName: '', organizer: '', year: '', jp: '' })
+
+const trainingHistories = ref<Training[]>(
+  props.initial.cmsp01.trainings.length > 0
+    ? props.initial.cmsp01.trainings.map((item) => ({ ...item }))
+    : [emptyTraining()],
+)
 
 function addTraining() {
-  trainingHistories.value.push({
-    trainingName: '',
-    organizer: '',
-    year: '',
-    jp: '',
-  })
+  trainingHistories.value.push(emptyTraining())
 }
 
 function removeTraining(index: number) {
@@ -103,22 +187,16 @@ function removeTraining(index: number) {
  * PENGALAMAN PRAKTIK
  * ======================================== */
 
-const practiceExperiences = ref([
-  {
-    year: '',
-    coacheeMentee: '',
-    topic: '',
-    duration: '',
-  },
-])
+const emptyPractice = (): Practice => ({ year: '', coacheeMentee: '', topic: '', duration: '' })
+
+const practiceExperiences = ref<Practice[]>(
+  props.initial.cmsp01.practices.length > 0
+    ? props.initial.cmsp01.practices.map((item) => ({ ...item }))
+    : [emptyPractice()],
+)
 
 function addPractice() {
-  practiceExperiences.value.push({
-    year: '',
-    coacheeMentee: '',
-    topic: '',
-    duration: '',
-  })
+  practiceExperiences.value.push(emptyPractice())
 }
 
 function removePractice(index: number) {
@@ -131,52 +209,54 @@ function removePractice(index: number) {
  * DOKUMEN ADMINISTRASI
  * ======================================== */
 
-const inheritedDocuments = [
-  {
-    name: 'Ijazah Terakhir',
-  },
-  {
-    name: 'SK Jabatan Terakhir',
-  },
-  {
-    name: 'Sertifikat Pelatihan Coaching dan Mentoring',
-  },
-  {
-    name: 'Log Book / Portofolio Praktik Coaching',
-  },
-]
+// 4 dokumen dari pendaftaran + KTP + Surat Tugas. Mengganti dokumen di
+// sini hanya mengubah data CMSP-01, tidak mengubah dokumen pendaftaran.
+const documents = ref<DocumentItem[]>(
+  props.initial.cmsp01.documents.map((item) => ({ ...item })),
+)
 
-const newDocuments = ref({
-  ktp: null as File | null,
-  assignmentLetter: null as File | null,
-})
+const uploadingDocumentType = ref<string | null>(null)
 
-const documentErrors = ref({
-  ktp: '',
-  assignmentLetter: '',
-})
+async function handleDocumentChange(event: Event, document: DocumentItem) {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  input.value = ''
 
-const maxDocumentSize = 5 * 1024 * 1024
+  if (!file) return
 
-function handleFileChange(
-  event: Event,
-  documentKey: 'ktp' | 'assignmentLetter',
-) {
-  const target = event.target as HTMLInputElement
+  uploadingDocumentType.value = document.documentType
 
-  if (!target.files?.length) return
+  try {
+    const uploaded = await upload(document.documentType as SelfAssessmentUploadPurpose, file)
 
-  const file = target.files[0]
-
-  if (file.size > maxDocumentSize) {
-    newDocuments.value[documentKey] = null
-    documentErrors.value[documentKey] = 'Ukuran file maksimal 5 MB.'
-    target.value = ''
-    return
+    if (uploaded) {
+      document.file = uploaded
+    }
+  } finally {
+    uploadingDocumentType.value = null
   }
+}
 
-  newDocuments.value[documentKey] = file
-  documentErrors.value[documentKey] = ''
+function documentAccept(documentType: string) {
+  return SELF_ASSESSMENT_UPLOAD_ACCEPT[documentType as SelfAssessmentUploadPurpose] ?? '.pdf'
+}
+
+function documentHint(documentType: string) {
+  return documentType === 'KTP' || documentType === 'SURAT_TUGAS'
+    ? 'PDF, JPG, atau PNG. Maksimal 5 MB.'
+    : 'PDF. Maksimal 5 MB.'
+}
+
+const previewOpen = ref(false)
+const previewDocument = ref<DocumentItem | null>(null)
+
+const documentPreviewUrl = computed(() =>
+  previewDocument.value?.file ? previewUrl(previewDocument.value.file.file_id) : '',
+)
+
+function openPreview(document: DocumentItem) {
+  previewDocument.value = document
+  previewOpen.value = true
 }
 
 /* ========================================
@@ -220,44 +300,16 @@ const getFieldError = (
   return validator(value) ? '' : message
 }
 
-const requiredApplicantFields = computed(() => [
-  applicant.value.fullName,
-  applicant.value.nip,
-  applicant.value.rank,
-  applicant.value.birthPlace,
-  applicant.value.birthDate,
-  applicant.value.gender,
-  applicant.value.latestEducation,
-  applicant.value.educationQualification,
-  applicant.value.position,
-  applicant.value.workUnit,
-  applicant.value.institution,
-  applicant.value.phoneNumber,
-  applicant.value.email,
-  applicant.value.domicileAddress,
-])
+const APPLICANT_FIELD_COUNT = Object.keys(emptyApplicant()).length
 
 const applicantCompletedCount = computed(() => {
-  const basicFields = [
-    applicant.value.fullName,
-    applicant.value.rankName,
-    applicant.value.rankGroup,
-    applicant.value.birthPlace,
-    applicant.value.birthDate,
-    applicant.value.gender,
-    applicant.value.latestEducation,
-    applicant.value.educationQualification,
-    applicant.value.position,
-    applicant.value.workUnit,
-    applicant.value.institution,
-    applicant.value.domicileAddress,
-  ]
+  const { nip, phoneNumber, email, ...basicFields } = applicant.value
 
   return (
-    basicFields.filter(isFilled).length +
-    (isValidNip(applicant.value.nip) ? 1 : 0) +
-    (isValidPhoneNumber(applicant.value.phoneNumber) ? 1 : 0) +
-    (isValidEmail(applicant.value.email) ? 1 : 0)
+    Object.values(basicFields).filter(isFilled).length +
+    (isValidNip(nip) ? 1 : 0) +
+    (isValidPhoneNumber(phoneNumber) ? 1 : 0) +
+    (isValidEmail(email) ? 1 : 0)
   )
 })
 
@@ -273,10 +325,6 @@ const trainingCompletedCount = computed(() =>
   0),
 )
 
-const trainingTotalCount = computed(() =>
-  trainingHistories.value.length * 4,
-)
-
 const practiceCompletedCount = computed(() =>
   practiceExperiences.value.reduce((total, practice) =>
     total +
@@ -289,23 +337,15 @@ const practiceCompletedCount = computed(() =>
   0),
 )
 
-const practiceTotalCount = computed(() =>
-  practiceExperiences.value.length * 4,
-)
-
-const documentTotalCount = inheritedDocuments.length + 2
-
 const documentCompletedCount = computed(() =>
-  inheritedDocuments.length +
-  (newDocuments.value.ktp ? 1 : 0) +
-  (newDocuments.value.assignmentLetter ? 1 : 0),
+  documents.value.filter((document) => document.file).length,
 )
 
 const totalRequirementCount = computed(() =>
-  requiredApplicantFields.value.length +
-  trainingTotalCount.value +
-  practiceTotalCount.value +
-  documentTotalCount,
+  APPLICANT_FIELD_COUNT +
+  trainingHistories.value.length * 4 +
+  practiceExperiences.value.length * 4 +
+  documents.value.length,
 )
 
 const totalCompletedCount = computed(() =>
@@ -323,136 +363,51 @@ const applicantProgress = computed(() =>
       ),
 )
 
-const isTrainingComplete = (training: typeof trainingHistories.value[number]) =>
+const remainingCount = computed(() =>
+  Math.max(totalRequirementCount.value - totalCompletedCount.value, 0),
+)
+
+const remainingLabel = computed(() =>
+  remainingCount.value === 0 ? 'Lengkap' : `${remainingCount.value} isian lagi`,
+)
+
+const isApplicantComplete = computed(
+  () => applicantCompletedCount.value === APPLICANT_FIELD_COUNT,
+)
+
+const isTrainingComplete = (training: Training) =>
   isFilled(training.trainingName) &&
   isFilled(training.organizer) &&
   isValidYear(training.year) &&
   isValidPositiveInteger(training.jp)
 
-const isPracticeComplete = (practice: typeof practiceExperiences.value[number]) =>
-  isFilled(practice.year) &&
+const isPracticeComplete = (practice: Practice) =>
+  isValidYear(practice.year) &&
   isFilled(practice.coacheeMentee) &&
   isFilled(practice.topic) &&
   isValidPositiveInteger(practice.duration)
 
+/** Data yang dikirim saat Simpan Draft (lihat server/services/self-assessment.service.ts). */
+const payload = computed(() => ({
+  applicant: { ...applicant.value },
+  trainings: trainingHistories.value.map((item) => ({ ...item })),
+  practices: practiceExperiences.value.map((item) => ({ ...item })),
+  documents: documents.value.map((item) => ({
+    documentType: item.documentType,
+    fileId: item.file?.file_id ?? '',
+  })),
+  declarationAccepted: declarationAccepted.value,
+}))
+
 defineExpose({
   progress: applicantProgress,
   declarationAccepted,
+  payload,
 })
-
-/* ========================================
- * SAVE DRAFT
- * ======================================== */
-
-const formContainerRef = ref<HTMLElement | null>(null)
-const draftBarRef = ref<HTMLElement | null>(null)
-const isDraftBarFloating = ref(false)
-
-function updateDraftBarState() {
-  const container = formContainerRef.value
-  const draftBar = draftBarRef.value
-
-  if (!container || !draftBar) return
-
-  const bottomOffset = 16
-  const draftBarRect = draftBar.getBoundingClientRect()
-  const containerRect = container.getBoundingClientRect()
-  const stickyBottom = window.innerHeight - bottomOffset
-  const containerBottom = window.scrollY + containerRect.bottom
-  const viewportBottomTarget = window.scrollY + stickyBottom
-
-  isDraftBarFloating.value =
-    Math.abs(draftBarRect.bottom - stickyBottom) <= 2 &&
-    containerBottom > viewportBottomTarget + 2
-}
-
-const savedMessage = ref('')
-
-function saveDraft() {
-  formStatus.value = 'saved'
-
-  const draftData = {
-    applicant: applicant.value,
-    trainingHistories: trainingHistories.value,
-    practiceExperiences: practiceExperiences.value,
-    documents: {
-      ktp: newDocuments.value.ktp?.name ?? null,
-      assignmentLetter:
-        newDocuments.value.assignmentLetter?.name ?? null,
-    },
-    savedAt: new Date().toISOString(),
-  }
-
-  localStorage.setItem(
-    draftStorageKey.value,
-    JSON.stringify(draftData),
-  )
-
-  savedMessage.value = 'Draft berhasil disimpan.'
-
-  window.setTimeout(() => {
-    savedMessage.value = ''
-  }, 3000)
-}
-
-/* ========================================
- * LOAD DRAFT
- * ======================================== */
-
-onMounted(() => {
-  const savedDraft = localStorage.getItem(draftStorageKey.value)
-
-  if (!savedDraft) return
-
-  try {
-    const draftData = JSON.parse(savedDraft)
-
-    if (draftData.applicant) {
-      applicant.value = {
-        ...applicant.value,
-        ...draftData.applicant,
-      }
-
-      // Draft versi lama menyimpan pangkat dan golongan dalam satu field.
-      // Field lama tidak digunakan lagi pada form dengan dropdown terpisah.
-      if (!rankOptions.some((item) => item.value === applicant.value.rankName)) {
-        applicant.value.rankName = ''
-      }
-
-      if (!availableRankGroups.value.includes(applicant.value.rankGroup)) {
-        applicant.value.rankGroup = ''
-      }
-    }
-
-    if (Array.isArray(draftData.trainingHistories)) {
-      trainingHistories.value = draftData.trainingHistories
-    }
-
-    if (Array.isArray(draftData.practiceExperiences)) {
-      practiceExperiences.value = draftData.practiceExperiences
-    }
-
-    formStatus.value = 'saved'
-  } catch (error) {
-    console.error('Gagal memuat draft CMSP.01:', error)
-  }
-})
-
-onMounted(() => {
-  updateDraftBarState()
-  window.addEventListener('scroll', updateDraftBarState, { passive: true })
-  window.addEventListener('resize', updateDraftBarState)
-})
-
-onBeforeUnmount(() => {
-  window.removeEventListener('scroll', updateDraftBarState)
-  window.removeEventListener('resize', updateDraftBarState)
-})
-
 </script>
 
 <template>
-  <div ref="formContainerRef" class="mx-auto w-full max-w-5xl space-y-8 pb-8">
+  <div class="mx-auto w-full max-w-5xl space-y-8">
 
     <!-- ========================================
          PAGE HEADER
@@ -477,12 +432,23 @@ onBeforeUnmount(() => {
           </p>
         </div>
 
-        <UBadge
-          :label="formStatus === 'saved' ? 'Tersimpan' : 'Draft'"
-          :color="formStatus === 'saved' ? 'success' : 'warning'"
-          variant="subtle"
-          class="shrink-0"
-        />
+        <CertificationSelfAssessmentStatusBadge :status="status" class="mt-1" />
+      </div>
+
+      <div class="mt-5">
+        <div class="flex items-center justify-between gap-3 text-xs">
+          <span class="font-medium text-slate-600">Kelengkapan CMSP-01</span>
+          <span class="whitespace-nowrap font-semibold text-slate-900">
+            {{ applicantProgress }}% · {{ remainingLabel }}
+          </span>
+        </div>
+        <div class="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-slate-200">
+          <div
+            class="h-full rounded-full transition-all"
+            :class="applicantProgress === 100 ? 'bg-success' : 'bg-primary'"
+            :style="{ width: `${applicantProgress}%` }"
+          />
+        </div>
       </div>
     </section>
 
@@ -509,7 +475,7 @@ onBeforeUnmount(() => {
               Nama Sertifikasi
             </p>
             <p class="mt-1.5 text-base font-semibold text-slate-900">
-              Coach dan Mentor Sektor Publik
+              {{ certificationName }}
             </p>
           </div>
 
@@ -534,6 +500,8 @@ onBeforeUnmount(() => {
       </UCard>
     </section>
 
+    <fieldset :disabled="readonly" class="min-w-0 space-y-8">
+
     <!-- ========================================
          2. DATA PEMOHON
          ======================================== -->
@@ -551,259 +519,168 @@ onBeforeUnmount(() => {
 
       <UCard class="border border-primary/30 bg-white/90 shadow-sm">
 
-        <!-- INPUT GRID -->
-        <div class="grid grid-cols-2 gap-x-6 gap-y-5">
+        <div class="mb-5 flex items-center justify-between gap-3">
+          <p class="text-sm font-semibold text-primary">
+            Data Pemohon
+            <span class="font-normal text-slate-500">
+              ({{ applicantCompletedCount }} dari {{ APPLICANT_FIELD_COUNT }} terisi)
+            </span>
+          </p>
 
-          <!-- Nama Lengkap -->
-          <UFormField
-            label="Nama Lengkap"
-            required
-            class="min-w-0"
-          >
+          <UBadge
+            :label="isApplicantComplete ? 'Lengkap' : 'Belum lengkap'"
+            :color="isApplicantComplete ? 'success' : 'neutral'"
+            variant="subtle"
+            size="sm"
+            class="shrink-0"
+          />
+        </div>
+
+        <div class="grid grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-2">
+          <UFormField label="Nama Lengkap" required class="min-w-0">
             <UInput
               v-model="applicant.fullName"
-              required
               placeholder="Masukkan nama lengkap"
-              class="w-full my-2"
+              class="w-full"
             />
           </UFormField>
 
-          <!-- NIP -->
           <UFormField
             label="NIP"
             required
             class="min-w-0"
+            :error="getFieldError(applicant.nip, isValidNip, 'NIP harus terdiri dari 18 digit angka.') || undefined"
           >
             <UInput
               v-model="applicant.nip"
-              required
-              type="text"
               inputmode="numeric"
-              minlength="18"
               maxlength="18"
-              pattern="[0-9]{18}"
               placeholder="Masukkan 18 digit NIP"
-              class="w-full my-2"
+              class="w-full"
             />
-
-            <p
-              v-if="getFieldError(applicant.nip, isValidNip, 'NIP harus terdiri dari 18 digit angka.')"
-              class="mb-2 block text-xs font-medium cms-validation-error"
-            >
-              NIP harus terdiri dari 18 digit angka.
-            </p>
           </UFormField>
 
-          <!-- Pangkat dan Golongan Ruang -->
-          <div class="grid grid-cols-4 gap-x-3">
-            <UFormField
-              label="Pangkat"
-              required
-              class="col-span-3 min-w-0"
-            >
-              <USelect
-                v-model="applicant.rankName"
-                :items="rankNameOptions"
-                required
-                placeholder="Pilih pangkat"
-                class="my-2 w-full"
-              />
-            </UFormField>
-
-            <UFormField
-              label="Golongan Ruang"
-              required
-              class="col-span-1 min-w-0"
-            >
-              <USelect
-                v-model="applicant.rankGroup"
-                :items="rankGroupOptions"
-                required
-                placeholder="Pilih golongan"
-                class="my-2 w-full"
-              />
-            </UFormField>
-          </div>
-
-          <!-- Jenis Kelamin -->
-          <UFormField
-            label="Jenis Kelamin"
-            required
-            class="min-w-0"
-          >
+          <UFormField label="Pangkat" required class="min-w-0">
             <USelect
-              v-model="applicant.gender"
-              required
-              :items="[
-                'Laki-laki',
-                'Wanita',
-              ]"
-              placeholder="Pilih jenis kelamin"
-              class="w-full my-2"
+              v-model="applicant.rankName"
+              :items="rankNameOptions"
+              placeholder="Pilih pangkat"
+              class="w-full"
             />
           </UFormField>
 
-          <!-- Tempat Lahir -->
-          <UFormField
-            label="Tempat Lahir"
-            required
-            class="min-w-0"
-          >
+          <UFormField label="Golongan Ruang" required class="min-w-0">
+            <USelect
+              v-model="applicant.rankGroup"
+              :items="rankGroupOptions"
+              placeholder="Pilih golongan ruang"
+              class="w-full"
+            />
+          </UFormField>
+
+          <UFormField label="Tempat Lahir" required class="min-w-0">
             <UInput
               v-model="applicant.birthPlace"
-              required
               placeholder="Masukkan tempat lahir"
-              class="w-full my-2"
+              class="w-full"
             />
           </UFormField>
 
-          <!-- Tanggal Lahir -->
-          <UFormField
-            label="Tanggal Lahir"
-            required
-            class="min-w-0"
-          >
+          <UFormField label="Tanggal Lahir" required class="min-w-0">
             <UInput
               v-model="applicant.birthDate"
-              required
               type="date"
-              class="w-full my-2"
+              class="w-full"
             />
           </UFormField>
 
-          <!-- Pendidikan Terakhir -->
-          <UFormField
-            label="Pendidikan Terakhir"
-            required
-            class="min-w-0"
-          >
-            <UInput
-              v-model="applicant.latestEducation"
-              required
-              placeholder="Contoh: S1 Ilmu Komputer"
-              class="w-full my-2"
+          <UFormField label="Jenis Kelamin" required class="min-w-0">
+            <USelect
+              v-model="applicant.gender"
+              :items="genderItems"
+              placeholder="Pilih jenis kelamin"
+              class="w-full"
             />
           </UFormField>
 
-          <!-- Kualifikasi Pendidikan -->
-          <UFormField
-            label="Kualifikasi Pendidikan"
-            required
-            class="min-w-0"
-          >
-            <UInput
-              v-model="applicant.educationQualification"
-              required
-              placeholder="Masukkan kualifikasi pendidikan"
-              class="w-full my-2"
-            />
-          </UFormField>
-
-          <!-- Jabatan -->
-          <UFormField
-            label="Jabatan"
-            required
-            class="min-w-0"
-          >
-            <UInput
-              v-model="applicant.position"
-              required
-              placeholder="Masukkan jabatan"
-              class="w-full my-2"
-            />
-          </UFormField>
-
-          <!-- Unit Kerja -->
-          <UFormField
-            label="Unit Kerja"
-            required
-            class="min-w-0"
-          >
-            <UInput
-              v-model="applicant.workUnit"
-              required
-              placeholder="Masukkan unit kerja"
-              class="w-full my-2"
-            />
-          </UFormField>
-
-          <!-- Instansi -->
-          <UFormField
-            label="Instansi"
-            required
-            class="min-w-0"
-          >
-            <UInput
-              v-model="applicant.institution"
-              required
-              placeholder="Masukkan instansi"
-              class="w-full my-2"
-            />
-          </UFormField>
-
-          <!-- Nomor Telepon -->
           <UFormField
             label="Nomor Telepon"
             required
             class="min-w-0"
+            :error="getFieldError(applicant.phoneNumber, isValidPhoneNumber, 'Nomor telepon harus berupa 8–15 digit angka.') || undefined"
           >
             <UInput
               v-model="applicant.phoneNumber"
-              required
               type="tel"
-              inputmode="numeric"
-              pattern="\+?[0-9\s()\-]{8,20}"
+              inputmode="tel"
               placeholder="Contoh: 081234567890"
-              class="w-full my-2"
+              class="w-full"
             />
-
-            <p
-              v-if="getFieldError(applicant.phoneNumber, isValidPhoneNumber, 'Nomor telepon hanya boleh berisi angka dan terdiri dari 8–15 digit.')"
-              class="mb-2 block text-xs font-medium cms-validation-error"
-            >
-              Nomor telepon hanya boleh berisi angka dan terdiri dari 8–15 digit.
-            </p>
           </UFormField>
 
-          <!-- E-mail -->
           <UFormField
             label="E-mail"
             required
             class="min-w-0"
+            :error="getFieldError(applicant.email, isValidEmail, 'Gunakan format e-mail yang benar, misalnya nama@email.com.') || undefined"
           >
             <UInput
               v-model="applicant.email"
-              required
               type="email"
               placeholder="nama@email.com"
-              class="w-full my-2"
+              class="w-full"
             />
-
-            <p
-              v-if="getFieldError(applicant.email, isValidEmail, 'Gunakan format e-mail yang benar, misalnya nama@email.com.')"
-              class="mb-2 block text-xs font-medium cms-validation-error"
-            >
-              Gunakan format e-mail yang benar, misalnya nama@email.com.
-            </p>
           </UFormField>
 
-          <!-- Alamat Domisili -->
-          <UFormField
-            label="Alamat Domisili"
-            required
-            class="min-w-0"
-          >
+          <UFormField label="Instansi" required class="min-w-0">
+            <UInput
+              v-model="applicant.institution"
+              placeholder="Masukkan instansi"
+              class="w-full"
+            />
+          </UFormField>
+
+          <UFormField label="Unit Kerja" required class="min-w-0">
+            <UInput
+              v-model="applicant.workUnit"
+              placeholder="Masukkan unit kerja"
+              class="w-full"
+            />
+          </UFormField>
+
+          <UFormField label="Jabatan" required class="min-w-0">
+            <UInput
+              v-model="applicant.position"
+              placeholder="Masukkan jabatan"
+              class="w-full"
+            />
+          </UFormField>
+
+          <UFormField label="Pendidikan Terakhir" required class="min-w-0">
+            <UInput
+              v-model="applicant.latestEducation"
+              placeholder="Contoh: S1 Ilmu Komputer"
+              class="w-full"
+            />
+          </UFormField>
+
+          <UFormField label="Kualifikasi Pendidikan" required class="min-w-0">
+            <UInput
+              v-model="applicant.educationQualification"
+              placeholder="Masukkan kualifikasi pendidikan"
+              class="w-full"
+            />
+          </UFormField>
+
+          <UFormField label="Alamat Domisili" required class="min-w-0 sm:col-span-2">
             <UTextarea
               v-model="applicant.domicileAddress"
-              required
               :rows="3"
               placeholder="Masukkan alamat domisili"
-              class="w-full my-2"
+              class="w-full"
             />
           </UFormField>
-
         </div>
-
 
       </UCard>
     </section>
@@ -855,7 +732,9 @@ onBeforeUnmount(() => {
             <p class="text-sm font-semibold text-primary">
               Riwayat {{ index + 1 }}
             </p>
+          </div>
 
+          <div class="flex shrink-0 items-center gap-2">
             <UBadge
               :label="isTrainingComplete(training) ? 'Lengkap' : 'Belum lengkap'"
               :color="isTrainingComplete(training) ? 'success' : 'neutral'"
@@ -863,7 +742,6 @@ onBeforeUnmount(() => {
               size="sm"
               class="shrink-0"
             />
-          </div>
 
           <UButton
             v-if="trainingHistories.length > 1"
@@ -875,6 +753,7 @@ onBeforeUnmount(() => {
             aria-label="Hapus riwayat"
             @click="removeTraining(index)"
           />
+          </div>
         </div>
 
         <!-- 2 Kolom -->
@@ -997,7 +876,9 @@ onBeforeUnmount(() => {
             <p class="text-sm font-semibold text-primary">
               Pengalaman {{ index + 1 }}
             </p>
+          </div>
 
+          <div class="flex shrink-0 items-center gap-2">
             <UBadge
               :label="isPracticeComplete(practice) ? 'Lengkap' : 'Belum lengkap'"
               :color="isPracticeComplete(practice) ? 'success' : 'neutral'"
@@ -1005,9 +886,8 @@ onBeforeUnmount(() => {
               size="sm"
               class="shrink-0"
             />
-          </div>
 
-          <UButton
+            <UButton
             v-if="practiceExperiences.length > 1"
             icon="i-lucide-trash-2"
             color="error"
@@ -1017,6 +897,7 @@ onBeforeUnmount(() => {
             aria-label="Hapus pengalaman"
             @click="removePractice(index)"
           />
+          </div>
         </div>
 
         <!-- 2 Kolom -->
@@ -1092,273 +973,92 @@ onBeforeUnmount(() => {
   </UCard>
 </section>
 
+    </fieldset>
+
     <!-- ========================================
      5. PERSYARATAN ADMINISTRASI
      ======================================== -->
 
 <section class="space-y-3">
-
-  <!-- Header -->
   <div>
     <h2 class="text-lg font-semibold text-slate-900">
       5. Persyaratan Administrasi
     </h2>
 
     <p class="mt-1 text-sm text-slate-500">
-      Dokumen yang sudah dilampirkan saat pendaftaran akan digunakan
-      kembali. Lengkapi dokumen tambahan yang diperlukan.
+      Dokumen dari pendaftaran digunakan kembali dan dapat diganti. Penggantian
+      hanya berlaku untuk CMSP-01 (dokumen pendaftaran tidak berubah) dan
+      tersimpan saat Simpan Draft.
     </p>
   </div>
 
-  <!-- Card -->
   <UCard class="border border-primary/30 bg-white/90 shadow-sm">
     <div class="space-y-3">
-
-      <!-- ====================================
-           DOKUMEN DARI PENDAFTARAN
-           ==================================== -->
-
       <div
-        v-for="document in inheritedDocuments"
-        :key="document.name"
-        class="flex items-center justify-between gap-4 rounded-xl bg-slate-50/60 p-4"
+        v-for="document in documents"
+        :key="document.documentType"
+        class="flex flex-col gap-4 rounded-xl border border-dashed border-slate-300 bg-white p-4 sm:flex-row sm:items-center sm:justify-between"
       >
-        <!-- Document Info -->
         <div class="flex min-w-0 items-center gap-3">
-
-          <!-- Icon -->
-          <div
-            class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary"
-          >
-            <UIcon
-              name="i-lucide-file-check-2"
-              class="size-5"
-            />
+          <div class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+            <UIcon :name="getApplicationDocumentIcon(document.documentType)" class="size-5" />
           </div>
 
-          <!-- Text -->
           <div class="min-w-0">
             <p class="text-sm font-medium text-slate-900">
-              {{ document.name }}
+              {{ getApplicationDocumentLabel(document.documentType) }}
+              <span class="text-red-500">*</span>
             </p>
-
-            <p class="mt-0.5 text-xs text-slate-500">
-              Diambil dari data pendaftaran
+            <p
+              class="mt-0.5 truncate text-xs"
+              :class="document.file ? 'text-slate-500' : 'text-slate-400'"
+            >
+              {{ formatFileInfo(document.file) }}
+            </p>
+            <p v-if="!readonly" class="mt-0.5 text-xs text-slate-400">
+              {{ documentHint(document.documentType) }}
             </p>
           </div>
-
         </div>
 
-        <!-- Status -->
-        <UBadge
-          label="Tersedia"
-          color="success"
-          variant="subtle"
-          size="sm"
-          class="shrink-0"
-        />
+        <div class="flex shrink-0 items-center gap-2">
+          <UButton
+            color="neutral"
+            variant="outline"
+            icon="i-lucide-eye"
+            class="min-w-28 justify-center"
+            :disabled="!document.file"
+            @click="openPreview(document)"
+          >
+            Lihat
+          </UButton>
+
+          <template v-if="!readonly">
+            <input
+              :id="`cmsp01-${document.documentType}`"
+              type="file"
+              :accept="documentAccept(document.documentType)"
+              class="hidden"
+              :disabled="uploadingDocumentType !== null"
+              @change="handleDocumentChange($event, document)"
+            />
+            <UButton
+              as="label"
+              :for="`cmsp01-${document.documentType}`"
+              variant="outline"
+              icon="i-lucide-upload"
+              :loading="uploadingDocumentType === document.documentType"
+              :disabled="uploadingDocumentType !== null"
+              class="min-w-28 cursor-pointer justify-center"
+            >
+              {{ document.file ? 'Ganti' : 'Pilih File' }}
+            </UButton>
+          </template>
+        </div>
       </div>
-
-      <!-- ====================================
-     KTP
-     ==================================== -->
-
-<div
-  class="rounded-xl border border-dashed border-slate-300 bg-white p-4"
->
-  <div class="flex items-center justify-between gap-6">
-
-    <!-- KTP Info -->
-    <div class="flex min-w-0 items-center gap-3">
-
-      <div
-        class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary"
-      >
-        <UIcon
-          name="i-lucide-id-card"
-          class="size-5"
-        />
-      </div>
-
-      <div class="min-w-0">
-        <p class="text-sm font-medium text-slate-900">
-          KTP
-        </p>
-
-        <p class="mt-0.5 text-xs text-slate-500">
-          Upload dokumen KTP. Maksimal 5 MB.
-        </p>
-
-        <p
-          v-if="newDocuments.ktp"
-          class="mt-1 truncate text-xs font-medium text-success-600"
-        >
-          {{ newDocuments.ktp.name }}
-        </p>
-
-        <p
-          v-else
-          class="mt-1 text-xs text-slate-400"
-        >
-          Belum ada file dipilih.
-        </p>
-
-        <p
-          v-if="documentErrors.ktp"
-          class="mb-2 block text-xs font-medium cms-validation-error"
-        >
-          {{ documentErrors.ktp }}
-        </p>
-      </div>
-
-    </div>
-
-    <!-- KTP Action -->
-    <div class="shrink-0">
-      <input
-        id="ktp-upload"
-        type="file"
-        required
-        accept=".pdf,.jpg,.jpeg,.png"
-        class="hidden"
-        @change="handleFileChange($event, 'ktp')"
-      />
-
-      <label
-        for="ktp-upload"
-        class="inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-primary px-4 py-2 text-sm font-medium text-primary transition hover:bg-primary/5"
-      >
-        <UIcon
-          name="i-lucide-upload"
-          class="size-4"
-        />
-
-        Pilih File
-      </label>
-    </div>
-
-  </div>
-</div>
-
-      <!-- ====================================
-     SURAT TUGAS INSTANSI
-     ==================================== -->
-
-<div
-  class="rounded-xl border border-dashed border-slate-300 bg-white p-4"
->
-  <div class="flex items-center justify-between gap-6">
-
-    <!-- Surat Tugas Info -->
-    <div class="flex min-w-0 items-center gap-3">
-
-      <div
-        class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary"
-      >
-        <UIcon
-          name="i-lucide-file-text"
-          class="size-5"
-        />
-      </div>
-
-      <div class="min-w-0">
-        <p class="text-sm font-medium text-slate-900">
-          Surat Tugas Instansi
-        </p>
-
-        <p class="mt-0.5 text-xs text-slate-500">
-          Upload surat tugas dari instansi. Maksimal 5 MB.
-        </p>
-
-        <p
-          v-if="newDocuments.assignmentLetter"
-          class="mt-1 truncate text-xs font-medium text-success-600"
-        >
-          {{ newDocuments.assignmentLetter.name }}
-        </p>
-
-        <p
-          v-else
-          class="mt-1 text-xs text-slate-400"
-        >
-          Belum ada file dipilih.
-        </p>
-
-        <p
-          v-if="documentErrors.assignmentLetter"
-          class="mb-2 block text-xs font-medium cms-validation-error"
-        >
-          {{ documentErrors.assignmentLetter }}
-        </p>
-      </div>
-
-    </div>
-
-    <!-- Surat Tugas Action -->
-    <div class="shrink-0">
-      <input
-        id="assignment-letter-upload"
-        type="file"
-        required
-        accept=".pdf,.jpg,.jpeg,.png"
-        class="hidden"
-        @change="
-          handleFileChange(
-            $event,
-            'assignmentLetter',
-          )
-        "
-      />
-
-      <label
-        for="assignment-letter-upload"
-        class="inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-primary px-4 py-2 text-sm font-medium text-primary transition hover:bg-primary/5"
-      >
-        <UIcon
-          name="i-lucide-upload"
-          class="size-4"
-        />
-
-        Pilih File
-      </label>
-    </div>
-
-  </div>
-</div>
-
     </div>
   </UCard>
 </section>
-
-        <!-- ====================================
-             PROGRESS
-             DI LUAR GRID INPUT
-             ==================================== -->
-
-        <div class="mt-6 w-full">
-          <div class="rounded-xl bg-slate-50 p-4">
-
-            <div class="flex items-center justify-between text-sm">
-              <span class="text-slate-500">
-                Kelengkapan CMSP.01
-              </span>
-
-              <span class="font-semibold text-slate-900">
-                {{ applicantProgress }}%
-              </span>
-            </div>
-
-            <div
-              class="mt-2 h-2 w-full overflow-hidden rounded-full bg-slate-200"
-            >
-              <div
-                class="h-full rounded-full bg-primary transition-all"
-                :style="{ width: `${applicantProgress}%` }"
-              />
-            </div>
-
-          </div>
-        </div>
 
 <!-- ========================================
      6. PERNYATAAN PEMOHON
@@ -1450,6 +1150,7 @@ onBeforeUnmount(() => {
       >
         <UCheckbox
           v-model="declarationAccepted"
+          :disabled="readonly"
           required
           label="Saya telah membaca, memahami, dan menyetujui seluruh pernyataan di atas."
         />
@@ -1464,51 +1165,12 @@ onBeforeUnmount(() => {
   </UCard>
 </section>
 
-    <!-- ========================================
-     SIMPAN DRAFT
-     ======================================== -->
-
-<div
-  ref="draftBarRef"
-  class="sticky bottom-4 z-10 transition-shadow duration-200"
->
-  <UCard
-    class="border border-primary/30 bg-white/90"
-    :class="isDraftBarFloating ? 'shadow-lg' : 'shadow-sm'"
-  >
-    <div class="flex items-center gap-6">
-
-    <!-- Informasi -->
-    <div class="min-w-0 flex-1">
-      <p class="text-sm font-medium text-slate-900">
-        Simpan perkembangan pengisian
-      </p>
-
-      <p class="mt-1 text-xs text-slate-500">
-        Form belum perlu lengkap untuk disimpan sebagai draft.
-      </p>
-
-      <p
-        v-if="savedMessage"
-        class="mt-1 text-xs font-medium text-success-600"
-      >
-        {{ savedMessage }}
-      </p>
-    </div>
-
-    <!-- Tombol -->
-    <UButton
-      label="Simpan Draft"
-      icon="i-lucide-save"
-      size="lg"
-      class="ml-auto shrink-0"
-      @click="saveDraft"
+    <DocumentPreviewModal
+      v-model:open="previewOpen"
+      :url="documentPreviewUrl"
+      :title="previewDocument?.file?.original_file_name"
+      :description="previewDocument ? getApplicationDocumentLabel(previewDocument.documentType) : ''"
     />
-
-    </div>
-  </UCard>
-</div>
-
   </div>
 </template>
 

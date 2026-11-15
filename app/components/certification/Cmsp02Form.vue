@@ -1,177 +1,93 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, ref } from 'vue'
+import { CMSP02_COMPETENCY_UNITS } from '~~/shared/utils/cmsp02-units'
+import { SELF_ASSESSMENT_UPLOAD_ACCEPT } from '~~/shared/utils/self-assessment'
+import { parseEvidenceLink, type EvidenceLinkInfo } from '~~/shared/utils/evidence-link'
+import {
+  formatFileInfo,
+  useSelfAssessmentFiles,
+  type SelfAssessmentFile,
+} from '~/composables/useSelfAssessmentFiles'
 
-const props = defineProps<{ applicationId: string }>()
-const draftStorageKey = computed(() => `cmsp-02-draft:${props.applicationId}`)
+export type Cmsp02Initial = {
+  evidences: {
+    unitCode: string
+    evidenceName: string
+    type: 'FILE' | 'URL'
+    file: SelfAssessmentFile | null
+    url: string
+    description: string
+  }[]
+}
+
+const props = defineProps<{
+  applicationId: string
+  initial: Cmsp02Initial
+  readonly: boolean
+  status: string
+}>()
+
+const { upload, previewUrl } = useSelfAssessmentFiles(() => props.applicationId)
 
 type Evidence = {
+  /** ID lokal yang stabil, dipakai untuk key & status validasi per kartu. */
+  id: string
   type: 'file' | 'url'
   evidenceName: string
   description: string
-  file: File | null
+  file: SelfAssessmentFile | null
   url: string
 }
 
-type CompetencyUnit = {
-  number: number
-  code: string
-  title: string
-  elements: string[]
-  relevantEvidence: string[]
+const competencyUnits = CMSP02_COMPETENCY_UNITS
+
+let evidenceSequence = 0
+
+function createEvidence(partial: Partial<Evidence> = {}): Evidence {
+  evidenceSequence += 1
+
+  return {
+    id: `evidence-${Date.now()}-${evidenceSequence}`,
+    type: 'file',
+    evidenceName: '',
+    description: '',
+    file: null,
+    url: '',
+    ...partial,
+  }
 }
 
-const competencyUnits: CompetencyUnit[] = [
-  {
-    number: 1,
-    code: 'UK.CMSP.1',
-    title: 'Memahami Praktik Coaching dan Mentoring pada Sektor Publik',
-    elements: [
-      'Menyampaikan pengertian, tujuan, dan Prinsip Coaching dan Mentoring pada sektor publik',
-      'Menyampaikan tahapan dan peran yang terlibat dalam proses Coaching dan Mentoring pada sektor publik.',
-    ],
-    relevantEvidence: [
-      'Sertifikat pelatihan coaching dan mentoring',
-      'Modul atau materi terkait coaching/mentoring yang pernah dibuat',
-      'Presentasi atau bahan paparan yang pernah digunakan untuk menjelaskan coaching dan mentoring',
-    ],
-  },
-  {
-    number: 2,
-    code: 'UK.CMSP.2',
-    title: 'Membangun Hubungan Coaching dan Mentoring yang Efektif',
-    elements: [
-      'Mengidentifikasi kebutuhan dan tujuan pengembangan individu',
-      'Menciptakan suasana aman, nyaman dan mendukung proses Coaching/Mentoring',
-      'Melakukan komunikasi yang efektif dalam konteks Coaching/Mentoring',
-      'Menetapkan kesepakatan sesi Coaching/Mentoring.',
-    ],
-    relevantEvidence: [
-      'Form/lembar identifikasi profil dan kebutuhan coachee/mentee',
-      'Rekaman video proses Coaching/mentoring',
-      'Form kontrak pembelajaran atau kesepakatan sesi coaching/mentoring',
-    ],
-  },
-  {
-    number: 3,
-    code: 'UK.CMSP.3',
-    title: 'Memfasilitasi Proses Pencapaian Tujuan',
-    elements: [
-      'Menetapkan Tujuan Pengembangan Individu yang Jelas dan Relevan',
-      'Mengembangkan Rencana Aksi yang Terukur',
-    ],
-    relevantEvidence: [
-      'Rekaman video proses Coaching/mentoring',
-      'Form penetapan tujuan pengembangan individu (Bukti perumusan tujuan menggunakan prinsip SMART atau pendekatan sejenis/lainnya)',
-      'Form Action Plan/Rencana Aksi/Pengembangan',
-    ],
-  },
-  {
-    number: 4,
-    code: 'UK.CMSP.4',
-    title: 'Memfasilitasi Pemantauan dan Evaluasi',
-    elements: [
-      'Mengidentifikasi Indikator Keberhasilan Proses Coaching/Mentoring',
-      'Memantau Kemajuan dan Perkembangan Coachee/Mentee',
-      'Memfasilitasi Refleksi dan Umpan Balik Positif terhadap Proses dan Hasil Coaching/Mentoring',
-    ],
-    relevantEvidence: [
-      'Rekaman video proses Coaching/mentoring',
-      'Form monitoring dan evaluasi coaching dan mentoring',
-    ],
-  },
-  {
-    number: 5,
-    code: 'UK.CSP.1',
-    title: 'Mendengarkan Aktif dan Kehadiran Penuh (Active Listening and Presence)',
-    elements: [
-      'Menggunakan keterampilan mendengarkan aktif (Active Listening).',
-      'Menciptakan Kehadiran Penuh (Establish Presence)',
-    ],
-    relevantEvidence: [
-      'Rekaman video praktik coaching yang menunjukkan unit kompetensi',
-    ],
-  },
-  {
-    number: 6,
-    code: 'UK.CSP.2',
-    title: 'Menggunakan Teknik Bertanya Reflektif dan Mendalam (Powerfull Questioning)',
-    elements: [
-      'Mengajukan Pertanyaan yang Membuka Wawasan.',
-      'Mengajukan Pertanyaan yang Reflektif dan Memberdayakan',
-    ],
-    relevantEvidence: [
-      'Rekaman video praktik coaching yang menunjukkan unit kompetensi',
-    ],
-  },
-  {
-    number: 7,
-    code: 'UK.CSP.3',
-    title: 'Menerapkan Model dan Kerangka Sistematis dalam Proses Coaching',
-    elements: [
-      'Mengidentifikasi Model dan Kerangka Coaching yang Relevan',
-      'Melaksanakan Tahapan Coaching secara Sistematis',
-    ],
-    relevantEvidence: [
-      'Form/dokumen praktik coaching yang menggunakan model dan kerangka coaching, misalnya GROW, CLEAR, OSCAR, atau model lain beserta karakteristik dan penggunaannya',
-    ],
-  },
-  {
-    number: 8,
-    code: 'UK.MSP.1',
-    title: 'Menggunakan Teknik Berbagi Pengetahuan dan Pengalaman',
-    elements: [
-      'Memilih Teknik Berbagi Pengetahuan dan Pengalaman yang Sesuai dengan Karakter Mentee.',
-      'Menyampaikan Pengetahuan dan Pengalaman secara Inspiratif dan Aplikatif.',
-    ],
-    relevantEvidence: [
-      'Rencana Sesi Mentoring yang memuat karakteristik/kebutuhan mentee dan teknik berbagi yang dipilih',
-      'Rekaman video sesi mentoring yang menunjukkan unit kompetensi',
-    ],
-  },
-  {
-    number: 9,
-    code: 'UK.MSP.2',
-    title: 'Memberikan Bimbingan dan Dukungan Peningkatan Kinerja',
-    elements: [
-      'Mengidentifikasi Data dan Informasi Kinerja',
-      'Melakukan Analisis Kebutuhan Peningkatan Kinerja',
-      'Memberikan Bimbingan Peningkatan Kemampuan dan Hasil Kerja',
-    ],
-    relevantEvidence: [
-      'Log Book atau Catatan Sesi Mentoring yang terkait dengan memberikan bimbingan dan dukungan peningkatan kinerja',
-    ],
-  },
-  {
-    number: 10,
-    code: 'UK.MSP.3',
-    title: 'Memberikan Bimbingan Adaptasi dan Penyesuaian Peran',
-    elements: [
-      'Mengidentifikasi Kebutuhan Adaptasi dan Penyesuaian Peran Mentee',
-      'Memberikan Dukungan Adaptasi dan Penyesuaian Peran Mentee',
-    ],
-    relevantEvidence: [
-      'Log Book atau Catatan Sesi Mentoring yang terkait dengan bimbingan adaptasi dan penyesuaian peran',
-    ],
-  },
-]
+function buildInitialEvidence(): Record<number, Evidence[]> {
+  return Object.fromEntries(
+    competencyUnits.map((unit) => {
+      const saved = props.initial.evidences
+        .filter((item) => item.unitCode === unit.code)
+        .map((item) => createEvidence({
+          type: item.type === 'URL' ? 'url' : 'file',
+          evidenceName: item.evidenceName,
+          description: item.description,
+          file: item.file,
+          url: item.url,
+        }))
 
-const formStatus = ref<'draft' | 'saved'>('draft')
+      return [unit.number, saved.length > 0 ? saved : [createEvidence()]]
+    }),
+  )
+}
 
-const evidenceByUnit = ref<Record<number, Evidence[]>>(
-  Object.fromEntries(
-    competencyUnits.map((unit) => [
-      unit.number,
-      [{ type: 'file', evidenceName: '', description: '', file: null, url: '' }],
-    ]),
-  ) as Record<number, Evidence[]>,
-)
+const evidenceByUnit = ref<Record<number, Evidence[]>>(buildInitialEvidence())
 
-const savedMessage = ref('')
-const evidenceErrors = ref<Record<string, { name?: string; file?: string; url?: string }>>({})
+function unitEvidences(unitNumber: number): Evidence[] {
+  return evidenceByUnit.value[unitNumber] ?? []
+}
+
+function getEvidenceKey(unitNumber: number, evidenceIndex: number) {
+  return unitEvidences(unitNumber)[evidenceIndex]?.id ?? ''
+}
+
+const evidenceErrors = ref<Record<string, { name?: string, file?: string, url?: string }>>({})
 const evidenceNameTouched = ref<Record<string, boolean>>({})
 const evidenceSourceTouched = ref<Record<string, boolean>>({})
-
-const MAX_EVIDENCE_FILE_SIZE = 5 * 1024 * 1024
 
 const isValidUrl = (value: string) => {
   try {
@@ -193,75 +109,76 @@ function evidenceIsComplete(item: Evidence) {
 }
 
 function markEvidenceNameTouched(unitNumber: number, evidenceIndex: number) {
-  evidenceNameTouched.value[`${unitNumber}-${evidenceIndex}`] = true
+  evidenceNameTouched.value[getEvidenceKey(unitNumber, evidenceIndex)] = true
 }
 
 function markEvidenceSourceTouched(unitNumber: number, evidenceIndex: number) {
-  evidenceSourceTouched.value[`${unitNumber}-${evidenceIndex}`] = true
+  evidenceSourceTouched.value[getEvidenceKey(unitNumber, evidenceIndex)] = true
 }
 
+/**
+ * Evidence baru ditaruh di paling atas agar langsung terlihat peserta;
+ * evidence yang sudah ada bergeser ke bawah.
+ */
 function addEvidence(unitNumber: number) {
-  evidenceByUnit.value[unitNumber].push({
-    type: 'file',
-    evidenceName: '',
-    description: '',
-    file: null,
-    url: '',
-  })
+  unitEvidences(unitNumber).unshift(createEvidence())
 }
 
 function removeEvidence(unitNumber: number, index: number) {
-  const items = evidenceByUnit.value[unitNumber]
+  const items = unitEvidences(unitNumber)
 
   if (items.length === 1) return
 
+  const key = getEvidenceKey(unitNumber, index)
+
   items.splice(index, 1)
-  delete evidenceErrors.value[`${unitNumber}-${index}`]
-  delete evidenceNameTouched.value[`${unitNumber}-${index}`]
-  delete evidenceSourceTouched.value[`${unitNumber}-${index}`]
+  delete evidenceErrors.value[key]
+  delete evidenceNameTouched.value[key]
+  delete evidenceSourceTouched.value[key]
 }
 
-function handleEvidenceFileChange(
+const uploadingEvidenceId = ref<string | null>(null)
+
+async function handleEvidenceFileChange(
   event: Event,
   unitNumber: number,
   evidenceIndex: number,
 ) {
   const target = event.target as HTMLInputElement
-  const selectedFile = target.files?.[0] ?? null
-  const errorKey = `${unitNumber}-${evidenceIndex}`
+  const selectedFile = target.files?.[0]
+  target.value = ''
 
-  if (!evidenceErrors.value[errorKey]) {
-    evidenceErrors.value[errorKey] = {}
+  const item = unitEvidences(unitNumber)[evidenceIndex]
+
+  if (!selectedFile || !item) return
+
+  uploadingEvidenceId.value = item.id
+  markEvidenceSourceTouched(unitNumber, evidenceIndex)
+
+  try {
+    const uploaded = await upload('EVIDENCE', selectedFile)
+
+    if (uploaded) {
+      item.file = uploaded
+    }
+  } finally {
+    uploadingEvidenceId.value = null
   }
-
-  delete evidenceErrors.value[errorKey].file
-
-  if (!selectedFile) {
-    evidenceByUnit.value[unitNumber][evidenceIndex].file = null
-    return
-  }
-
-  if (selectedFile.size > MAX_EVIDENCE_FILE_SIZE) {
-    evidenceByUnit.value[unitNumber][evidenceIndex].file = null
-    evidenceErrors.value[errorKey].file = 'Ukuran file maksimal 5 MB.'
-    target.value = ''
-    return
-  }
-
-  evidenceByUnit.value[unitNumber][evidenceIndex].file = selectedFile
 }
 
 function setEvidenceType(unitNumber: number, evidenceIndex: number, type: Evidence['type']) {
-  const item = evidenceByUnit.value[unitNumber][evidenceIndex]
+  const item = unitEvidences(unitNumber)[evidenceIndex]
+
+  if (!item || item.type === type) return
 
   item.type = type
   item.file = null
   item.url = ''
-  delete evidenceErrors.value[`${unitNumber}-${evidenceIndex}`]
+  delete evidenceErrors.value[item.id]
 }
 
 function getUnitProgress(unitNumber: number) {
-  const items = evidenceByUnit.value[unitNumber]
+  const items = unitEvidences(unitNumber)
 
   return items.length > 0 && items.every(evidenceIsComplete)
     ? 100
@@ -270,7 +187,7 @@ function getUnitProgress(unitNumber: number) {
 
 const totalEvidenceCount = computed(() =>
   competencyUnits.reduce(
-    (total, unit) => total + evidenceByUnit.value[unit.number].length,
+    (total, unit) => total + unitEvidences(unit.number).length,
     0,
   ),
 )
@@ -278,10 +195,19 @@ const totalEvidenceCount = computed(() =>
 const completedEvidenceCount = computed(() =>
   competencyUnits.reduce(
     (total, unit) =>
-      total +
-      evidenceByUnit.value[unit.number].filter(evidenceIsComplete).length,
+      total + unitEvidences(unit.number).filter(evidenceIsComplete).length,
     0,
   ),
+)
+
+const remainingEvidenceCount = computed(() =>
+  totalEvidenceCount.value - completedEvidenceCount.value,
+)
+
+const remainingLabel = computed(() =>
+  remainingEvidenceCount.value === 0
+    ? 'Lengkap'
+    : `${remainingEvidenceCount.value} evidence belum lengkap`,
 )
 
 const progress = computed(() =>
@@ -292,115 +218,72 @@ const progress = computed(() =>
       ),
 )
 
-const complete = computed(() => progress.value === 100)
+/* Preview file evidence */
+const previewOpen = ref(false)
+const previewEvidence = ref<Evidence | null>(null)
 
-const formContainerRef = ref<HTMLElement | null>(null)
-const draftBarRef = ref<HTMLElement | null>(null)
-const isDraftBarFloating = ref(false)
+const evidencePreviewUrl = computed(() =>
+  previewEvidence.value?.file ? previewUrl(previewEvidence.value.file.file_id) : '',
+)
 
-function updateDraftBarState() {
-  const container = formContainerRef.value
-  const draftBar = draftBarRef.value
-
-  if (!container || !draftBar) return
-
-  const bottomOffset = 16
-  const draftBarRect = draftBar.getBoundingClientRect()
-  const containerRect = container.getBoundingClientRect()
-  const stickyBottom = window.innerHeight - bottomOffset
-  const containerBottom = window.scrollY + containerRect.bottom
-  const viewportBottomTarget = window.scrollY + stickyBottom
-
-  isDraftBarFloating.value =
-    Math.abs(draftBarRect.bottom - stickyBottom) <= 2 &&
-    containerBottom > viewportBottomTarget + 2
+function openPreview(item: Evidence) {
+  previewEvidence.value = item
+  previewOpen.value = true
 }
 
-function saveDraft() {
-  formStatus.value = 'saved'
+const evidenceAccept = SELF_ASSESSMENT_UPLOAD_ACCEPT.EVIDENCE
 
-  for (const unit of competencyUnits) {
-    evidenceByUnit.value[unit.number].forEach((_, evidenceIndex) => {
-      markEvidenceNameTouched(unit.number, evidenceIndex)
-      markEvidenceSourceTouched(unit.number, evidenceIndex)
-    })
+/* Preview link evidence: YouTube & file Drive di-embed, selain itu dibuka di tab baru. */
+const linkPreviewOpen = ref(false)
+const linkPreview = ref<{ info: EvidenceLinkInfo, title: string } | null>(null)
+
+function openLinkPreview(item: Evidence) {
+  const info = parseEvidenceLink(item.url)
+  if (!info) return
+
+  if (info.embedUrl) {
+    linkPreview.value = { info, title: item.evidenceName.trim() || 'Preview Link Evidence' }
+    linkPreviewOpen.value = true
+    return
   }
 
-  const draftData = {
-    evidenceByUnit: Object.fromEntries(
-      competencyUnits.map((unit) => [
-        unit.number,
-        evidenceByUnit.value[unit.number].map((item) => ({
-          type: item.type,
-          evidenceName: item.evidenceName,
-          description: item.description,
-          fileName: item.file?.name ?? null,
-          url: item.url,
-        })),
-      ]),
-    ),
-    savedAt: new Date().toISOString(),
-  }
-
-  localStorage.setItem(draftStorageKey.value, JSON.stringify(draftData))
-  savedMessage.value = 'Draft CMSP.02 berhasil disimpan.'
-
-  window.setTimeout(() => {
-    savedMessage.value = ''
-  }, 3000)
+  window.open(info.url, '_blank', 'noopener,noreferrer')
 }
 
-onMounted(() => {
-  const savedDraft = localStorage.getItem(draftStorageKey.value)
+/** Data yang dikirim saat Simpan Draft. Urutan mengikuti tampilan. */
+const payload = computed(() => ({
+  evidences: competencyUnits.flatMap((unit) =>
+    unitEvidences(unit.number).map((item) => ({
+      unitCode: unit.code,
+      evidenceName: item.evidenceName,
+      type: item.type === 'url' ? 'URL' : 'FILE',
+      fileId: item.type === 'file' ? item.file?.file_id ?? '' : '',
+      url: item.type === 'url' ? item.url : '',
+      description: item.description,
+    })),
+  ),
+}))
 
-  if (!savedDraft) return
+/* Navigasi cepat ke card unit */
+const UNIT_ID_PREFIX = 'cmsp02-unit-'
 
-  try {
-    const draftData = JSON.parse(savedDraft)
-
-    formStatus.value = 'saved'
-
-    if (!draftData.evidenceByUnit) return
-
-    for (const unit of competencyUnits) {
-      const savedItems = draftData.evidenceByUnit[unit.number]
-
-      if (!Array.isArray(savedItems) || savedItems.length === 0) continue
-
-      evidenceByUnit.value[unit.number] = savedItems.map((item: any) => ({
-        type: item.type === 'url' ? 'url' : 'file',
-        evidenceName: item.evidenceName ?? '',
-        description: item.description ?? '',
-        file: null,
-        url: item.url ?? '',
-      }))
-    }
-  } catch (error) {
-    console.error('Gagal memulihkan draft CMSP.02:', error)
-  }
-})
-
-onMounted(() => {
-  updateDraftBarState()
-  window.addEventListener('scroll', updateDraftBarState, { passive: true })
-  window.addEventListener('resize', updateDraftBarState)
-})
-
-onBeforeUnmount(() => {
-  window.removeEventListener('scroll', updateDraftBarState)
-  window.removeEventListener('resize', updateDraftBarState)
-})
+const navigatorUnits = computed(() =>
+  competencyUnits.map((unit) => ({
+    number: unit.number,
+    code: unit.code,
+    title: unit.title,
+    complete: getUnitProgress(unit.number) === 100,
+  })),
+)
 
 defineExpose({
   progress,
-  complete,
-  formStatus,
-  saveDraft,
+  payload,
 })
 </script>
 
 <template>
-  <div ref="formContainerRef" class="space-y-8">
+  <div class="space-y-8">
     <section>
       <div class="flex items-start justify-between gap-5">
         <div class="min-w-0">
@@ -417,20 +300,32 @@ defineExpose({
           </p>
         </div>
 
-        <UBadge
-          :label="formStatus === 'saved' ? 'Tersimpan' : 'Draft'"
-          :color="formStatus === 'saved' ? 'success' : 'warning'"
-          variant="subtle"
-          class="shrink-0"
-        />
+        <CertificationSelfAssessmentStatusBadge :status="status" class="mt-1" />
+      </div>
+
+      <div class="mt-5">
+        <div class="flex items-center justify-between gap-3 text-xs">
+          <span class="font-medium text-slate-600">Kelengkapan CMSP-02</span>
+          <span class="whitespace-nowrap font-semibold text-slate-900">
+            {{ progress }}% · {{ remainingLabel }}
+          </span>
+        </div>
+        <div class="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-slate-200">
+          <div
+            class="h-full rounded-full transition-all"
+            :class="progress === 100 ? 'bg-success' : 'bg-primary'"
+            :style="{ width: `${progress}%` }"
+          />
+        </div>
       </div>
     </section>
 
     <section class="space-y-4">
       <UCard
         v-for="unit in competencyUnits"
+        :id="`${UNIT_ID_PREFIX}${unit.number}`"
         :key="unit.number"
-        class="bg-white/90 shadow-sm"
+        class="scroll-mt-6 bg-white/90 shadow-sm"
       >
         <div class="space-y-6">
           <div class="flex items-start justify-between gap-4">
@@ -506,23 +401,24 @@ defineExpose({
                 variant="outline"
                 size="sm"
                 class="shrink-0"
+                :disabled="readonly"
                 @click="addEvidence(unit.number)"
               />
             </div>
 
             <div class="mt-4 space-y-3">
               <div
-                v-for="(evidence, evidenceIndex) in evidenceByUnit[unit.number]"
-                :key="`${unit.number}-${evidenceIndex}`"
+                v-for="(evidence, evidenceIndex) in unitEvidences(unit.number)"
+                :key="evidence.id"
                 class="rounded-xl border border-slate-200 bg-slate-50 p-4"
               >
                 <div class="flex items-start justify-between gap-4">
                   <p class="text-sm font-medium text-slate-900">
-                    Evidence {{ evidenceIndex + 1 }}
+                    Evidence {{ unitEvidences(unit.number).length - evidenceIndex }}
                   </p>
 
                   <UButton
-                    v-if="evidenceByUnit[unit.number].length > 1"
+                    v-if="!readonly && unitEvidences(unit.number).length > 1"
                     icon="i-lucide-trash-2"
                     color="error"
                     variant="ghost"
@@ -539,19 +435,20 @@ defineExpose({
                   </label>
                   <UInput
                     v-model="evidence.evidenceName"
+                    :disabled="readonly"
                     placeholder="Masukkan nama/judul evidence"
                     class="mt-2 w-full"
                     @blur="markEvidenceNameTouched(unit.number, evidenceIndex)"
                   />
                   <p
-                    v-if="evidenceNameTouched[`${unit.number}-${evidenceIndex}`] && !evidence.evidenceName.trim()"
+                    v-if="evidenceNameTouched[evidence.id] && !evidence.evidenceName.trim()"
                     class="mb-2 mt-3 block text-xs font-medium text-red-500"
                   >
                     Nama evidence wajib diisi.
                   </p>
                 </div>
 
-                <div class="mt-4 flex flex-wrap gap-2">
+                <div v-if="!readonly" class="mt-4 flex flex-wrap gap-2">
                   <UButton
                     label="Upload File"
                     :variant="evidence.type === 'file' ? 'solid' : 'outline'"
@@ -577,30 +474,52 @@ defineExpose({
                     <p class="mb-2 mt-1 text-xs text-slate-500">
                       Format PDF, DOC, atau DOCX. Maksimal 5 MB.
                     </p>
-                    <input
-                      type="file"
-                      accept=".pdf,.doc,.docx"
-                      class="mt-2 block w-full text-sm text-slate-500 file:mr-4 file:rounded-lg file:border-0 file:bg-primary/10 file:px-4 file:py-2 file:font-medium file:text-primary hover:file:bg-primary/15"
-                      @change="handleEvidenceFileChange($event, unit.number, evidenceIndex)"
-                      @blur="markEvidenceSourceTouched(unit.number, evidenceIndex)"
-                    />
+                    <div class="mt-2 flex flex-col gap-3 rounded-lg border border-dashed border-slate-300 bg-white p-3 sm:flex-row sm:items-center sm:justify-between">
+                      <p
+                        class="min-w-0 truncate text-xs"
+                        :class="evidence.file ? 'text-slate-600' : 'text-slate-400'"
+                      >
+                        {{ formatFileInfo(evidence.file) }}
+                      </p>
+
+                      <div class="flex shrink-0 items-center gap-2">
+                        <UButton
+                          color="neutral"
+                          variant="outline"
+                          icon="i-lucide-eye"
+                          class="min-w-28 justify-center"
+                          :disabled="!evidence.file"
+                          @click="openPreview(evidence)"
+                        >
+                          Lihat
+                        </UButton>
+
+                        <template v-if="!readonly">
+                          <input
+                            :id="`file-${evidence.id}`"
+                            type="file"
+                            :accept="evidenceAccept"
+                            class="hidden"
+                            :disabled="uploadingEvidenceId !== null"
+                            @change="handleEvidenceFileChange($event, unit.number, evidenceIndex)"
+                          />
+                          <UButton
+                            as="label"
+                            :for="`file-${evidence.id}`"
+                            variant="outline"
+                            icon="i-lucide-upload"
+                            :loading="uploadingEvidenceId === evidence.id"
+                            :disabled="uploadingEvidenceId !== null"
+                            class="min-w-28 cursor-pointer justify-center"
+                          >
+                            {{ evidence.file ? 'Ganti' : 'Pilih File' }}
+                          </UButton>
+                        </template>
+                      </div>
+                    </div>
 
                     <p
-                      v-if="evidenceErrors[`${unit.number}-${evidenceIndex}`]?.file"
-                      class="mb-2 mt-3 block text-xs font-medium text-red-500"
-                    >
-                      {{ evidenceErrors[`${unit.number}-${evidenceIndex}`]?.file }}
-                    </p>
-
-                    <p
-                      v-if="evidence.file"
-                      class="mt-3 text-xs font-medium text-success-600"
-                    >
-                      {{ evidence.file.name }}
-                    </p>
-
-                    <p
-                      v-if="evidenceSourceTouched[`${unit.number}-${evidenceIndex}`] && !evidence.file"
+                      v-if="evidenceSourceTouched[evidence.id] && !evidence.file"
                       class="mb-2 mt-3 block text-xs font-medium text-red-500"
                     >
                       File evidence wajib diunggah.
@@ -611,15 +530,31 @@ defineExpose({
                     <label class="block text-sm font-medium text-slate-700">
                       Link Evidence
                     </label>
-                    <UInput
-                      v-model="evidence.url"
-                      type="url"
-                      placeholder="https://..."
-                      class="mt-2 w-full"
-                      @blur="markEvidenceSourceTouched(unit.number, evidenceIndex)"
-                    />
+                    <p class="mb-2 mt-1 text-xs text-slate-500">
+                      Format link folder Google Drive, video Google Drive, atau YouTube.
+                    </p>
+                    <div class="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center">
+                      <UInput
+                        v-model="evidence.url"
+                        :disabled="readonly"
+                        type="url"
+                        placeholder="https://drive.google.com/... atau https://youtu.be/..."
+                        class="min-w-0 flex-1"
+                        @blur="markEvidenceSourceTouched(unit.number, evidenceIndex)"
+                      />
+                      <UButton
+                        color="neutral"
+                        variant="outline"
+                        icon="i-lucide-eye"
+                        class="min-w-28 shrink-0 justify-center"
+                        :disabled="!isValidUrl(evidence.url.trim())"
+                        @click="openLinkPreview(evidence)"
+                      >
+                        Lihat
+                      </UButton>
+                    </div>
                     <p
-                      v-if="evidenceSourceTouched[`${unit.number}-${evidenceIndex}`] && !evidence.url.trim()"
+                      v-if="evidenceSourceTouched[evidence.id] && !evidence.url.trim()"
                       class="mb-2 mt-3 block text-xs font-medium text-red-500"
                     >
                       Link evidence wajib diisi.
@@ -639,6 +574,7 @@ defineExpose({
                     </label>
                     <UTextarea
                       v-model="evidence.description"
+                      :disabled="readonly"
                       :rows="3"
                       placeholder="Jelaskan secara singkat isi atau konteks evidence (opsional)."
                       class="mt-2 w-full"
@@ -653,74 +589,24 @@ defineExpose({
       </UCard>
     </section>
 
-    <div class="w-full">
-      <div class="rounded-xl bg-slate-50 p-4">
-
-        <div class="flex items-center justify-between text-sm">
-          <span class="text-slate-500">
-            Kelengkapan CMSP.02
-          </span>
-
-          <span class="font-semibold text-slate-900">
-            {{ progress }}%
-          </span>
-        </div>
-
-        <div
-          class="mt-2 h-2 w-full overflow-hidden rounded-full bg-slate-200"
-        >
-          <div
-            class="h-full rounded-full bg-primary transition-all"
-            :style="{ width: `${progress}%` }"
-          />
-        </div>
-
-      </div>
-    </div>
-
-    <!-- ========================================
-     SIMPAN DRAFT
-     ======================================== -->
-
-<div
-  ref="draftBarRef"
-  class="sticky bottom-4 z-10 transition-shadow duration-200"
->
-  <UCard
-    class="bg-white/90"
-    :class="isDraftBarFloating ? 'shadow-lg' : 'shadow-sm'"
-  >
-    <div class="flex items-center gap-6">
-
-    <!-- Informasi -->
-    <div class="min-w-0 flex-1">
-      <p class="text-sm font-medium text-slate-900">
-        Simpan perkembangan pengisian
-      </p>
-
-      <p class="mt-1 text-xs text-slate-500">
-        Form belum perlu lengkap untuk disimpan sebagai draft.
-      </p>
-
-      <p
-        v-if="savedMessage"
-        class="mt-1 text-xs font-medium text-success-600"
-      >
-        {{ savedMessage }}
-      </p>
-    </div>
-
-    <!-- Tombol -->
-    <UButton
-      label="Simpan Draft"
-      icon="i-lucide-save"
-      size="lg"
-      class="ml-auto shrink-0"
-      @click="saveDraft"
+    <CertificationCmsp02UnitNavigator
+      :units="navigatorUnits"
+      :target-id-prefix="UNIT_ID_PREFIX"
     />
 
-    </div>
-  </UCard>
-</div>
+    <DocumentLinkPreviewModal
+      v-model:open="linkPreviewOpen"
+      :embed-url="linkPreview?.info.embedUrl ?? ''"
+      :url="linkPreview?.info.url ?? ''"
+      :title="linkPreview?.title"
+      :description="linkPreview?.info.kind === 'YOUTUBE' ? 'Video YouTube' : 'Google Drive'"
+    />
+
+    <DocumentPreviewModal
+      v-model:open="previewOpen"
+      :url="evidencePreviewUrl"
+      :title="previewEvidence?.file?.original_file_name"
+      :description="previewEvidence?.evidenceName"
+    />
   </div>
 </template>

@@ -1,5 +1,7 @@
 import {
+  assertValidApplicationPayload,
   createApplication,
+  getOpenRegistrationPeriod,
 } from './application.service'
 
 import {
@@ -13,6 +15,12 @@ import {
 import {
   uploadToGoogleDrive,
 } from './google-drive.service'
+
+import { getApplicationDocumentLabel } from '../../shared/utils/documents'
+import {
+  assertValidPdfFile,
+  sanitizeFileNamePart,
+} from '../utils/pdf-file'
 
 type RegistrationFile = {
   file: File
@@ -30,9 +38,6 @@ type RegistrationPayload = {
   position: string
   files: RegistrationFile[]
 }
-
-const MAX_FILE_SIZE =
-  5 * 1024 * 1024
 
 const REQUIRED_DOCUMENTS = [
   {
@@ -56,127 +61,13 @@ const REQUIRED_DOCUMENTS = [
 ]
 
 
-async function validateFile(
-  file: File,
-  documentType: string,
-) {
-  if (!file) {
-    throw createError({
-      statusCode: 400,
-      statusMessage:
-        `${documentType}: dokumen wajib diunggah.`,
-    })
-  }
-
-  if (file.type !== 'application/pdf') {
-    throw createError({
-      statusCode: 400,
-      statusMessage:
-        `${documentType}: file harus dalam format PDF.`,
-    })
-  }
-
-  if (file.size > MAX_FILE_SIZE) {
-    throw createError({
-      statusCode: 400,
-      statusMessage:
-        `${documentType}: ukuran file maksimal 5 MB.`,
-    })
-  }
-
-  // Periksa signature file agar file biasa yang hanya
-  // diberi MIME type PDF tidak langsung lolos validasi.
-  const header = new Uint8Array(
-    await file.slice(0, 5).arrayBuffer(),
-  )
-
-  const signature = String.fromCharCode(...header)
-
-  if (signature !== '%PDF-') {
-    throw createError({
-      statusCode: 400,
-      statusMessage:
-        `${documentType}: isi file tidak terdeteksi sebagai PDF yang valid.`,
-    })
-  }
-}
-
-
-function sanitizeFileName(
-  value: string,
-) {
-  return value
-    .trim()
-    .replace(/[^a-zA-Z0-9\s-]/g, '')
-    .replace(/\s+/g, '-')
-}
-
 export async function processRegistration(
   payload: RegistrationPayload,
 ) {
-  if (!payload.fullName?.trim()) {
-    throw createError({
-      statusCode: 400,
-      statusMessage:
-        'Nama lengkap wajib diisi.',
-    })
-  }
-
-  if (!payload.nip?.trim()) {
-    throw createError({
-      statusCode: 400,
-      statusMessage:
-        'NIP wajib diisi.',
-    })
-  }
-
-  if (!payload.institution?.trim()) {
-    throw createError({
-      statusCode: 400,
-      statusMessage:
-        'Nama instansi wajib diisi.',
-    })
-  }
-
-  if (!payload.region?.trim()) {
-    throw createError({
-      statusCode: 400,
-      statusMessage:
-        'Asal daerah wajib diisi.',
-    })
-  }
-
-  if (!payload.email?.trim()) {
-    throw createError({
-      statusCode: 400,
-      statusMessage:
-        'Email wajib diisi.',
-    })
-  }
-
-  if (!payload.whatsapp?.trim()) {
-    throw createError({
-      statusCode: 400,
-      statusMessage:
-        'Nomor WhatsApp wajib diisi.',
-    })
-  }
-
-  if (!payload.education?.trim()) {
-    throw createError({
-      statusCode: 400,
-      statusMessage:
-        'Pendidikan terakhir wajib diisi.',
-    })
-  }
-
-  if (!payload.position?.trim()) {
-    throw createError({
-      statusCode: 400,
-      statusMessage:
-        'Jabatan wajib diisi.',
-    })
-  }
+  // Validasi seluruh data dan pastikan pendaftaran sedang dibuka
+  // SEBELUM mengunggah berkas, agar tidak ada berkas yatim di Drive.
+  assertValidApplicationPayload(payload)
+  await getOpenRegistrationPeriod()
 
   if (
     !Array.isArray(payload.files) ||
@@ -209,10 +100,10 @@ export async function processRegistration(
       })
     }
 
-    await validateFile(
-  uploadedFile.file,
-  requiredDocument.documentType,
-)
+    await assertValidPdfFile(
+      uploadedFile.file,
+      getApplicationDocumentLabel(requiredDocument.documentType),
+    )
   }
 
   const uploadedFiles: Array<{
@@ -241,7 +132,7 @@ export async function processRegistration(
       )
 
     const fileName =
-      `CMSP_${payload.nip}_${requiredDocument.documentType}_${sanitizeFileName(payload.fullName)}.pdf`
+      `CMSP_${payload.nip}_${requiredDocument.documentType}_${sanitizeFileNamePart(payload.fullName)}.pdf`
 
     const uploaded =
       await uploadToGoogleDrive({

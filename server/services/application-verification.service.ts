@@ -14,9 +14,9 @@ import {
 } from '../repositories/application.repository'
 
 import {
-  prepareParticipantAccount,
-  sendParticipantActivationEmail,
-} from './participant-account-provisioning.service'
+  preparePesertaAccount,
+  sendPesertaActivationEmail,
+} from './peserta-account-provisioning.service'
 
 export type CreateApplicationVerificationServiceInput = {
   applicationId: string
@@ -122,7 +122,7 @@ export async function createApplicationVerificationService(
   // Siapkan akun dan token terlebih dahulu, tanpa mengirim email.
   // Penolakan tidak menjalankan proses pembuatan akun.
   const preparedAccount = isAccepted
-    ? await prepareParticipantAccount({
+    ? await preparePesertaAccount({
         person_id: application.person_id,
         full_name_snapshot: application.full_name_snapshot,
         nip_snapshot: application.nip_snapshot,
@@ -176,7 +176,7 @@ export async function createApplicationVerificationService(
     // Jika pengiriman gagal, pemanggilan ulang dapat menyiapkan
     // token baru dan mencoba mengirim kembali.
     if (preparedAccount) {
-      await sendParticipantActivationEmail(preparedAccount)
+      await sendPesertaActivationEmail(preparedAccount)
     }
   }
 

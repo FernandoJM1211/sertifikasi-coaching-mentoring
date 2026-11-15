@@ -2,123 +2,109 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 
 import { google } from 'googleapis'
+import type { Auth } from 'googleapis'
 
-const clientId =
-  process.env.GOOGLE_OAUTH_CLIENT_ID
+export const GOOGLE_OAUTH_STATE_COOKIE = 'google_oauth_state'
 
-const clientSecret =
-  process.env.GOOGLE_OAUTH_CLIENT_SECRET
-
-const redirectUri =
-  process.env.GOOGLE_OAUTH_REDIRECT_URI
-
-const tokenPath =
-  process.env.GOOGLE_OAUTH_TOKEN_PATH
-
-if (!clientId) {
-  throw new Error(
-    'GOOGLE_OAUTH_CLIENT_ID belum dikonfigurasi.',
-  )
+type StoredGoogleTokens = {
+  refresh_token: string
 }
 
-if (!clientSecret) {
-  throw new Error(
-    'GOOGLE_OAUTH_CLIENT_SECRET belum dikonfigurasi.',
-  )
-}
+function requireEnv(name: string): string {
+  const value = process.env[name]?.trim()
 
-if (!redirectUri) {
-  throw new Error(
-    'GOOGLE_OAUTH_REDIRECT_URI belum dikonfigurasi.',
-  )
-}
-
-if (!tokenPath) {
-  throw new Error(
-    'GOOGLE_OAUTH_TOKEN_PATH belum dikonfigurasi.',
-  )
-}
-
-function getGoogleOAuthTokenPath(): string {
-  if (!tokenPath) {
-    throw new Error(
-      'GOOGLE_OAUTH_TOKEN_PATH belum dikonfigurasi.',
-    )
+  if (!value) {
+    throw new Error(`${name} belum dikonfigurasi.`)
   }
 
-  return tokenPath
+  return value
 }
 
-export const googleOAuthClient =
-  new google.auth.OAuth2(
-    clientId,
-    clientSecret,
-    redirectUri,
+let oauthClient: Auth.OAuth2Client | null = null
+
+/** Klien OAuth Google untuk akun Drive milik aplikasi. */
+function getGoogleOAuthClient(): Auth.OAuth2Client {
+  oauthClient ??= new google.auth.OAuth2(
+    requireEnv('GOOGLE_OAUTH_CLIENT_ID'),
+    requireEnv('GOOGLE_OAUTH_CLIENT_SECRET'),
+    requireEnv('GOOGLE_OAUTH_REDIRECT_URI'),
   )
 
-export function createGoogleAuthorizationUrl(
-  state: string,
-) {
-  return googleOAuthClient.generateAuthUrl({
+  return oauthClient
+}
+
+export function createGoogleAuthorizationUrl(state: string): string {
+  return getGoogleOAuthClient().generateAuthUrl({
     access_type: 'offline',
     prompt: 'consent',
-    scope: [
-      'https://www.googleapis.com/auth/drive.file',
-    ],
+    scope: ['https://www.googleapis.com/auth/drive.file'],
     state,
   })
 }
 
-export async function saveGoogleOAuthTokens(
-  tokens: {
-    refresh_token?: string | null
-  },
-) {
-  if (!tokens.refresh_token) {
-    throw new Error(
-      'Refresh token Google tidak tersedia.',
-    )
-  }
-
-  const currentTokenPath =
-    getGoogleOAuthTokenPath()
-
-  const directory =
-    path.dirname(currentTokenPath)
-
-  await fs.mkdir(directory, {
-    recursive: true,
-  })
-
-  await fs.writeFile(
-    currentTokenPath,
-    JSON.stringify(
-      {
-        refresh_token:
-          tokens.refresh_token,
-      },
-      null,
-      2,
-    ),
-    'utf8',
-  )
+export async function exchangeGoogleAuthorizationCode(code: string) {
+  const { tokens } = await getGoogleOAuthClient().getToken(code)
+  return tokens
 }
 
-export async function loadGoogleOAuthTokens() {
+export async function saveGoogleOAuthTokens(tokens: {
+  refresh_token?: string | null
+}): Promise<void> {
+  if (!tokens.refresh_token) {
+    throw new Error('Refresh token Google tidak tersedia.')
+  }
+
+  const tokenPath = requireEnv('GOOGLE_OAUTH_TOKEN_PATH')
+
+  await fs.mkdir(path.dirname(tokenPath), { recursive: true })
+
+  // File berisi kredensial: hanya dapat dibaca pemilik proses.
+  await fs.writeFile(
+    tokenPath,
+    JSON.stringify({ refresh_token: tokens.refresh_token }, null, 2),
+    { encoding: 'utf8', mode: 0o600 },
+  )
+
+  // Paksa klien memakai refresh token terbaru.
+  getGoogleOAuthClient().setCredentials({
+    refresh_token: tokens.refresh_token,
+  })
+}
+
+async function loadGoogleOAuthTokens(): Promise<StoredGoogleTokens | null> {
   try {
-    const currentTokenPath =
-      getGoogleOAuthTokenPath()
+    const content = await fs.readFile(
+      requireEnv('GOOGLE_OAUTH_TOKEN_PATH'),
+      'utf8',
+    )
 
-    const content =
-      await fs.readFile(
-        currentTokenPath,
-        'utf8',
-      )
+    const parsed = JSON.parse(content) as Partial<StoredGoogleTokens>
 
-    return JSON.parse(content) as {
-      refresh_token: string
-    }
+    return parsed.refresh_token
+      ? { refresh_token: parsed.refresh_token }
+      : null
   } catch {
     return null
   }
+}
+
+/**
+ * Mengembalikan klien OAuth yang sudah memiliki refresh token.
+ * Melempar 500 jika Google Drive belum dihubungkan oleh Super Admin.
+ */
+export async function getAuthorizedGoogleClient(): Promise<Auth.OAuth2Client> {
+  const tokens = await loadGoogleOAuthTokens()
+
+  if (!tokens?.refresh_token) {
+    throw createError({
+      statusCode: 500,
+      statusMessage:
+        'Google Drive belum terhubung. Super Admin perlu menghubungkannya melalui /api/auth/google.',
+    })
+  }
+
+  const client = getGoogleOAuthClient()
+  client.setCredentials({ refresh_token: tokens.refresh_token })
+
+  return client
 }

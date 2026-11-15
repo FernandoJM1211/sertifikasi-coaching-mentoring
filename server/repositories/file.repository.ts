@@ -183,3 +183,36 @@ export async function findFileById(
       row[9] ?? '',
   }
 }
+
+/** Membaca banyak berkas sekaligus (satu kali baca sheet). */
+export async function findFilesByIds(
+  fileIds: string[],
+): Promise<Map<string, FileRecord>> {
+  const wanted = new Set(fileIds.filter(Boolean))
+  const result = new Map<string, FileRecord>()
+
+  if (wanted.size === 0) return result
+
+  const rows = await getSheetValues(SHEET_NAME)
+
+  for (const row of rows.slice(1)) {
+    const id = row[0] ?? ''
+
+    if (!wanted.has(id)) continue
+
+    result.set(id, {
+      file_id: id,
+      original_file_name: row[1] ?? '',
+      storage_provider: row[2] ?? '',
+      storage_file_id: row[3] ?? '',
+      file_url: row[4] ?? '',
+      mime_type: row[5] ?? '',
+      file_size_bytes: row[6] ?? '',
+      uploaded_by: row[7] ?? '',
+      uploaded_at: row[8] ?? '',
+      status: row[9] ?? '',
+    })
+  }
+
+  return result
+}

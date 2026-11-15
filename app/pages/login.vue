@@ -59,15 +59,10 @@ async function handleLogin() {
       icon: 'i-lucide-circle-check',
     })
 
-    if (response.user.role === 'SUPER_ADMIN') {
-      await navigateTo('/super-admin')
-    } else if (response.user.role === 'VERIFIER') {
-      await navigateTo('/verifier/periods')
-    } else if (response.user.role === 'PARTICIPANT') {
-      await navigateTo('/user')
-    } else {
-      await navigateTo('/')
-    }
+    clearNuxtData('authenticated-user')
+
+    const role = normalizeUserRole(response.user.role)
+    await navigateTo((role && ROLE_HOME_PATHS[role]) || '/')
   } catch (error: unknown) {
     const message =
       error && typeof error === 'object' && 'data' in error
