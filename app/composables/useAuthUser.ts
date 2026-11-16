@@ -38,5 +38,9 @@ export async function logout() {
   })
 
   clearNuxtData('authenticated-user')
-  await navigateTo('/login', { replace: true })
+
+  // Muat ulang penuh ke halaman login: membersihkan seluruh state di memori
+  // (data akun sebelumnya) dan mencegah sisa tata letak dashboard terbawa
+  // saat berganti layout dashboard -> guest.
+  await navigateTo('/login', { replace: true, external: true })
 }

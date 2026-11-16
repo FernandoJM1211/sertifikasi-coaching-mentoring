@@ -2,16 +2,12 @@
   <div class="mx-auto w-full max-w-5xl space-y-8 pb-8">
     <!-- Header -->
     <div class="space-y-2">
-      <p class="text-sm font-medium text-primary">
-        Manajemen Sertifikasi
-      </p>
-
       <h1 class="text-3xl font-semibold tracking-tight text-slate-900">
         Periode Sertifikasi
       </h1>
 
       <p class="text-sm leading-6 text-slate-500">
-        Pilih periode sertifikasi yang ingin kamu pantau.
+        Pilih periode sertifikasi yang ingin dipantau.
       </p>
     </div>
 

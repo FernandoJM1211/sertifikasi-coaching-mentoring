@@ -65,8 +65,15 @@ Untuk role baru (mis. asesor), buat layout tipis serupa yang memakai `LayoutDash
 | `certification/SelfAssessmentDraftBar.vue` | `<CertificationSelfAssessmentDraftBar>` | Bar Simpan Draft melayang (sticky); menyimpan CMSP-01 & CMSP-02 sekaligus. |
 | `certification/SelfAssessmentSubmitCard.vue` | `<CertificationSelfAssessmentSubmitCard>` | Kartu Submit di bawah halaman; aktif jika kedua form 100% + pernyataan disetujui. |
 | `certification/SelfAssessmentStatusBadge.vue` | `<CertificationSelfAssessmentStatusBadge>` | Badge status self assessment di kanan header CMSP-01 & CMSP-02. |
+| `certification/SelfAssessmentReviewNote.vue` | `<CertificationSelfAssessmentReviewNote>` | Kartu catatan perbaikan Verifikator untuk satu form (kuning lembut, teks netral). |
+
+`Cmsp01Form`/`Cmsp02Form` punya prop `reviewMode` (dipakai halaman verifikasi): menyembunyikan panduan pengisian, progress, badge kelengkapan, contoh bukti, dan deskripsi evidence yang kosong.
 | `certification/Cmsp02UnitNavigator.vue` | `<CertificationCmsp02UnitNavigator>` | Kotak nomor unit melayang di kanan CMSP-02; muncul saat scroll, hilang 5 detik setelah berhenti. |
 | `document/LinkPreviewModal.vue` | `<DocumentLinkPreviewModal>` | Modal embed link evidence (video YouTube / file Google Drive). |
+| `period/PeriodPicker.vue` | `<PeriodPicker>` | Kartu pilihan periode sebelum halaman per periode (Verifikasi SA, Penugasan Asesor). Props `title`, `description`, `note`, `actionLabel`, `actionIcon`, `basePath`. |
+| `assessor-assignment/List.vue` | `<AssessorAssignmentList>` | Asesor periode (kelola), ringkasan, tabel dengan pilih banyak/semua, modal penugasan massal. Props `periodId`, `backPath`. |
+| `verification/SelfAssessmentList.vue` | `<VerificationSelfAssessmentList>` | Daftar self assessment dalam satu periode (Verifikator & Super Admin). Props `periodId`, `basePath`, `backPath`. |
+| `verification/SelfAssessmentDetail.vue` | `<VerificationSelfAssessmentDetail>` | Detail verifikasi: form read-only, riwayat, catatan per form, keputusan. Props `applicationId`, `backPath`. |
 
 ### Halaman (`app/pages/`)
 
@@ -101,6 +108,11 @@ Untuk role baru (mis. asesor), buat layout tipis serupa yang memakai `LayoutDash
 | `/verifikator/periods` | `periods/index.vue` | Daftar periode (hanya baca). |
 | `/verifikator/periods/:periodId` | `periods/[periodId]/index.vue` | Daftar pengajuan dalam periode. |
 | `/verifikator/periods/:periodId/timeline` | `periods/[periodId]/timeline.vue` | Lihat jadwal tahapan (hanya baca). |
+| `/verifikator/self-assessments` (+ `/super-admin/self-assessments`) | `self-assessments/index.vue` | Pilih periode (komponen `PeriodPicker`). |
+| `/verifikator/assessor-assignments` (+ Super Admin) | `assessor-assignments/index.vue` | Pilih periode untuk Penugasan Asesor (`PeriodPicker`). |
+| `/verifikator/assessor-assignments/:periodId` (+ Super Admin) | `assessor-assignments/[periodId].vue` | Daftar & penugasan asesor (`AssessorAssignmentList`). |
+| `/verifikator/self-assessments/:periodId` (+ Super Admin) | `self-assessments/[periodId]/index.vue` | Daftar self assessment periode tsb. (komponen `VerificationSelfAssessmentList`). |
+| `/verifikator/self-assessments/:periodId/:applicationId` (+ Super Admin) | `self-assessments/[periodId]/[applicationId].vue` | Detail CMSP-01 & 02 read-only + keputusan (komponen `VerificationSelfAssessmentDetail`). |
 | `/verifikator/applications/:applicationId` | `applications/[applicationId].vue` | Periksa dokumen, catatan, keputusan terima/tolak. |
 | `/verifikator/profile`, `/verifikator/change-password` | `profile.vue`, `change-password.vue` | Akun sendiri. |
 
@@ -167,6 +179,13 @@ Alur: **`api/` → `services/` → `repositories/` → Google Sheets/Drive.**
 | `PUT /api/application-verifications/:applicationId/note` | `.../[applicationId]/note.put.ts` | Verifikator, Super Admin | Simpan catatan. |
 | `GET /api/application-verifications/:applicationId/documents/:docId/preview` | `.../documents/[applicationDocumentId]/preview.get.ts` | Verifikator, Super Admin | Stream PDF dari Drive. |
 | `POST /api/application-verifications` | `application-verifications/index.post.ts` | Verifikator, Super Admin | Keputusan DITERIMA/DITOLAK. |
+| `GET /api/assessor-assignments/by-period/:periodId` | `.../by-period/[periodId]/index.get.ts` | Verifikator, Super Admin | Semua peserta diterima (status SA + penugasan), asesor periode & kandidat, status tahap, `canEdit`. |
+| `PUT /api/assessor-assignments/by-period/:periodId/assessors` | `.../[periodId]/assessors.put.ts` | Verifikator, Super Admin | Tetapkan asesor periode untuk satu role (`{ role, userIds }`). |
+| `POST /api/assessor-assignments/by-period/:periodId/assign` | `.../[periodId]/assign.post.ts` | Verifikator, Super Admin | Tugaskan asesor ke satu/banyak peserta (`{ applicationIds, technicalAssessorId?, publicAssessorId? }`). |
+| `GET /api/self-assessment-verifications/by-period/:periodId` | `self-assessment-verifications/by-period/[periodId].get.ts` | Verifikator, Super Admin | Daftar self assessment periode + ringkasan + status tahap. |
+| `GET /api/self-assessment-verifications/:applicationId` | `.../[applicationId]/index.get.ts` | Verifikator, Super Admin | Isi CMSP-01 & 02 + riwayat review. |
+| `POST /api/self-assessment-verifications/:applicationId/review` | `.../[applicationId]/review.post.ts` | Verifikator, Super Admin | Keputusan `VERIFIED`/`REVISION_REQUESTED` + catatan per form. |
+| `GET /api/self-assessment-verifications/:applicationId/files/:fileId` | `.../files/[fileId].get.ts` | Verifikator, Super Admin | Preview berkas yang tertaut ke self assessment. |
 | `GET /api/admin/accounts` | `admin/accounts/index.get.ts` | Super Admin | Daftar akun. |
 | `POST /api/admin/accounts` | `admin/accounts/index.post.ts` | Super Admin | Buat akun pegawai. |
 | `GET /api/admin/accounts/:id` | `admin/accounts/[id].get.ts` | Super Admin | Detail akun. |
@@ -195,7 +214,9 @@ Alur: **`api/` → `services/` → `repositories/` → Google Sheets/Drive.**
 | `application-verification-note.service.ts` | Simpan catatan verifikator (hanya saat `pending_verification`). |
 | `application-document.service.ts` | `toPublicFile()`, `sendStoredFile()` (kirim isi berkas dari Drive), preview dokumen pendaftaran untuk Verifikator. |
 | `peserta-application.service.ts` | `requireOwnedApplication()` (cek kepemilikan), `getCertificationInfo()`. |
-| `self-assessment.service.ts` | Baca/simpan draft/submit CMSP-01 & 02, hak edit (status + jadwal tahap), validasi payload, cek kepemilikan berkas, unggah & preview berkas. |
+| `self-assessment.service.ts` | Baca/simpan draft/submit CMSP-01 & 02, hak edit (status + jadwal tahap), validasi payload, cek kepemilikan berkas, unggah & preview berkas. `loadSelfAssessmentContent()` dipakai ulang oleh verifikasi. |
+| `assessor-assignment.service.ts` | Daftar & simpan penugasan asesor (tahap `SELF_ASSESSMENT_VERIFICATION`, SA `VERIFIED`, asesor aktif sesuai role). |
+| `self-assessment-verification.service.ts` | Daftar, detail, dan keputusan verifikasi self assessment (dijaga tahap `SELF_ASSESSMENT_VERIFICATION`). |
 | `profile.service.ts` | Baca & validasi/perbarui profil; sinkron nama ke akun. |
 | `certification-stage.service.ts` | `getStageAccess()` / `assertStageOpen()` — cek tahap timeline dibuka (jadwal + override). |
 | `peserta-account-provisioning.service.ts` | Buat/ambil akun peserta & token aktivasi, kirim email aktivasi. |
@@ -223,6 +244,7 @@ Satu file per sheet. Detail kolom di [04-database.md](04-database.md).
 | `application-verification.repository.ts` | `application_verifications` | Data |
 | `file.repository.ts` | `files` | Data |
 | `self-assessment.repository.ts` | `cmsp01_*`, `cmsp02_*`, `self_assessment_reviews` | Data |
+| `assessor-assignment.repository.ts` | `period_assessors`, `assessor_assignments` (tulis massal), `assessor_assignment_logs` | Data |
 
 ## `shared/`
 

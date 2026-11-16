@@ -96,7 +96,7 @@ flowchart TD
 | 1 | `REGISTRATION` | Guest mendaftar pada periode yang dibuka | Guest | ✅ |
 | 2 | `DOCUMENT_VERIFICATION` | Verifikasi form pendaftaran → diterima/ditolak → buat akun peserta | Verifikator | ✅ |
 | 3 | `SELF_ASSESSMENT` | Peserta mengisi & submit CMSP-01 & CMSP-02 | Peserta | 🚧 UI awal |
-| 4 | `SELF_ASSESSMENT_VERIFICATION` | Verifikasi CMSP-01 & 02, minta perbaikan, assign ke asesor | Verifikator | ❌ |
+| 4 | `SELF_ASSESSMENT_VERIFICATION` | Verifikasi CMSP-01 & 02, minta perbaikan, assign ke asesor | Verifikator | ✅ |
 | 5 | `EVALUATION` | Peserta mengerjakan evaluasi pilihan ganda | Peserta | ❌ |
 | 6 | `ASSESSOR_ASSESSMENT` | Penilaian CMSP-02 (Teknis), lalu CMSP-03 (Kepublikan) | Asesor Teknis, Asesor Kepublikan | ❌ |
 | 7 | `ASSESSMENT_VERIFICATION` | Verifikasi penilaian & penetapan kelulusan | Verifikator / Super Admin | ❌ |
@@ -138,14 +138,30 @@ DRAFT ──► ACTIVE ──► CLOSED ──► COMPLETED
 
 **D. Self assessment (CMSP-01 & CMSP-02)** 🚧
 - Peserta mengisi Data Pemohon (CMSP-01) dan Self Assessment (CMSP-02), lalu **submit**.
-- Saat ini UI sudah ada tetapi draf hanya di `localStorage`; belum tersimpan ke server.
+- Draft (CMSP-01 & 02 sekaligus) tersimpan ke server; submit hanya jika keduanya lengkap.
 
-**E. Verifikasi CMSP-01 & 02** ❌
+**E. Verifikasi CMSP-01 & 02 dan penugasan asesor** ✅
+- Menu **Verifikasi Self Assessment** (Verifikator & Super Admin): daftar peserta per periode, detail
+  CMSP-01 & 02 read-only, catatan **per form** (CMSP-01 dan CMSP-02).
+- Keputusan **hanya** dapat diberikan saat tahap `SELF_ASSESSMENT_VERIFICATION` dibuka dan status `SUBMITTED`.
+  Perbaikan peserta juga dilakukan dalam jadwal tahap ini.
 - Verifikator memeriksa isian peserta.
 - **Perlu perbaikan** → dikembalikan ke peserta beserta catatan, peserta memperbaiki lalu submit ulang
   (bisa berulang).
 - **Tidak perlu perbaikan** → Verifikator **meng-assign** peserta ke **satu Asesor Teknis**
-  dan **satu Asesor Kepublikan**.
+  dan **satu Asesor Kepublikan** (menu **Penugasan Asesor**, pilih periode dulu).
+  - Hanya untuk peserta dengan self assessment `VERIFIED`, dan hanya saat tahap
+    `SELF_ASSESSMENT_VERIFICATION` dibuka.
+  - Asesor dipilih dulu per periode (**Asesor Periode Ini**);
+    saat menugaskan, pilihan hanya berisi asesor periode tersebut. Asesor yang masih memegang peserta
+    tidak dapat dikeluarkan.
+  - Penugasan bisa satu per satu atau **sekaligus** (centang beberapa peserta / pilih semua).
+  - Satu asesor boleh menangani banyak peserta; jumlah peserta per asesor ditampilkan saat memilih.
+  - Semua aksi (asesor periode & penugasan) hanya saat tahap `SELF_ASSESSMENT_VERIFICATION` dibuka,
+    dan dikunci bila tahap `ASSESSOR_ASSESSMENT` sudah dibuka.
+  - **Mitigasi pergantian asesor:** mengganti asesor yang sudah ada wajib disertai alasan; setiap
+    penugasan/pergantian dicatat di `assessor_assignment_logs`. Saat fitur penilaian asesor dibuat,
+    tambahkan aturan: pergantian ditolak jika asesor lama sudah mulai menilai peserta tersebut.
 
 **F. Evaluasi (pilihan ganda)** ❌
 - **Persiapan (Super Admin):** membuat **bank soal** pilihan ganda, lalu menetapkan soal

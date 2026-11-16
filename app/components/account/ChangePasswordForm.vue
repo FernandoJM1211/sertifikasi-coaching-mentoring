@@ -5,7 +5,6 @@ const props = defineProps<{
   profilePath: string
 }>()
 
-const router = useRouter()
 const toast = useToast()
 
 const currentPassword = ref('')
@@ -115,7 +114,8 @@ async function handleSubmit() {
     }
 
     clearNuxtData('authenticated-user')
-    await router.replace('/login')
+    // Muat ulang penuh agar state & tata letak dashboard tidak terbawa.
+    await navigateTo('/login', { replace: true, external: true })
   } catch (error: unknown) {
     const fetchError = error as {
       data?: {

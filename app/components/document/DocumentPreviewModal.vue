@@ -16,7 +16,14 @@ const props = defineProps<{
 const open = defineModel<boolean>('open', { default: false })
 
 const objectUrl = ref('')
+const mimeType = ref('')
 const loading = ref(false)
+
+// Hanya PDF & gambar yang dapat ditampilkan browser. Berkas lain (mis. Word)
+// disajikan server sebagai unduhan, jadi tidak dimuat ke iframe agar tidak
+// langsung terunduh tanpa penjelasan.
+const isPdf = computed(() => mimeType.value === 'application/pdf')
+const isImage = computed(() => mimeType.value === 'image/png' || mimeType.value === 'image/jpeg')
 const errorMessage = ref('')
 
 function releaseObjectUrl() {
@@ -43,6 +50,7 @@ async function loadDocument() {
       credentials: 'include',
     })
 
+    mimeType.value = blob.type
     objectUrl.value = URL.createObjectURL(blob)
   } catch (error: unknown) {
     const data = (error as { data?: unknown }).data
@@ -114,7 +122,7 @@ onBeforeUnmount(releaseObjectUrl)
       </div>
 
       <div
-        v-else-if="objectUrl"
+        v-else-if="objectUrl && isPdf"
         class="h-[70vh] w-full overflow-hidden rounded-lg border border-slate-200 bg-slate-100"
       >
         <iframe
@@ -122,6 +130,33 @@ onBeforeUnmount(releaseObjectUrl)
           class="h-full w-full"
           :title="title || 'Preview Dokumen'"
         />
+      </div>
+
+      <div
+        v-else-if="objectUrl && isImage"
+        class="flex max-h-[70vh] w-full items-center justify-center overflow-auto rounded-lg border border-slate-200 bg-slate-100 p-2"
+      >
+        <img :src="objectUrl" :alt="title || 'Preview Dokumen'" class="max-h-[66vh] max-w-full object-contain">
+      </div>
+
+      <div
+        v-else-if="objectUrl"
+        class="flex h-64 flex-col items-center justify-center gap-3 px-6 text-center"
+      >
+        <UIcon name="i-lucide-file-text" class="size-10 text-primary" />
+        <p class="max-w-md text-sm leading-6 text-slate-600">
+          Pratinjau tidak tersedia untuk jenis berkas ini (mis. Word).
+          Silakan unduh berkas untuk membukanya.
+        </p>
+        <UButton
+          :href="objectUrl"
+          :download="title || 'dokumen'"
+          color="neutral"
+          variant="outline"
+          icon="i-lucide-download"
+        >
+          Unduh Berkas
+        </UButton>
       </div>
     </template>
   </UModal>

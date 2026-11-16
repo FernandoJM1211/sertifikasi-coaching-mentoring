@@ -10,7 +10,6 @@ import {
   type SelfAssessmentUploadPurpose,
 } from '~~/shared/utils/self-assessment'
 import {
-  formatFileInfo,
   useSelfAssessmentFiles,
   type SelfAssessmentFile,
 } from '~/composables/useSelfAssessmentFiles'
@@ -69,13 +68,17 @@ const props = defineProps<{
   applicationId: string
   initial: Cmsp01Initial
   readonly: boolean
+  /** Tampilan ringkas untuk Verifikator/Super Admin: sembunyikan panduan pengisian. */
+  reviewMode?: boolean
+  /** Endpoint preview berkas selain milik peserta (mis. halaman Verifikator). */
+  filesBasePath?: string
   /** Status gabungan self assessment, mis. NEW/DRAFT/SUBMITTED. */
   status: string
 }>()
 
 const genderItems: string[] = [...GENDER_OPTIONS]
 
-const { upload, previewUrl } = useSelfAssessmentFiles(() => props.applicationId)
+const { upload, previewUrl } = useSelfAssessmentFiles(() => props.applicationId, () => props.filesBasePath)
 
 /* ========================================
  * INFORMASI SERTIFIKASI
@@ -173,8 +176,9 @@ const trainingHistories = ref<Training[]>(
     : [emptyTraining()],
 )
 
+// Item baru ditaruh paling atas (sama seperti evidence CMSP-02).
 function addTraining() {
-  trainingHistories.value.push(emptyTraining())
+  trainingHistories.value.unshift(emptyTraining())
 }
 
 function removeTraining(index: number) {
@@ -196,7 +200,16 @@ const practiceExperiences = ref<Practice[]>(
 )
 
 function addPractice() {
-  practiceExperiences.value.push(emptyPractice())
+  practiceExperiences.value.unshift(emptyPractice())
+}
+
+/** Key stabil untuk v-for (item bisa ditambah di atas / dihapus) tanpa ikut ke payload. */
+const itemKeys = new WeakMap<object, number>()
+let nextItemKey = 0
+
+function itemKey(item: object) {
+  if (!itemKeys.has(item)) itemKeys.set(item, nextItemKey++)
+  return itemKeys.get(item)!
 }
 
 function removePractice(index: number) {
@@ -387,11 +400,28 @@ const isPracticeComplete = (practice: Practice) =>
   isFilled(practice.topic) &&
   isValidPositiveInteger(practice.duration)
 
+const completedTrainingCount = computed(() => trainingHistories.value.filter(isTrainingComplete).length)
+const completedPracticeCount = computed(() => practiceExperiences.value.filter(isPracticeComplete).length)
+
+const isTrainingSectionComplete = computed(() => completedTrainingCount.value === trainingHistories.value.length)
+const isPracticeSectionComplete = computed(() => completedPracticeCount.value === practiceExperiences.value.length)
+const isDocumentSectionComplete = computed(() => documentCompletedCount.value === documents.value.length)
+
+/**
+ * Semua nilai isian dikirim sebagai teks. Input type="number" mengubah nilai
+ * v-model menjadi number, jadi dinormalkan di sini.
+ */
+function toTextRecord<T extends Record<string, unknown>>(item: T): Record<keyof T, string> {
+  return Object.fromEntries(
+    Object.entries(item).map(([key, value]) => [key, value === null || value === undefined ? '' : String(value)]),
+  ) as Record<keyof T, string>
+}
+
 /** Data yang dikirim saat Simpan Draft (lihat server/services/self-assessment.service.ts). */
 const payload = computed(() => ({
-  applicant: { ...applicant.value },
-  trainings: trainingHistories.value.map((item) => ({ ...item })),
-  practices: practiceExperiences.value.map((item) => ({ ...item })),
+  applicant: toTextRecord(applicant.value),
+  trainings: trainingHistories.value.map(toTextRecord),
+  practices: practiceExperiences.value.map(toTextRecord),
   documents: documents.value.map((item) => ({
     documentType: item.documentType,
     fileId: item.file?.file_id ?? '',
@@ -426,7 +456,7 @@ defineExpose({
             Permohonan Sertifikasi
           </h1>
 
-          <p class="mt-2 text-sm leading-6 text-slate-500">
+          <p v-if="!reviewMode" class="mt-2 text-sm leading-6 text-slate-500">
             Lengkapi data pemohon, pengalaman coaching dan mentoring,
             serta persyaratan administrasi.
           </p>
@@ -435,7 +465,7 @@ defineExpose({
         <CertificationSelfAssessmentStatusBadge :status="status" class="mt-1" />
       </div>
 
-      <div class="mt-5">
+      <div v-if="!reviewMode" class="mt-5">
         <div class="flex items-center justify-between gap-3 text-xs">
           <span class="font-medium text-slate-600">Kelengkapan CMSP-01</span>
           <span class="whitespace-nowrap font-semibold text-slate-900">
@@ -462,7 +492,7 @@ defineExpose({
           1. Informasi Sertifikasi
         </h2>
 
-        <p class="mt-1 text-sm text-slate-500">
+        <p v-if="!reviewMode" class="mt-1 text-sm text-slate-500">
           Informasi mengikuti kategori dan periode sertifikasi
           yang sedang aktif.
         </p>
@@ -512,14 +542,14 @@ defineExpose({
           2. Data Pemohon Sertifikasi
         </h2>
 
-        <p class="mt-1 text-sm text-slate-500">
+        <p v-if="!reviewMode" class="mt-1 text-sm text-slate-500">
           Lengkapi data diri sesuai identitas dan kondisi saat ini.
         </p>
       </div>
 
       <UCard class="border border-primary/30 bg-white/90 shadow-sm">
 
-        <div class="mb-5 flex items-center justify-between gap-3">
+        <div v-if="!reviewMode" class="mb-5 flex items-center justify-between gap-3">
           <p class="text-sm font-semibold text-primary">
             Data Pemohon
             <span class="font-normal text-slate-500">
@@ -698,13 +728,13 @@ defineExpose({
         3. Riwayat Pelatihan Coaching dan Mentoring
       </h2>
 
-      <p class="mt-1 text-sm text-slate-500">
+      <p v-if="!reviewMode" class="mt-1 text-sm text-slate-500">
         Minimal satu riwayat pelatihan wajib diisi. Tambahkan riwayat sesuai kebutuhan.
       </p>
     </div>
 
     <!-- Button -->
-    <div class="shrink-0">
+    <div v-if="!readonly" class="shrink-0">
       <UButton
         label="Tambah Riwayat"
         icon="i-lucide-plus"
@@ -717,34 +747,42 @@ defineExpose({
 
   <!-- Card -->
   <UCard class="border border-primary/30 bg-white/90 shadow-sm">
+    <div v-if="!reviewMode" class="mb-5 flex items-center justify-between gap-3">
+      <p class="text-sm font-semibold text-primary">
+        Riwayat Pelatihan
+        <span class="font-normal text-slate-500">
+          ({{ completedTrainingCount }} dari {{ trainingHistories.length }} lengkap)
+        </span>
+      </p>
+
+      <UBadge
+        :label="isTrainingSectionComplete ? 'Lengkap' : 'Belum lengkap'"
+        :color="isTrainingSectionComplete ? 'success' : 'neutral'"
+        variant="subtle"
+        size="sm"
+        class="shrink-0"
+      />
+    </div>
     <div class="space-y-4">
 
       <div
   v-for="(training, index) in trainingHistories"
-  :key="index"
-  class="rounded-xl bg-slate-50/40 px-5"
-  :class="index > 0 ? 'border-t border-slate-300 pt-5' : ''"
+  :key="itemKey(training)"
+  class="rounded-xl border border-slate-200 bg-slate-50/70 p-5 transition hover:border-primary/30"
 >
 
         <!-- Item Header -->
         <div class="mb-4 flex items-center justify-between gap-3">
           <div class="flex min-w-0 items-center gap-3">
-            <p class="text-sm font-semibold text-primary">
-              Riwayat {{ index + 1 }}
+            <p class="text-sm font-semibold text-slate-900">
+              Riwayat {{ trainingHistories.length - index }}
             </p>
           </div>
 
           <div class="flex shrink-0 items-center gap-2">
-            <UBadge
-              :label="isTrainingComplete(training) ? 'Lengkap' : 'Belum lengkap'"
-              :color="isTrainingComplete(training) ? 'success' : 'neutral'"
-              variant="subtle"
-              size="sm"
-              class="shrink-0"
-            />
 
           <UButton
-            v-if="trainingHistories.length > 1"
+            v-if="!readonly && trainingHistories.length > 1"
             icon="i-lucide-trash-2"
             color="error"
             variant="ghost"
@@ -842,13 +880,13 @@ defineExpose({
         4. Pengalaman Praktik Coaching dan Mentoring
       </h2>
 
-      <p class="mt-1 text-sm text-slate-500">
+      <p v-if="!reviewMode" class="mt-1 text-sm text-slate-500">
         Minimal satu pengalaman praktik wajib diisi. Tambahkan pengalaman sesuai kebutuhan.
       </p>
     </div>
 
     <!-- Button -->
-    <div class="shrink-0">
+    <div v-if="!readonly" class="shrink-0">
       <UButton
         label="Tambah Pengalaman"
         icon="i-lucide-plus"
@@ -861,34 +899,42 @@ defineExpose({
 
   <!-- Card -->
   <UCard class="border border-primary/30 bg-white/90 shadow-sm">
+    <div v-if="!reviewMode" class="mb-5 flex items-center justify-between gap-3">
+      <p class="text-sm font-semibold text-primary">
+        Pengalaman Praktik
+        <span class="font-normal text-slate-500">
+          ({{ completedPracticeCount }} dari {{ practiceExperiences.length }} lengkap)
+        </span>
+      </p>
+
+      <UBadge
+        :label="isPracticeSectionComplete ? 'Lengkap' : 'Belum lengkap'"
+        :color="isPracticeSectionComplete ? 'success' : 'neutral'"
+        variant="subtle"
+        size="sm"
+        class="shrink-0"
+      />
+    </div>
     <div class="space-y-4">
 
       <div
   v-for="(practice, index) in practiceExperiences"
-  :key="index"
-  class="rounded-xl bg-slate-50/40 px-5"
-  :class="index > 0 ? 'border-t border-slate-300 pt-5' : ''"
+  :key="itemKey(practice)"
+  class="rounded-xl border border-slate-200 bg-slate-50/70 p-5 transition hover:border-primary/30"
 >
 
         <!-- Item Header -->
         <div class="mb-4 flex items-center justify-between gap-3">
           <div class="flex min-w-0 items-center gap-3">
-            <p class="text-sm font-semibold text-primary">
-              Pengalaman {{ index + 1 }}
+            <p class="text-sm font-semibold text-slate-900">
+              Pengalaman {{ practiceExperiences.length - index }}
             </p>
           </div>
 
           <div class="flex shrink-0 items-center gap-2">
-            <UBadge
-              :label="isPracticeComplete(practice) ? 'Lengkap' : 'Belum lengkap'"
-              :color="isPracticeComplete(practice) ? 'success' : 'neutral'"
-              variant="subtle"
-              size="sm"
-              class="shrink-0"
-            />
 
             <UButton
-            v-if="practiceExperiences.length > 1"
+            v-if="!readonly && practiceExperiences.length > 1"
             icon="i-lucide-trash-2"
             color="error"
             variant="ghost"
@@ -985,7 +1031,7 @@ defineExpose({
       5. Persyaratan Administrasi
     </h2>
 
-    <p class="mt-1 text-sm text-slate-500">
+    <p v-if="!reviewMode" class="mt-1 text-sm text-slate-500">
       Dokumen dari pendaftaran digunakan kembali dan dapat diganti. Penggantian
       hanya berlaku untuk CMSP-01 (dokumen pendaftaran tidak berubah) dan
       tersimpan saat Simpan Draft.
@@ -993,6 +1039,22 @@ defineExpose({
   </div>
 
   <UCard class="border border-primary/30 bg-white/90 shadow-sm">
+    <div v-if="!reviewMode" class="mb-5 flex items-center justify-between gap-3">
+      <p class="text-sm font-semibold text-primary">
+        Dokumen Persyaratan
+        <span class="font-normal text-slate-500">
+          ({{ documentCompletedCount }} dari {{ documents.length }} terunggah)
+        </span>
+      </p>
+
+      <UBadge
+        :label="isDocumentSectionComplete ? 'Lengkap' : 'Belum lengkap'"
+        :color="isDocumentSectionComplete ? 'success' : 'neutral'"
+        variant="subtle"
+        size="sm"
+        class="shrink-0"
+      />
+    </div>
     <div class="space-y-3">
       <div
         v-for="document in documents"
@@ -1013,7 +1075,7 @@ defineExpose({
               class="mt-0.5 truncate text-xs"
               :class="document.file ? 'text-slate-500' : 'text-slate-400'"
             >
-              {{ formatFileInfo(document.file) }}
+              {{ document.file?.original_file_name || 'Belum ada file.' }}
             </p>
             <p v-if="!readonly" class="mt-0.5 text-xs text-slate-400">
               {{ documentHint(document.documentType) }}
@@ -1072,7 +1134,7 @@ defineExpose({
       6. Pernyataan Pemohon
     </h2>
 
-    <p class="mt-1 text-sm text-slate-500">
+    <p v-if="!reviewMode" class="mt-1 text-sm text-slate-500">
       Baca dan pahami seluruh pernyataan berikut sebelum melakukan
       Submit Final.
     </p>

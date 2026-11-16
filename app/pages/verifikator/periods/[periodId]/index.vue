@@ -1,42 +1,35 @@
 <template>
   <div class="space-y-5">
-    <!-- Navigasi periode -->
+    <!-- Header: judul kiri; Kembali + status periode kanan -->
+    <div class="flex items-start justify-between gap-4">
+      <div class="min-w-0">
+        <h1 class="text-xl font-semibold text-slate-900 sm:text-2xl">
+          {{ period ? period.period_name : 'Dashboard Periode Sertifikasi' }}
+        </h1>
+        <p class="mt-1 text-sm text-slate-500">
+          ID Periode:
+          <span class="font-medium text-slate-700">{{ periodId }}</span>
+        </p>
+      </div>
 
-<div class="flex justify-end">
-  <UButton
-    to="/verifikator/periods"
-    color="neutral"
-    variant="outline"
-    icon="i-lucide-arrow-left"
-    size="sm"
-  >
-    Kembali
-  </UButton>
-</div>
-
-    <div>
-
-<div v-if="period">
-  <div class="flex flex-wrap items-center justify-between gap-3">
-    <h1 class="text-xl font-semibold text-slate-900 sm:text-2xl">
-      {{ period.period_name }}
-    </h1>
-    <UBadge
-      :color="getPeriodStatusColor(period.period_status)"
-      variant="subtle"
-    >
-      {{ formatPeriodStatus(period.period_status) }}
-    </UBadge>
-  </div>
-</div>
-
-      <h1 v-else class="text-xl font-semibold text-slate-900 sm:text-2xl">
-        Dashboard Periode Sertifikasi
-      </h1>
-      <p class="mt-1 text-sm text-slate-500">
-        ID Periode:
-        <span class="font-medium text-slate-700">{{ periodId }}</span>
-      </p>
+      <div class="flex shrink-0 flex-col items-end gap-2">
+        <UButton
+          to="/verifikator/periods"
+          color="neutral"
+          variant="outline"
+          icon="i-lucide-arrow-left"
+          size="sm"
+        >
+          Kembali
+        </UButton>
+        <UBadge
+          v-if="period"
+          :color="getPeriodStatusColor(period.period_status)"
+          variant="subtle"
+        >
+          {{ formatPeriodStatus(period.period_status) }}
+        </UBadge>
+      </div>
     </div>
     <div v-if="loading && !period" class="flex items-center justify-center py-12">
       <UIcon name="i-lucide-loader-circle" class="size-6 animate-spin text-primary" />
@@ -119,12 +112,12 @@
 
 <thead>
   <tr class="border-b border-blue-100">
-    <th class="px-4 py-3 text-center font-medium text-blue-600">Peserta</th>
-    <th class="px-4 py-3 text-center font-medium text-blue-600">NIP</th>
-    <th class="px-4 py-3 text-center font-medium text-blue-600">Instansi</th>
-    <th class="px-4 py-3 text-center font-medium text-blue-600">Tanggal Pengajuan</th>
-    <th class="px-4 py-3 text-center font-medium text-blue-600">Status</th>
-    <th class="px-4 py-3 text-center font-medium text-blue-600">Aksi</th>
+    <th class="px-4 py-3 font-semibold text-blue-600">Peserta</th>
+    <th class="px-4 py-3 font-semibold text-blue-600">NIP</th>
+    <th class="px-4 py-3 font-semibold text-blue-600">Instansi</th>
+    <th class="px-4 py-3 font-semibold text-blue-600">Tanggal Pengajuan</th>
+    <th class="px-4 py-3 text-center font-semibold text-blue-600">Status</th>
+    <th class="px-4 py-3 text-center font-semibold text-blue-600">Aksi</th>
   </tr>
 </thead>
 
@@ -134,11 +127,11 @@
                 :key="application.application_id"
                 class="border-b border-slate-100 last:border-0"
               >
-                <td class="px-3 py-4 font-medium text-slate-800">{{ application.full_name_snapshot }}</td>
-                <td class="px-3 py-4 text-slate-600">{{ application.nip_snapshot }}</td>
-                <td class="px-3 py-4 text-slate-600">{{ application.institution_name }}</td>
-                <td class="px-3 py-4 text-slate-600">{{ formatDate(application.submitted_at) }}</td>
-                <td class="px-3 py-4">
+                <td class="px-4 py-4 font-medium text-slate-800">{{ application.full_name_snapshot }}</td>
+                <td class="px-4 py-4 text-slate-600">{{ application.nip_snapshot }}</td>
+                <td class="px-4 py-4 text-slate-600">{{ application.institution_name }}</td>
+                <td class="px-4 py-4 text-slate-600">{{ formatDate(application.submitted_at) }}</td>
+                <td class="px-4 py-4 text-center">
                   <UBadge
                     class="inline-flex min-w-32 items-center justify-center text-center"
                     :color="getApplicationStatusColor(application.application_status)"
@@ -147,7 +140,7 @@
                     {{ formatApplicationStatus(application.application_status) }}
                   </UBadge>
                 </td>
-                <td class="px-3 py-4 text-right">
+                <td class="px-4 py-4 text-center">
                   <!-- Tombol dan badge memakai lebar tetap yang sama agar kolom aksi sejajar. -->
                   <UButton
                     v-if="application.application_status === 'pending_verification'"

@@ -69,9 +69,9 @@ Legenda: ✅ selesai · 🚧 sedang dikerjakan · ❌ belum ada
 | Fitur | Pelaku | Status |
 | --- | --- | --- |
 | Submit CMSP-01 & CMSP-02 ke server | Peserta | ✅ |
-| Verifikasi CMSP-01 & 02 + minta perbaikan | Verifikator | ❌ |
-| Perbaikan & submit ulang self assessment | Peserta | ✅ (sisi peserta siap; menunggu fitur Verifikator) |
-| Assign peserta ke Asesor Teknis & Kepublikan | Verifikator | ❌ |
+| Verifikasi CMSP-01 & 02 + minta perbaikan | Verifikator, Super Admin | ✅ |
+| Perbaikan & submit ulang self assessment | Peserta | ✅ |
+| Assign peserta ke Asesor Teknis & Kepublikan | Verifikator, Super Admin | ✅ |
 | Mengerjakan evaluasi pilihan ganda | Peserta | ❌ |
 | Penilaian CMSP-02 (K/BK per indikator + catatan) | Asesor Teknis | ❌ |
 | Penilaian form CMSP-03 (indikator menyusul) | Asesor Kepublikan | ❌ |
@@ -105,9 +105,8 @@ Urutan mengikuti alur probis di [01-gambaran-sistem.md](01-gambaran-sistem.md):
 
 1. **Self assessment** — simpan & submit CMSP-01/02 ke server, kunci sesuai jadwal tahap
    `SELF_ASSESSMENT` (menunggu spesifikasi pemilik proyek).
-2. **Verifikasi self assessment** — halaman Verifikator: tinjau isian, minta perbaikan
-   dengan catatan, atau setujui.
-3. **Assign asesor** — Verifikator memilih Asesor Teknis & Kepublikan untuk tiap peserta.
+2. ~~**Verifikasi self assessment**~~ ✅ — menu Verifikasi Self Assessment.
+3. ~~**Assign asesor**~~ ✅ — menu Penugasan Asesor.
 4. **Bank soal & evaluasi** — Super Admin menyusun soal pilihan ganda per periode; peserta mengerjakan.
 5. **Role asesor** — layout, daftar peserta yang di-assign, penilaian CMSP-02 (K/BK + catatan)
    dan form CMSP-03 (menunggu daftar indikator).

@@ -24,10 +24,14 @@ const props = defineProps<{
   applicationId: string
   initial: Cmsp02Initial
   readonly: boolean
+  /** Tampilan ringkas untuk Verifikator/Super Admin: sembunyikan panduan pengisian. */
+  reviewMode?: boolean
+  /** Endpoint preview berkas selain milik peserta (mis. halaman Verifikator). */
+  filesBasePath?: string
   status: string
 }>()
 
-const { upload, previewUrl } = useSelfAssessmentFiles(() => props.applicationId)
+const { upload, previewUrl } = useSelfAssessmentFiles(() => props.applicationId, () => props.filesBasePath)
 
 type Evidence = {
   /** ID lokal yang stabil, dipakai untuk key & status validasi per kartu. */
@@ -295,7 +299,7 @@ defineExpose({
             Self-Assessment Teknis
           </h1>
 
-          <p class="mt-2 text-sm leading-6 text-slate-500">
+          <p v-if="!reviewMode" class="mt-2 text-sm leading-6 text-slate-500">
             Lengkapi evidence pada setiap unit kompetensi teknis. Satu unit dapat memiliki lebih dari satu evidence.
           </p>
         </div>
@@ -303,7 +307,7 @@ defineExpose({
         <CertificationSelfAssessmentStatusBadge :status="status" class="mt-1" />
       </div>
 
-      <div class="mt-5">
+      <div v-if="!reviewMode" class="mt-5">
         <div class="flex items-center justify-between gap-3 text-xs">
           <span class="font-medium text-slate-600">Kelengkapan CMSP-02</span>
           <span class="whitespace-nowrap font-semibold text-slate-900">
@@ -339,6 +343,7 @@ defineExpose({
             </div>
 
             <UBadge
+              v-if="!reviewMode"
               :label="getUnitProgress(unit.number) === 100 ? 'Lengkap' : 'Belum lengkap'"
               :color="getUnitProgress(unit.number) === 100 ? 'success' : 'neutral'"
               variant="subtle"
@@ -363,6 +368,7 @@ defineExpose({
           </div>
 
           <div
+  v-if="!reviewMode"
   class="rounded-xl border border-primary/25 bg-primary/5 p-5"
 >
   <p class="text-sm font-semibold text-primary">
@@ -389,19 +395,19 @@ defineExpose({
                 <p class="text-sm font-semibold text-slate-900">
                   Evidence / Bukti yang Relevan
                 </p>
-                <p class="mt-1 text-xs leading-5 text-slate-500">
+                <p v-if="!reviewMode" class="mt-1 text-xs leading-5 text-slate-500">
                   Bukti dapat berupa file atau link eksternal.
                 </p>
               </div>
 
               <UButton
+                v-if="!readonly"
                 label="Tambah Evidence"
                 icon="i-lucide-plus"
                 color="primary"
                 variant="outline"
                 size="sm"
                 class="shrink-0"
-                :disabled="readonly"
                 @click="addEvidence(unit.number)"
               />
             </div>
@@ -471,7 +477,7 @@ defineExpose({
                     <label class="block text-sm font-medium text-slate-700">
                       File Evidence
                     </label>
-                    <p class="mb-2 mt-1 text-xs text-slate-500">
+                    <p v-if="!reviewMode" class="mb-2 mt-1 text-xs text-slate-500">
                       Format PDF, DOC, atau DOCX. Maksimal 5 MB.
                     </p>
                     <div class="mt-2 flex flex-col gap-3 rounded-lg border border-dashed border-slate-300 bg-white p-3 sm:flex-row sm:items-center sm:justify-between">
@@ -530,7 +536,7 @@ defineExpose({
                     <label class="block text-sm font-medium text-slate-700">
                       Link Evidence
                     </label>
-                    <p class="mb-2 mt-1 text-xs text-slate-500">
+                    <p v-if="!reviewMode" class="mb-2 mt-1 text-xs text-slate-500">
                       Format link folder Google Drive, video Google Drive, atau YouTube.
                     </p>
                     <div class="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center">
@@ -568,7 +574,7 @@ defineExpose({
                     </p>
                   </template>
 
-                  <div class="mt-4">
+                  <div v-if="!reviewMode || evidence.description.trim()" class="mt-4">
                     <label class="block text-sm font-medium text-slate-700">
                       Deskripsi Evidence
                     </label>

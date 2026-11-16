@@ -1,26 +1,27 @@
 
 <template>
   <div class="mx-auto max-w-3xl space-y-6">
-    <!-- Tombol kembali -->
-    <div class="flex justify-end">
+    <!-- Header: judul kiri; Kembali kanan -->
+    <div class="flex items-start justify-between gap-4">
+      <div class="min-w-0">
+        <h1 class="text-2xl font-semibold text-slate-900">
+          Tambah Periode Sertifikasi
+        </h1>
+        <p class="mt-1 text-sm text-slate-500">
+          Isi informasi periode sertifikasi yang akan dikelola.
+        </p>
+      </div>
+
       <UButton
         to="/super-admin/periods"
         color="neutral"
         variant="outline"
         icon="i-lucide-arrow-left"
+        size="sm"
+        class="shrink-0"
       >
         Kembali
       </UButton>
-    </div>
-
-    <!-- Header -->
-    <div>
-      <h1 class="text-2xl font-semibold text-slate-900">
-        Tambah Periode Sertifikasi
-      </h1>
-      <p class="mt-1 text-sm text-slate-500">
-        Isi informasi periode sertifikasi yang akan dikelola.
-      </p>
     </div>
 
     <!-- Pesan error -->

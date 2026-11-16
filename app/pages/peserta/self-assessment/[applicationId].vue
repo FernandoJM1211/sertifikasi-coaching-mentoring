@@ -54,6 +54,16 @@ const savedSnapshot = ref('')
 
 const isEditable = computed(() => data.value?.editing.allowed ?? false)
 
+/** Catatan perbaikan terakhir, hanya saat status Perlu Perbaikan. */
+const revisionNotes = computed(() => {
+  const review = status.value === 'REVISION_REQUESTED' ? data.value?.review : null
+
+  return {
+    cmsp01: review?.cmsp01_note?.trim() ?? '',
+    cmsp02: review?.cmsp02_note?.trim() ?? '',
+  }
+})
+
 const currentPayload = computed(() => {
   if (!cmsp01Ref.value || !cmsp02Ref.value) return null
 
@@ -85,10 +95,11 @@ async function loadSelfAssessment() {
     lastSavedAt.value = ''
     formVersion.value++
 
-    // Snapshot diambil setelah form selesai dibuat dari data server.
-    // Data awal dari profil (status NEW) dianggap belum tersimpan.
+    // Form baru dirender setelah loading selesai; snapshot diambil sesudahnya agar
+    // bar Simpan Draft hanya muncul setelah peserta benar-benar mengubah isian.
+    loading.value = false
     await nextTick()
-    savedSnapshot.value = response.data.status === 'NEW' ? '' : currentSnapshot.value
+    savedSnapshot.value = currentSnapshot.value
   } catch (error: unknown) {
     const errorData = (error as { data?: { statusMessage?: string } }).data
     errorMessage.value =
@@ -264,26 +275,9 @@ onBeforeUnmount(() => {
         </UButton>
       </div>
 
-      <!-- Catatan perbaikan dari Verifikator -->
-      <UAlert
-        v-if="status === 'REVISION_REQUESTED' && data.review"
-        color="warning"
-        variant="subtle"
-        icon="i-lucide-message-square-warning"
-        title="Perlu Perbaikan dari Verifikator"
-        class="mb-6"
-      >
-        <template #description>
-          <div class="space-y-2">
-            <p v-if="data.review.cmsp01_note"><strong>CMSP-01:</strong> {{ data.review.cmsp01_note }}</p>
-            <p v-if="data.review.cmsp02_note"><strong>CMSP-02:</strong> {{ data.review.cmsp02_note }}</p>
-          </div>
-        </template>
-      </UAlert>
-
       <!-- Form terkunci -->
       <UAlert
-        v-else-if="!isEditable"
+        v-if="!isEditable"
         color="info"
         variant="subtle"
         icon="i-lucide-lock"
@@ -313,12 +307,27 @@ onBeforeUnmount(() => {
             <span class="min-w-0">
               <span class="block font-semibold text-slate-900">{{ tab.title }}</span>
               <span class="mt-1 block text-sm text-slate-500">{{ tab.description }}</span>
+              <span
+                v-if="tab.id === 'CMSP01' ? revisionNotes.cmsp01 : revisionNotes.cmsp02"
+                class="mt-2 inline-flex items-center gap-1.5 text-xs font-medium text-amber-600"
+              >
+                <span class="size-2 rounded-full bg-amber-400" />
+                Ada catatan perbaikan
+              </span>
             </span>
           </div>
         </button>
       </div>
 
-      <div v-show="activeTab === 'CMSP01'">
+      <div v-show="activeTab === 'CMSP01'" class="space-y-6">
+        <!-- Catatan perbaikan ditampilkan terpisah di tab masing-masing form -->
+        <CertificationSelfAssessmentReviewNote
+          v-if="revisionNotes.cmsp01"
+          title="Catatan Perbaikan CMSP-01 dari Verifikator"
+          :note="revisionNotes.cmsp01"
+          :reviewed-at="data.review?.reviewed_at"
+          class="mx-auto max-w-5xl"
+        />
         <Cmsp01Form
           :key="`cmsp01-${formVersion}`"
           ref="cmsp01Ref"
@@ -328,7 +337,13 @@ onBeforeUnmount(() => {
           :status="status"
         />
       </div>
-      <div v-show="activeTab === 'CMSP02'">
+      <div v-show="activeTab === 'CMSP02'" class="space-y-6">
+        <CertificationSelfAssessmentReviewNote
+          v-if="revisionNotes.cmsp02"
+          title="Catatan Perbaikan CMSP-02 dari Verifikator"
+          :note="revisionNotes.cmsp02"
+          :reviewed-at="data.review?.reviewed_at"
+        />
         <Cmsp02Form
           :key="`cmsp02-${formVersion}`"
           ref="cmsp02Ref"
@@ -351,9 +366,15 @@ onBeforeUnmount(() => {
         @submit="submitModalOpen = true"
       />
 
-      <!-- Simpan draft melayang (CMSP-01 & CMSP-02 sekaligus) -->
+      <!-- Simpan draft melayang: hanya muncul jika ada perubahan yang belum disimpan -->
+      <Transition
+        enter-active-class="transition duration-200 ease-out"
+        enter-from-class="translate-y-4 opacity-0"
+        leave-active-class="transition duration-200 ease-in"
+        leave-to-class="translate-y-4 opacity-0"
+      >
       <CertificationSelfAssessmentDraftBar
-        v-if="isEditable"
+        v-if="isEditable && (isDirty || saving)"
         :dirty="isDirty"
         :saving="saving"
         :disabled="submitting"
@@ -361,6 +382,7 @@ onBeforeUnmount(() => {
         class="mt-6"
         @save="saveDraft()"
       />
+      </Transition>
 
       <UModal
         v-model:open="submitModalOpen"

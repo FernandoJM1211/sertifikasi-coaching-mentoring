@@ -12,6 +12,16 @@ const navigation = [
     to: '/super-admin/periods',
   },
   {
+    label: 'Verifikasi Self Assessment',
+    icon: 'i-lucide-clipboard-check',
+    to: '/super-admin/self-assessments',
+  },
+  {
+    label: 'Penugasan Asesor',
+    icon: 'i-lucide-user-check',
+    to: '/super-admin/assessor-assignments',
+  },
+  {
     label: 'Manajemen Akun',
     icon: 'i-lucide-users',
     to: '/super-admin/accounts',

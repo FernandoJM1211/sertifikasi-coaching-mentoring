@@ -2,8 +2,8 @@
   <div class="space-y-6">
     
 <!-- Page Header -->
-<div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-  <div>
+<div class="flex items-start justify-between gap-4">
+  <div class="min-w-0">
     <h1 class="text-2xl font-semibold text-slate-900">
       Detail Pengajuan
     </h1>
@@ -12,21 +12,20 @@
     </p>
   </div>
 
-  <div class="flex items-center justify-end gap-3">
-    <UBadge
-      v-if="application"
-      :label="applicationStatusLabel"
-      :color="applicationStatusColor"
-      variant="soft"
-      class="shrink-0 justify-center whitespace-nowrap px-3 py-2 text-sm"
-    />
+  <div class="flex shrink-0 flex-col items-end gap-2">
     <UButton
       :to="application ? `/super-admin/periods/${application.period_id}` : '/super-admin/periods'"
       label="Kembali"
       icon="i-lucide-arrow-left"
       color="neutral"
       variant="outline"
-      class="h-10 w-32 shrink-0 justify-center"
+      size="sm"
+    />
+    <UBadge
+      v-if="application"
+      :label="applicationStatusLabel"
+      :color="applicationStatusColor"
+      variant="subtle"
     />
   </div>
 </div>

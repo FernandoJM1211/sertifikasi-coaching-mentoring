@@ -361,7 +361,7 @@ Simpan Draft & Submit selalu memproses CMSP-01 dan CMSP-02 bersamaan.
 | J | `created_at` | — |
 | K | `updated_at` | — |
 
-### `self_assessment_reviews` — ID `SAR-000001` (dipakai fitur Verifikator berikutnya)
+### `self_assessment_reviews` — ID `SAR-000001` (riwayat keputusan Verifikator; satu baris per keputusan)
 
 | # | Kolom | Isi |
 | --- | --- | --- |
@@ -373,6 +373,48 @@ Simpan Draft & Submit selalu memproses CMSP-01 dan CMSP-02 bersamaan.
 | F | `reviewed_by` | `user_id` verifikator |
 | G | `reviewed_at` | — |
 | H | `created_at` | — |
+
+### `period_assessors` — ID `PAS-000001` (asesor yang bertugas pada sebuah periode)
+
+| # | Kolom | Isi |
+| --- | --- | --- |
+| A | `period_assessor_id` | ID |
+| B | `period_id` | Relasi ke `certification_periods` |
+| C | `user_id` | Akun asesor |
+| D | `assessor_role` | `TECHNICAL_ASSESSOR` / `PUBLIC_ASSESSOR` |
+| E | `status` | `ACTIVE` / `REMOVED` (baris tidak dihapus agar riwayat tetap ada) |
+| F | `added_by` | `user_id` yang menambahkan |
+| G | `added_at` | — |
+| H | `updated_by` | — |
+| I | `updated_at` | — |
+
+### `assessor_assignments` — ID `ASG-000001` (penugasan asesor; satu baris per pengajuan)
+
+| # | Kolom | Isi |
+| --- | --- | --- |
+| A | `assignment_id` | ID |
+| B | `application_id` | Relasi ke `applications` |
+| C | `period_id` | Relasi ke `certification_periods` |
+| D | `technical_assessor_id` | `user_id` Asesor Teknis |
+| E | `public_assessor_id` | `user_id` Asesor Kepublikan |
+| F | `assigned_by` | `user_id` yang pertama menugaskan |
+| G | `assigned_at` | — |
+| H | `updated_by` | `user_id` yang terakhir mengubah |
+| I | `updated_at` | — |
+
+### `assessor_assignment_logs` — ID `AAL-000001` (riwayat penugasan & pergantian asesor)
+
+| # | Kolom | Isi |
+| --- | --- | --- |
+| A | `log_id` | ID |
+| B | `application_id` | Relasi |
+| C | `period_id` | Relasi |
+| D | `assessor_role` | `TECHNICAL_ASSESSOR` / `PUBLIC_ASSESSOR` |
+| E | `old_assessor_id` | Kosong jika penugasan pertama |
+| F | `new_assessor_id` | — |
+| G | `reason` | Wajib diisi saat mengganti asesor yang sudah ada |
+| H | `changed_by` | `user_id` Verifikator/Super Admin |
+| I | `changed_at` | — |
 
 Berkas KTP, Surat Tugas, evidence, dan dokumen pengganti dicatat di sheet `files`
 (`uploaded_by` = `user_id` peserta). Tipe yang diterima dideteksi dari isi file:

@@ -7,23 +7,18 @@ const props = defineProps<{
   dirty: boolean
   saving: boolean
   disabled: boolean
-  lastSavedAt: string
+  lastSavedAt?: string
 }>()
 
 defineEmits<{ save: [] }>()
 
-const savedLabel = computed(() => {
-  if (props.dirty) return 'Ada perubahan yang belum disimpan.'
-  if (!props.lastSavedAt) return 'Belum ada perubahan baru.'
+// Bar hanya ditampilkan saat ada perubahan (diatur halaman), jadi status yang
+// relevan: sedang menyimpan atau ada perubahan yang belum disimpan.
+const savedLabel = computed(() =>
+  props.saving ? 'Menyimpan perubahan...' : 'Ada perubahan yang belum disimpan.',
+)
 
-  return `Tersimpan ${new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(props.lastSavedAt))}.`
-})
-
-const savedClass = computed(() => {
-  if (props.dirty) return 'text-warning-600'
-  if (props.lastSavedAt) return 'text-success-600'
-  return 'text-slate-500'
-})
+const savedClass = computed(() => (props.saving ? 'text-slate-500' : 'text-warning-600'))
 </script>
 
 <template>

@@ -145,12 +145,11 @@ async function requireEditing(application: Application, status: string) {
 /* Membaca data                                                        */
 /* ------------------------------------------------------------------ */
 
-export async function getSelfAssessment(
-  user: AuthenticatedUser,
-  applicationId: string,
-) {
-  const application = await requireOwnedApplication(user, applicationId)
-
+/**
+ * Isi CMSP-01 & CMSP-02 sebuah pengajuan (tanpa aturan hak akses).
+ * Dipakai oleh halaman peserta dan halaman verifikasi Verifikator.
+ */
+export async function loadSelfAssessmentContent(application: Application) {
   const [cmsp01, cmsp02, applicationDocuments, certification] = await Promise.all([
     findCmsp01ByApplicationId(application.application_id),
     findCmsp02ByApplicationId(application.application_id),
@@ -186,15 +185,6 @@ export async function getSelfAssessment(
     ...evidences.map((evidence) => evidence.file_id),
   ])
 
-  const [editing, review, person] = await Promise.all([
-    getEditingAccess(application, status),
-    status === 'REVISION_REQUESTED'
-      ? findLatestSelfAssessmentReview(application.application_id)
-      : null,
-    // Profil hanya dipakai untuk isian awal sebelum draft pertama disimpan.
-    cmsp01 ? null : findPersonById(application.person_id),
-  ])
-
   return {
     application: {
       application_id: application.application_id,
@@ -203,15 +193,8 @@ export async function getSelfAssessment(
     certification,
     status,
     submittedAt: cmsp01?.submitted_at ?? '',
-    editing,
-    review: review
-      ? {
-          cmsp01_note: review.cmsp01_note,
-          cmsp02_note: review.cmsp02_note,
-          reviewed_at: review.reviewed_at,
-        }
-      : null,
-    profile: person ? toPublicProfile(person) : null,
+    revisionCount: Number(cmsp01?.revision_count) || 0,
+    hasCmsp01: Boolean(cmsp01),
     cmsp01: {
       applicant: cmsp01
         ? (Object.fromEntries(
@@ -249,6 +232,36 @@ export async function getSelfAssessment(
   }
 }
 
+export async function getSelfAssessment(
+  user: AuthenticatedUser,
+  applicationId: string,
+) {
+  const application = await requireOwnedApplication(user, applicationId)
+  const { hasCmsp01, ...content } = await loadSelfAssessmentContent(application)
+
+  const [editing, review, person] = await Promise.all([
+    getEditingAccess(application, content.status),
+    content.status === 'REVISION_REQUESTED'
+      ? findLatestSelfAssessmentReview(application.application_id)
+      : null,
+    // Profil hanya dipakai untuk isian awal sebelum draft pertama disimpan.
+    hasCmsp01 ? null : findPersonById(application.person_id),
+  ])
+
+  return {
+    ...content,
+    editing,
+    review: review
+      ? {
+          cmsp01_note: review.cmsp01_note,
+          cmsp02_note: review.cmsp02_note,
+          reviewed_at: review.reviewed_at,
+        }
+      : null,
+    profile: person ? toPublicProfile(person) : null,
+  }
+}
+
 /* ------------------------------------------------------------------ */
 /* Validasi payload draft                                              */
 /* ------------------------------------------------------------------ */
@@ -259,6 +272,8 @@ function badRequest(message: string): never {
 
 function text(value: unknown, label: string, maxLength: number = SELF_ASSESSMENT_LIMITS.text): string {
   if (value === undefined || value === null) return ''
+  // Angka (mis. tahun/JP dari input number) diterima dan disimpan sebagai teks.
+  if (typeof value === 'number' && Number.isFinite(value)) value = String(value)
   if (typeof value !== 'string') badRequest(`${label} tidak valid.`)
 
   const trimmed = value.trim()
@@ -755,7 +770,20 @@ export async function sendSelfAssessmentFile(
   fileId: string,
 ) {
   const application = await requireOwnedApplication(user, applicationId)
+  return sendLinkedSelfAssessmentFile(event, application, fileId, user.user_id)
+}
 
+/**
+ * Menyajikan berkas yang terkait dengan self assessment sebuah pengajuan:
+ * dokumen pendaftaran, berkas yang tercatat di CMSP-01/02, atau (khusus
+ * peserta pemilik) berkas yang ia unggah sendiri.
+ */
+export async function sendLinkedSelfAssessmentFile(
+  event: H3Event,
+  application: Application,
+  fileId: string,
+  uploaderUserId?: string,
+) {
   const [files, applicationDocuments, cmsp01, cmsp02] = await Promise.all([
     findFilesByIds([fileId]),
     findApplicationDocumentsByApplicationId(application.application_id),
@@ -772,7 +800,7 @@ export async function sendSelfAssessmentFile(
 
   const allowed =
     file &&
-    (file.uploaded_by === user.user_id ||
+    ((uploaderUserId && file.uploaded_by === uploaderUserId) ||
       applicationDocuments.some((item) => item.file_id === fileId) ||
       documents.some((item) => item.file_id === fileId) ||
       evidences.some((item) => item.file_id === fileId))

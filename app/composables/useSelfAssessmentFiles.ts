@@ -15,10 +15,15 @@ export type SelfAssessmentFile = {
  * Unggah & preview berkas self assessment (dokumen CMSP-01 dan evidence CMSP-02).
  * Berkas langsung diunggah saat dipilih; baru tercatat di CMSP saat draft disimpan.
  */
-export function useSelfAssessmentFiles(applicationId: () => string) {
+export function useSelfAssessmentFiles(
+  applicationId: () => string,
+  /** Endpoint berkas lain, mis. milik Verifikator (hanya untuk preview). */
+  basePathOverride?: () => string | undefined,
+) {
   const toast = useToast()
 
   const basePath = () =>
+    basePathOverride?.() ||
     `/api/peserta/applications/${encodeURIComponent(applicationId())}/self-assessment/files`
 
   function previewUrl(fileId: string) {

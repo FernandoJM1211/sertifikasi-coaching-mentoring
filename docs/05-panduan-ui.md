@@ -147,6 +147,22 @@ Selalu di **kanan atas** halaman (sejajar judul), bentuk outline dengan panah da
 ```
 
 Jangan memakai variasi lain (ghost, teks panjang seperti "Kembali ke Daftar ...", atau posisi kiri).
+Jangan membuat baris tersendiri untuk tombol Kembali di atas judul (boros ruang).
+
+Jika halaman punya badge status (periode, pengajuan), letakkan **di bawah** tombol Kembali:
+
+```vue
+<div class="flex items-start justify-between gap-4">
+  <div class="min-w-0">
+    <h1 class="text-xl font-semibold text-slate-900 sm:text-2xl">Judul</h1>
+    <p class="mt-1 text-sm text-slate-500">Keterangan singkat</p>
+  </div>
+  <div class="flex shrink-0 flex-col items-end gap-2">
+    <UButton to="/..." color="neutral" variant="outline" icon="i-lucide-arrow-left" size="sm">Kembali</UButton>
+    <UBadge color="success" variant="subtle">Aktif</UBadge>
+  </div>
+</div>
+```
 
 ### Tombol
 
@@ -159,6 +175,22 @@ Jangan memakai variasi lain (ghost, teks panjang seperti "Kembali ke Daftar ..."
 | Ikon saja | `variant="ghost" square` + `aria-label` |
 
 Saat proses berjalan: `:loading="isSubmitting" :disabled="isSubmitting"`.
+
+### Tabel daftar (wajib seragam)
+
+Acuan: daftar pengajuan di detail periode dan daftar Verifikasi Self Assessment.
+
+- Kartu `UCard`. Header kartu: judul + deskripsi di kiri, **Muat Ulang** (`neutral outline`, `size="sm"`,
+  ikon `i-lucide-refresh-cw`) di kanan; di bawahnya kotak filter `border-blue-100 bg-blue-50/50`
+  (pencarian + `USelect` status).
+- Header kolom: `px-4 py-3 font-semibold text-blue-600`. Kolom teks **rata kiri**;
+  kolom **Status** dan **Aksi** **rata tengah**.
+- Sel: `px-4 py-4`. Badge status `inline-flex min-w-32 justify-center`.
+- Tombol aksi di kolom Aksi: `size="sm"`, `class="inline-flex w-32 justify-center"`.
+  - Perlu ditindaklanjuti (mis. **Verifikasi**): `color="primary"` solid.
+  - Hanya melihat (**Lihat**): `color="neutral" variant="outline"`.
+  - Belum bisa diproses: tombol outline `disabled` dengan keterangan singkat.
+- Footer: jumlah data yang ditampilkan (dan paginasi bila ada).
 
 ### Ikon
 

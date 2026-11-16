@@ -5,6 +5,16 @@ const navigation = [
     icon: 'i-lucide-calendar-days',
     to: '/verifikator/periods',
   },
+  {
+    label: 'Verifikasi Self Assessment',
+    icon: 'i-lucide-clipboard-check',
+    to: '/verifikator/self-assessments',
+  },
+  {
+    label: 'Penugasan Asesor',
+    icon: 'i-lucide-user-check',
+    to: '/verifikator/assessor-assignments',
+  },
 ]
 </script>
 

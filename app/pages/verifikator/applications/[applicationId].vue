@@ -22,27 +22,21 @@
 
       </div>
 
-      <div class="flex items-center gap-3">
-
+      <div class="flex shrink-0 flex-col items-end gap-2">
+        <UButton
+          :to="application ? `/verifikator/periods/${application.period_id}` : '/verifikator/periods'"
+          label="Kembali"
+          icon="i-lucide-arrow-left"
+          color="neutral"
+          variant="outline"
+          size="sm"
+        />
         <UBadge
           v-if="application"
           :label="applicationStatusLabel"
           :color="applicationStatusColor"
-          variant="soft"
+          variant="subtle"
         />
-
-        <UButton
-          :to="application ? `/verifikator/periods/${application.period_id}` : '/verifikator/periods'"
-          label="Kembali"
-
-          icon="i-lucide-arrow-left"
-
-          color="neutral"
-
-          variant="outline"
-
-        />
-
       </div>
 
     </div>

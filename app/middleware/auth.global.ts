@@ -30,13 +30,13 @@ export default defineNuxtRouteMiddleware(async (to) => {
     }>('/api/auth/me')
 
     if (response.user.account_status !== 'ACTIVE') {
-      return navigateTo('/login', { replace: true })
+      return navigateTo('/login', { replace: true, external: true })
     }
 
     role = normalizeUserRole(response.user.role)
   } catch {
     // Sesi tidak tersedia atau tidak valid.
-    return navigateTo('/login', { replace: true })
+    return navigateTo('/login', { replace: true, external: true })
   }
 
   if (!role || !matchedRoute.roles.includes(role)) {
