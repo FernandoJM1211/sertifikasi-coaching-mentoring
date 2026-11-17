@@ -22,6 +22,21 @@ const navigation = [
     to: '/super-admin/assessor-assignments',
   },
   {
+    label: 'Bank Soal',
+    icon: 'i-lucide-library',
+    to: '/super-admin/evaluations/questions',
+  },
+  {
+    label: 'Paket Soal',
+    icon: 'i-lucide-package',
+    to: '/super-admin/evaluations/packages',
+  },
+  {
+    label: 'Perencanaan Evaluasi',
+    icon: 'i-lucide-calendar-check',
+    to: '/super-admin/evaluations/plans',
+  },
+  {
     label: 'Manajemen Akun',
     icon: 'i-lucide-users',
     to: '/super-admin/accounts',

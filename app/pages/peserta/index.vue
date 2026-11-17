@@ -205,15 +205,30 @@ async function loadActiveCertification() {
   }
 }
 
+/** Tahapan yang memiliki halaman aksi untuk peserta. */
+const STAGE_ACTIONS: Record<string, { label: string, path: string, description: string }> = {
+  SELF_ASSESSMENT: {
+    label: 'Isi Self Assessment',
+    path: '/peserta/self-assessment',
+    description: 'Silakan lengkapi formulir permohonan dan penilaian mandiri.',
+  },
+  EVALUATION: {
+    label: 'Kerjakan Evaluasi',
+    path: '/peserta/evaluation',
+    description: 'Silakan kerjakan evaluasi pilihan ganda sebelum tahapan ini berakhir.',
+  },
+}
+
 function handleStageAction(stage: CertificationStage) {
-  if (stage.code !== 'SELF_ASSESSMENT') return
+  const action = STAGE_ACTIONS[stage.code]
+  if (!action) return
 
   if (!applicationId.value) {
     errorMessage.value = 'Identitas pendaftaran tidak ditemukan.'
     return
   }
 
-  navigateTo(`/peserta/self-assessment/${encodeURIComponent(applicationId.value)}`)
+  navigateTo(`${action.path}/${encodeURIComponent(applicationId.value)}`)
 }
 
 onMounted(loadActiveCertification)
@@ -353,18 +368,17 @@ onMounted(loadActiveCertification)
             {{ activeStage.name }}
           </h2>
           <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-            Tahapan ini sedang berlangsung. {{ activeStage.code === 'SELF_ASSESSMENT'
-              ? 'Silakan lengkapi formulir permohonan dan penilaian mandiri.'
-              : 'Silakan pantau perkembangan proses sertifikasi melalui timeline ini.' }}
+            Tahapan ini sedang berlangsung. {{ STAGE_ACTIONS[activeStage.code]?.description
+              || 'Silakan pantau perkembangan proses sertifikasi melalui timeline ini.' }}
           </p>
-          <div v-if="activeStage.code === 'SELF_ASSESSMENT'" class="mt-6 flex justify-center">
+          <div v-if="STAGE_ACTIONS[activeStage.code]" class="mt-6 flex justify-center">
             <UButton
               size="lg"
               class="justify-center"
               trailing-icon="i-lucide-arrow-right"
               @click="handleStageAction(activeStage)"
             >
-              Isi Self Assessment
+              {{ STAGE_ACTIONS[activeStage.code]?.label }}
             </UButton>
           </div>
           <div v-else class="mt-6">

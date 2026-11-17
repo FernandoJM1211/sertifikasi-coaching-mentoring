@@ -184,7 +184,12 @@ Acuan: daftar pengajuan di detail periode dan daftar Verifikasi Self Assessment.
   ikon `i-lucide-refresh-cw`) di kanan; di bawahnya kotak filter `border-blue-100 bg-blue-50/50`
   (pencarian + `USelect` status).
 - Header kolom: `px-4 py-3 font-semibold text-blue-600`. Kolom teks **rata kiri**;
-  kolom **Status** dan **Aksi** **rata tengah**.
+  kolom **Status** dan **Aksi** **rata tengah** (tabel Bank Soal: semua header rata tengah).
+- Garis tipis pemisah antarkolom berlaku otomatis untuk semua `<table>` (aturan global di
+  `app/assets/css/main.css`); tidak perlu kelas tambahan.
+- Tabel ringkas (mis. Bank Soal, Manajemen Akun): teks panjang satu baris dengan `truncate`
+  (+ `table-fixed` dan `:title` berisi teks lengkap), badge status tanpa `min-w`, dan tombol aksi
+  ikon saja (`square size="md"`, `aria-label` + `title`).
 - Sel: `px-4 py-4`. Badge status `inline-flex min-w-32 justify-center`.
 - Tombol aksi di kolom Aksi: `size="sm"`, `class="inline-flex w-32 justify-center"`.
   - Perlu ditindaklanjuti (mis. **Verifikasi**): `color="primary"` solid.

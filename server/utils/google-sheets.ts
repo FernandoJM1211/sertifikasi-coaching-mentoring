@@ -151,7 +151,7 @@ export async function replaceChildRows(input: {
   const rows = await getSheetValues(input.sheetName)
 
   let maxNumber = 0
-  const idPattern = new RegExp(`^${input.idPrefix}-(\d+)$`)
+  const idPattern = new RegExp(`^${input.idPrefix}-(\\d+)$`)
 
   for (const row of rows.slice(1)) {
     const match = (row[0] ?? '').match(idPattern)

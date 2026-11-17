@@ -420,6 +420,115 @@ Berkas KTP, Surat Tugas, evidence, dan dokumen pengganti dicatat di sheet `files
 (`uploaded_by` = `user_id` peserta). Tipe yang diterima dideteksi dari isi file:
 dokumen pendaftaran PDF; KTP/Surat Tugas PDF/JPG/PNG; evidence PDF/DOC/DOCX; maks. 5 MB.
 
+## Evaluasi Pilihan Ganda
+
+Dikelola Super Admin (bank soal → paket soal → pengaturan per periode); dikerjakan Peserta.
+Kunci jawaban & nilai **tidak pernah** dikirim ke Peserta.
+
+**Model snapshot:** bank soal & paket selalu dapat diubah. "Simpan & Terapkan" pada Perencanaan
+Evaluasi menyalin isi soal paket ke `evaluation_snapshot_questions`; peserta yang mulai sesudahnya
+memakai snapshot itu dan setiap pengerjaan mencatat `snapshot_id`-nya, sehingga nilai lama tidak
+berubah walau soal diedit atau perencanaan diterapkan ulang.
+
+### `evaluation_questions` — ID `EVQ-000001` (bank soal)
+
+| # | Kolom | Isi |
+| --- | --- | --- |
+| A | `question_id` | ID |
+| B | `topic` | Opsional, untuk pencarian |
+| C | `question_text` | Maks. 2000 karakter |
+| D–H | `option_a` … `option_e` | 2–5 opsi berurutan mulai A; opsi tak terpakai kosong |
+| I | `correct_option` | `A`–`E` (huruf asli) |
+| J | `shuffle_options` | **Tidak dipakai lagi** (pengaturan acak pindah ke `period_evaluations`); kolom dibiarkan agar urutan kolom tetap |
+| K | `status` | `ACTIVE` / `ARCHIVED` (soal tidak pernah dihapus) |
+| L–O | `created_by`, `created_at`, `updated_by`, `updated_at` | — |
+
+Soal tidak dihapus, hanya diarsipkan. Soal yang sudah dipakai tetap dapat diubah (ditandai "sudah digunakan").
+
+### `evaluation_packages` — ID `EVP-000001` (paket soal)
+
+| # | Kolom | Isi |
+| --- | --- | --- |
+| A | `package_id` | ID |
+| B | `package_name` | — |
+| C | `description` | Opsional |
+| D | `question_ids` | ID soal dipisah koma |
+| E | `status` | `ACTIVE` / `ARCHIVED` |
+| F–I | `created_by`, `created_at`, `updated_by`, `updated_at` | — |
+
+Paket dapat diubah kapan saja; paket yang dipakai perencanaan periode tidak dapat diarsipkan.
+
+### `period_evaluations` — ID `PEV-000001` (pengaturan evaluasi; satu baris per periode)
+
+| # | Kolom | Isi |
+| --- | --- | --- |
+| A | `period_evaluation_id` | ID |
+| B | `period_id` | Relasi |
+| C | `package_id` | Relasi |
+| D | `question_count` | N soal per peserta (≤ soal aktif paket) |
+| E | `duration_minutes` | `30` / `45` / `60` / `90` |
+| F | `passing_grade` | 0–100 |
+| G–J | `created_by`, `created_at`, `updated_by`, `updated_at` | — |
+| K | `shuffle_questions` | `TRUE` / `FALSE` — acak soal. FALSE = N soal pertama sesuai urutan paket, sama untuk semua peserta. Kosong dianggap TRUE |
+| L | `shuffle_options` | `TRUE` / `FALSE` — acak urutan opsi jawaban. Kosong dianggap TRUE |
+| M | `snapshot_id` | Snapshot soal yang sedang diterapkan (kosong = belum diterapkan; peserta belum dapat mulai) |
+| N | `applied_at` | Waktu terakhir "Simpan & Terapkan" |
+| O | `config_version` | Nomor "Konfigurasi ke-N", naik setiap Simpan & Terapkan (kosong pada data lama = ke-1 bila sudah ada snapshot) |
+
+Tidak dikunci. Setiap simpan membuat snapshot baru; peserta yang sudah mulai tetap memakai snapshot lamanya.
+
+### `evaluation_snapshot_questions` — ID `ESQ-000001` (salinan soal per snapshot)
+
+| # | Kolom | Isi |
+| --- | --- | --- |
+| A | `snapshot_question_id` | ID baris |
+| B | `snapshot_id` | `SNP-xxxxxxxxxxxx` — satu kali "Simpan & Terapkan" |
+| C | `question_id` | ID soal asal di bank soal |
+| D | `topic` | Salinan |
+| E | `question_text` | Salinan |
+| F–J | `option_a` … `option_e` | Salinan |
+| K | `correct_option` | Salinan kunci (dipakai untuk menilai) |
+| L | `created_at` | — |
+
+Urutan baris dalam satu snapshot = urutan soal di paket (dipakai bila acak soal nonaktif). Hanya ditambah, tidak pernah diubah.
+
+### `evaluation_attempts` — ID `EVA-000001` (pengerjaan; satu baris aktif per pengajuan)
+
+| # | Kolom | Isi |
+| --- | --- | --- |
+| A | `attempt_id` | ID |
+| B | `application_id` | Relasi |
+| C | `period_id` | Relasi |
+| D | `package_id` | Paket saat mulai |
+| E | `question_ids` | Urutan soal untuk peserta ini (dipisah koma) |
+| F | `option_orders` | Urutan opsi per soal dalam huruf asli, dipisah `\|` (mis. `CADB\|BA`) |
+| G | `answers` | Jawaban per soal dalam huruf asli, dipisah `\|` (kosong = tidak dijawab) |
+| H | `duration_minutes` | Snapshot saat mulai |
+| I | `passing_grade` | Snapshot saat mulai |
+| J | `started_at` | — |
+| K | `deadline_at` | Mulai + durasi, terpotong akhir tahap `EVALUATION` |
+| L | `submitted_at` | Untuk submit otomatis = `deadline_at` |
+| M | `submit_type` | `MANUAL` / `AUTO` (waktu habis) |
+| N | `status` | `IN_PROGRESS` / `SUBMITTED` / `RESET` (direset Super Admin; diabaikan, peserta boleh mulai lagi) |
+| O | `correct_count` | Diisi saat dinilai |
+| P | `total_questions` | — |
+| Q | `score` | 0–100, dua desimal (benar ÷ total × 100) |
+| R | `updated_at` | Waktu autosave terakhir |
+| S | `snapshot_id` | Snapshot soal yang dipakai (kosong = data lama, dinilai dari bank soal) |
+| T | `reset_by` | User ID Super Admin yang mereset |
+| U | `reset_at` | Waktu reset |
+| V | `config_version` | Nomor konfigurasi perencanaan saat peserta mulai (kosong = sebelum ada versi; ditampilkan "Versi awal") |
+
+Header siap tempel (baris 1 tiap sheet, dipisah tab):
+
+```text
+evaluation_questions  question_id	topic	question_text	option_a	option_b	option_c	option_d	option_e	correct_option	shuffle_options	status	created_by	created_at	updated_by	updated_at
+evaluation_packages   package_id	package_name	description	question_ids	status	created_by	created_at	updated_by	updated_at
+period_evaluations    period_evaluation_id	period_id	package_id	question_count	duration_minutes	passing_grade	created_by	created_at	updated_by	updated_at	shuffle_questions	shuffle_options	snapshot_id	applied_at	config_version
+evaluation_snapshot_questions  snapshot_question_id	snapshot_id	question_id	topic	question_text	option_a	option_b	option_c	option_d	option_e	correct_option	created_at
+evaluation_attempts   attempt_id	application_id	period_id	package_id	question_ids	option_orders	answers	duration_minutes	passing_grade	started_at	deadline_at	submitted_at	submit_type	status	correct_count	total_questions	score	updated_at	snapshot_id	reset_by	reset_at	config_version
+```
+
 ---
 
 ## Menambah Sheet Baru (checklist)
@@ -436,12 +545,6 @@ Belum dibuat. Nama dan kolom final ditentukan saat fitur dirancang.
 
 | Usulan sheet | Untuk langkah | Isi pokok |
 | --- | --- | --- |
-| `assessor_assignments` | Assign peserta ke asesor | `application_id`, `assessor_user_id`, jenis asesor (TEKNIS/KEPUBLIKAN), `assigned_by` |
-| `question_banks` | Super Admin menyusun bank soal | nama bank soal, pembuat |
-| `questions` | Soal pilihan ganda | `question_bank_id`, teks soal, pilihan A–E, kunci jawaban (jangan dikirim ke peserta) |
-| `period_questions` | Soal yang dipasang ke periode | `period_id`, `question_id`, urutan |
-| `evaluation_attempts` | Peserta mengerjakan evaluasi | `application_id`, mulai, selesai, skor |
-| `evaluation_answers` | Jawaban per soal | `attempt_id`, `question_id`, jawaban, benar/salah |
 | `assessments` | Penilaian asesor | `assignment_id`, form (`CMSP_02`/`CMSP_03`), catatan umum, status, waktu submit |
 | `assessment_items` | Nilai per indikator | `assessment_id`, kode indikator, `K`/`BK` (CMSP-02) atau nilai CMSP-03, catatan |
 | `graduation_results` | Penetapan kelulusan | `LULUS`/`TIDAK_LULUS`, `decided_by`, percobaan ke- (awal/remedial) |

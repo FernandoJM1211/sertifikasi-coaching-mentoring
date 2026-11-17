@@ -38,6 +38,8 @@ Peta seluruh file dan fungsinya. **Perbarui dokumen ini setiap menambah/menghapu
 | `app/middleware/auth.global.ts` | Redirect berdasarkan login & role untuk `/super-admin`, `/verifikator`, `/peserta`. Hanya UX — keamanan ada di API. |
 | `app/composables/useSelfAssessmentFiles.ts` | `useSelfAssessmentFiles()` unggah & URL preview berkas self assessment; `formatFileInfo()`. |
 | `app/composables/useAuthUser.ts` | `useAuthUser()` (data pengguna login, cache key `authenticated-user`) dan `logout()`. |
+| `app/utils/api-error.ts` | `getApiErrorMessage(error, fallback)` — ambil `statusMessage` dari error `$fetch` (auto-import). |
+| `app/utils/format.ts` | `formatDateTimeId()` — format `13 Nov 2026, 09.30` (auto-import). |
 
 ### Layouts (`app/layouts/`)
 
@@ -97,6 +99,12 @@ Untuk role baru (mis. asesor), buat layout tipis serupa yang memakai `LayoutDash
 | `/super-admin/periods/:periodId/timeline` | `periods/[periodId]/timeline.vue` | Atur jadwal 8 tahapan + override buka/tutup. |
 | `/super-admin/applications/:applicationId` | `applications/[applicationId].vue` | Detail & verifikasi pengajuan (versi Super Admin). |
 | `/super-admin/accounts` | `accounts/index.vue` | Daftar akun, buat akun pegawai, reset kata sandi, aktif/nonaktifkan. |
+| `/super-admin/evaluations/questions` | `evaluations/questions.vue` | Bank Soal: tambah/ubah (modal), arsip/aktifkan; soal terpakai terkunci. |
+| `/super-admin/evaluations/packages` | `evaluations/packages/index.vue` | Daftar paket soal. |
+| `/super-admin/evaluations/packages/:packageId` | `evaluations/packages/[packageId].vue` | Buat (`baru`) / ubah paket: pilih soal dari bank soal. |
+| `/super-admin/evaluations/plans` | `evaluations/plans/index.vue` | Pilih periode (`PeriodPicker`) untuk Perencanaan Evaluasi. |
+| `/super-admin/evaluations/plans/:periodId` | `evaluations/plans/[periodId].vue` | Pengaturan evaluasi periode (paket, N soal, durasi, passing grade, acak) + Simpan & Terapkan / Terapkan Ulang + nilai peserta (lihat detail, reset progres). |
+| `/super-admin/evaluations/attempts/:attemptId` | `evaluations/attempts/[attemptId].vue` | Detail hasil evaluasi peserta: waktu, nilai, jawaban per soal vs kunci (benar/salah/tidak dijawab). |
 | `/super-admin/accounts/:id` | `accounts/[id].vue` | Detail satu akun. |
 | `/super-admin/profile` | `profile.vue` | Profil sendiri. |
 | `/super-admin/change-password` | `change-password.vue` | Ganti kata sandi sendiri. |
@@ -123,6 +131,8 @@ Untuk role baru (mis. asesor), buat layout tipis serupa yang memakai `LayoutDash
 | `/peserta` | `index.vue` | Beranda peserta: pengajuan, periode, timeline. |
 | `/peserta/self-assessment` | `self-assessment/index.vue` | 🚧 Pilih pengajuan untuk self assessment. |
 | `/peserta/self-assessment/:applicationId` | `self-assessment/[applicationId].vue` | 🚧 Tab CMSP-01 & CMSP-02. |
+| `/peserta/evaluation` | `evaluation/index.vue` | Pilih pengajuan untuk evaluasi. |
+| `/peserta/evaluation/:applicationId` | `evaluation/[applicationId].vue` | Petunjuk & mulai, pengerjaan (timer, navigasi soal, autosave), status terkirim. |
 | `/peserta/profile`, `/peserta/change-password` | `profile.vue`, `change-password.vue` | Akun sendiri. |
 
 > Halaman periode/pengajuan Super Admin dan Verifikator saat ini **duplikat** dengan sedikit
@@ -150,6 +160,7 @@ Alur: **`api/` → `services/` → `repositories/` → Google Sheets/Drive.**
 | `email.ts` | `sendAccountActivationEmail()` via Gmail. |
 | `account-response.ts` | `toPublicAccount()` — data akun tanpa `password_hash`. |
 | `pdf-file.ts` | `assertValidPdfFile()` (MIME, ukuran, signature), `sanitizeFileNamePart()`, `multipartPartToFile()`. |
+| `evaluation-input.ts` | Validasi body evaluasi: `parseQuestionInput()`, `parsePackageInput()`, `parsePeriodEvaluationInput()`, `parseStatusInput()`, `parseAnswersInput()`. |
 | `upload-file.ts` | `assertValidUpload()` (deteksi tipe dari isi file: PDF/PNG/JPG/DOC/DOCX), `setFileResponseHeaders()` (inline hanya PDF/gambar). |
 
 ### `server/api/` — Endpoint
@@ -197,6 +208,19 @@ Alur: **`api/` → `services/` → `repositories/` → Google Sheets/Drive.**
 | `POST /api/peserta/applications/:applicationId/self-assessment/submit` | `.../self-assessment/submit.post.ts` | Peserta (pemilik) | Submit keduanya (server mengecek kelengkapan). |
 | `POST /api/peserta/applications/:applicationId/self-assessment/files` | `.../self-assessment/files/index.post.ts` | Peserta (pemilik) | Unggah file (multipart `purpose` + `file`). |
 | `GET /api/peserta/applications/:applicationId/self-assessment/files/:fileId` | `.../self-assessment/files/[fileId].get.ts` | Peserta (pemilik) | Preview/unduh berkas miliknya. |
+| `GET/POST /api/evaluation/questions` | `evaluation/questions/index.{get,post}.ts` | Super Admin | Daftar / tambah soal. |
+| `PUT /api/evaluation/questions/:questionId` | `.../[questionId]/index.put.ts` | Super Admin | Ubah soal (ditolak bila sudah dipakai peserta). |
+| `PATCH /api/evaluation/questions/:questionId/status` | `.../[questionId]/status.patch.ts` | Super Admin | Arsipkan / aktifkan (`{ status }`). |
+| `GET/POST /api/evaluation/packages` | `evaluation/packages/index.{get,post}.ts` | Super Admin | Daftar / buat paket. |
+| `GET/PUT /api/evaluation/packages/:packageId` | `.../[packageId]/index.{get,put}.ts` | Super Admin | Detail / ubah paket. |
+| `PATCH /api/evaluation/packages/:packageId/status` | `.../[packageId]/status.patch.ts` | Super Admin | Arsipkan / aktifkan paket. |
+| `GET/PUT /api/evaluation/periods/:periodId` | `evaluation/periods/[periodId].{get,put}.ts` | Super Admin | Pengaturan evaluasi periode + status snapshot + nilai peserta / simpan & terapkan (buat snapshot). |
+| `GET /api/evaluation/attempts/:attemptId` | `evaluation/attempts/[attemptId]/index.get.ts` | Super Admin | Detail hasil evaluasi satu pengerjaan. |
+| `POST /api/evaluation/attempts/:attemptId/reset` | `evaluation/attempts/[attemptId]/reset.post.ts` | Super Admin | Reset progres evaluasi peserta (status `RESET`). |
+| `GET /api/peserta/applications/:applicationId/evaluation` | `.../evaluation/index.get.ts` | Peserta (pemilik) | Status, kelayakan, soal & jawaban (tanpa kunci/nilai). |
+| `POST /api/peserta/applications/:applicationId/evaluation/start` | `.../evaluation/start.post.ts` | Peserta (pemilik) | Mulai: ambil N soal acak + acak opsi, tetapkan batas waktu. |
+| `PUT /api/peserta/applications/:applicationId/evaluation/answers` | `.../evaluation/answers.put.ts` | Peserta (pemilik) | Autosave seluruh jawaban (`{ answers }`). |
+| `POST /api/peserta/applications/:applicationId/evaluation/submit` | `.../evaluation/submit.post.ts` | Peserta (pemilik) | Kirim jawaban & nilai otomatis. |
 | `GET /api/profile` | `profile/index.get.ts` | Login | Profil pengguna saat ini. |
 | `PATCH /api/profile` | `profile/index.patch.ts` | Login | Perbarui profil (nama, jenis kelamin, tempat/tanggal lahir, instansi, telepon). |
 
@@ -217,6 +241,8 @@ Alur: **`api/` → `services/` → `repositories/` → Google Sheets/Drive.**
 | `self-assessment.service.ts` | Baca/simpan draft/submit CMSP-01 & 02, hak edit (status + jadwal tahap), validasi payload, cek kepemilikan berkas, unggah & preview berkas. `loadSelfAssessmentContent()` dipakai ulang oleh verifikasi. |
 | `assessor-assignment.service.ts` | Daftar & simpan penugasan asesor (tahap `SELF_ASSESSMENT_VERIFICATION`, SA `VERIFIED`, asesor aktif sesuai role). |
 | `self-assessment-verification.service.ts` | Daftar, detail, dan keputusan verifikasi self assessment (dijaga tahap `SELF_ASSESSMENT_VERIFICATION`). |
+| `evaluation-admin.service.ts` | Bank soal, paket soal, perencanaan evaluasi periode & daftar nilai (Super Admin); aturan penguncian. |
+| `evaluation-attempt.service.ts` | Pengerjaan peserta: kelayakan, mulai (acak soal/opsi), autosave, submit, penilaian `scoreAttempt()`, tutup otomatis saat waktu habis. |
 | `profile.service.ts` | Baca & validasi/perbarui profil; sinkron nama ke akun. |
 | `certification-stage.service.ts` | `getStageAccess()` / `assertStageOpen()` — cek tahap timeline dibuka (jadwal + override). |
 | `peserta-account-provisioning.service.ts` | Buat/ambil akun peserta & token aktivasi, kirim email aktivasi. |
@@ -245,6 +271,7 @@ Satu file per sheet. Detail kolom di [04-database.md](04-database.md).
 | `file.repository.ts` | `files` | Data |
 | `self-assessment.repository.ts` | `cmsp01_*`, `cmsp02_*`, `self_assessment_reviews` | Data |
 | `assessor-assignment.repository.ts` | `period_assessors`, `assessor_assignments` (tulis massal), `assessor_assignment_logs` | Data |
+| `evaluation.repository.ts` | `evaluation_questions`, `evaluation_packages`, `period_evaluations`, `evaluation_snapshot_questions`, `evaluation_attempts` (helper tabel generik `createTable` + `createMany`) | Data |
 
 ## `shared/`
 
@@ -254,6 +281,7 @@ Satu file per sheet. Detail kolom di [04-database.md](04-database.md).
 | `shared/utils/self-assessment.ts` | Status self assessment + label, jenis dokumen CMSP-01, jenis unggahan & tipe file yang diizinkan, batas jumlah baris. |
 | `shared/utils/cmsp02-units.ts` | 10 unit kompetensi CMSP-02 (kode, elemen, contoh evidence). |
 | `shared/utils/evidence-link.ts` | `parseEvidenceLink()`: kenali link YouTube / file Drive (embed) vs folder Drive / website lain (tab baru). |
+| `shared/utils/evaluation.ts` | Huruf opsi `A`–`E`, 2–5 opsi, pilihan durasi 30/45/60/90, batas panjang teks evaluasi. |
 | `shared/utils/documents.ts` | Jenis dokumen pendaftaran + label/ikon, `MAX_PDF_SIZE_BYTES`. |
 | `shared/utils/roles.ts` | `USER_ROLES`, `STAFF_ROLES`, `ROLE_LABELS`, `ROLE_HOME_PATHS`, `ACCOUNT_STATUSES`, `normalizeUserRole()`, `getRoleLabel()`, `getAccountStatusLabel()`. |
 

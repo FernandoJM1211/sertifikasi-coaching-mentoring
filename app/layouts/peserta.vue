@@ -11,6 +11,11 @@ const navigation = [
     icon: 'i-lucide-clipboard-check',
     to: '/peserta/self-assessment',
   },
+  {
+    label: 'Evaluasi',
+    icon: 'i-lucide-file-pen-line',
+    to: '/peserta/evaluation',
+  },
 ]
 </script>
 

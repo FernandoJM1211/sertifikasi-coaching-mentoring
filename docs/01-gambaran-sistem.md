@@ -97,7 +97,7 @@ flowchart TD
 | 2 | `DOCUMENT_VERIFICATION` | Verifikasi form pendaftaran → diterima/ditolak → buat akun peserta | Verifikator | ✅ |
 | 3 | `SELF_ASSESSMENT` | Peserta mengisi & submit CMSP-01 & CMSP-02 | Peserta | 🚧 UI awal |
 | 4 | `SELF_ASSESSMENT_VERIFICATION` | Verifikasi CMSP-01 & 02, minta perbaikan, assign ke asesor | Verifikator | ✅ |
-| 5 | `EVALUATION` | Peserta mengerjakan evaluasi pilihan ganda | Peserta | ❌ |
+| 5 | `EVALUATION` | Peserta mengerjakan evaluasi pilihan ganda | Peserta | ✅ |
 | 6 | `ASSESSOR_ASSESSMENT` | Penilaian CMSP-02 (Teknis), lalu CMSP-03 (Kepublikan) | Asesor Teknis, Asesor Kepublikan | ❌ |
 | 7 | `ASSESSMENT_VERIFICATION` | Verifikasi penilaian & penetapan kelulusan | Verifikator / Super Admin | ❌ |
 | 8 | `ANNOUNCEMENT` | Informasi lulus + sertifikat / tidak lulus + remedial | Sistem → Peserta | ❌ |
@@ -163,12 +163,24 @@ DRAFT ──► ACTIVE ──► CLOSED ──► COMPLETED
     penugasan/pergantian dicatat di `assessor_assignment_logs`. Saat fitur penilaian asesor dibuat,
     tambahkan aturan: pergantian ditolak jika asesor lama sudah mulai menilai peserta tersebut.
 
-**F. Evaluasi (pilihan ganda)** ❌
-- **Persiapan (Super Admin):** membuat **bank soal** pilihan ganda, lalu menetapkan soal
-  yang dipakai untuk periode aktif.
-- **Peserta** mengerjakan evaluasi memakai soal yang sudah ditetapkan untuk periodenya.
-- Detail (jumlah soal, durasi, acak soal, nilai minimum, satu/berkali percobaan) dirancang
-  saat masuk tahap pengembangan fitur ini.
+**F. Evaluasi (pilihan ganda)** ✅ (hanya Super Admin yang mengelola)
+- **Bank Soal:** soal pilihan ganda dengan **2–5 opsi** (A–E) dan satu kunci; opsional topik. Soal tidak
+  dihapus, hanya diarsipkan. Selalu dapat diubah; ditandai bila sudah digunakan.
+- **Paket Soal:** kumpulan soal pilihan dari bank soal; selalu dapat diubah. Halaman ubah paket
+  menampilkan periode yang memakainya.
+- **Perencanaan Evaluasi (per periode):** paket soal, **jumlah soal N** (diambil acak dari paket),
+  **durasi** 30/45/60/90 menit, **passing grade** 0–100, serta centang **acak soal** dan
+  **acak opsi jawaban**. **Simpan & Terapkan** menyalin isi soal paket saat itu (snapshot); perubahan
+  bank soal/paket sesudahnya ditandai "Ada Perubahan" dan baru berlaku setelah **Terapkan Ulang**.
+  Peserta yang sudah mulai tetap memakai versi soalnya, sehingga nilai lama tidak berubah.
+- **Peserta** (pengajuan diterima + SA `VERIFIED`) mengerjakan **satu kali** (Super Admin dapat
+  **mereset progres** peserta; data lama disimpan sebagai riwayat) saat tahap `EVALUATION`
+  dibuka. Bila diaktifkan, urutan soal & opsi diacak per peserta dan disimpan (tetap sama saat dimuat ulang).
+- Batas waktu = mulai + durasi, **terpotong** pada akhir tahap Evaluasi. Jawaban tersimpan otomatis;
+  saat waktu habis jawaban dikirim otomatis.
+- Nilai skala 0–100 (benar ÷ jumlah soal × 100, tidak dijawab = salah), **hanya dilihat Super Admin**
+  (di halaman Perencanaan Evaluasi) karena Super Admin yang menetapkan kelulusan.
+- Rencana berikutnya: pencegahan kecurangan (deteksi pindah tab, layar penuh, blokir salin).
 
 **G. Penilaian oleh asesor (berurutan)** ❌
 1. **Asesor Teknis — CMSP-02**
@@ -245,7 +257,6 @@ Tidak perlu dijawab sekarang; dibahas saat fitur terkait dikerjakan.
 4. **Pendaftaran ditolak:** apakah Guest diberi tahu lewat email? Boleh mendaftar ulang di periode yang sama?
 5. **Perbaikan CMSP-01/02:** ada batas jumlah perbaikan, atau cukup dibatasi jadwal tahapnya?
 6. **Bukti dukung CMSP-02:** berupa unggahan file (PDF/gambar) atau link?
-7. **Evaluasi:** jumlah soal, durasi, satu kali percobaan, nilai minimum (dibahas saat pengembangan).
-8. **Assign asesor:** satu asesor boleh menangani banyak peserta? Bisa diganti setelah di-assign?
-9. **Remedial:** siapa yang menilai bukti remedial, dan dalam tahap/jadwal apa?
-10. **Sertifikat:** dibuat otomatis oleh sistem (PDF + nomor sertifikat) atau diunggah manual?
+7. **Assign asesor:** satu asesor boleh menangani banyak peserta? Bisa diganti setelah di-assign?
+8. **Remedial:** siapa yang menilai bukti remedial, dan dalam tahap/jadwal apa?
+9. **Sertifikat:** dibuat otomatis oleh sistem (PDF + nomor sertifikat) atau diunggah manual?
