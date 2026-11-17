@@ -53,5 +53,11 @@ export function getApplicationDocumentIcon(documentType: string): string {
   )
 }
 
-/** Ukuran maksimum satu dokumen PDF (5 MB). */
-export const MAX_PDF_SIZE_BYTES = 5 * 1024 * 1024
+/**
+ * Ukuran maksimum satu berkas unggahan (4 MB).
+ * Dibatasi di bawah batas body request hosting serverless (Vercel: 4,5 MB per request).
+ */
+export const MAX_UPLOAD_SIZE_MB = 4
+
+/** Ukuran maksimum satu dokumen PDF. */
+export const MAX_PDF_SIZE_BYTES = MAX_UPLOAD_SIZE_MB * 1024 * 1024

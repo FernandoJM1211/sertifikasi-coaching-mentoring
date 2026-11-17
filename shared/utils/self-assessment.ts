@@ -67,8 +67,8 @@ export const SELF_ASSESSMENT_UPLOAD_ACCEPT: Record<SelfAssessmentUploadPurpose, 
   EVIDENCE: '.pdf,.doc,.docx',
 }
 
-/** Ukuran maksimum satu file self assessment (5 MB). */
-export const MAX_SELF_ASSESSMENT_FILE_BYTES = 5 * 1024 * 1024
+/** Ukuran maksimum satu file self assessment (4 MB — lihat MAX_UPLOAD_SIZE_MB). */
+export const MAX_SELF_ASSESSMENT_FILE_BYTES = 4 * 1024 * 1024
 
 /** Batas jumlah baris agar payload tetap wajar. */
 export const SELF_ASSESSMENT_LIMITS = {

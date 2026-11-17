@@ -1,19 +1,14 @@
 import { processRegistration } from '../../services/registration.service'
 
-// Mapping nama field pada GuestRegistrationForm.vue
-// ke document_type yang disimpan di database.
-const DOCUMENT_TYPE_MAP: Record<string, string> = {
-  diploma: 'IJAZAH',
-  appointment: 'SK_JABATAN',
-  trainingCertificate: 'SERTIFIKAT_COACHING_MENTORING',
-  practiceEvidence: 'BUKTI_PRAKTIK_COACHING_MENTORING',
-}
-
-// 4 dokumen x 5 MB + ruang untuk field teks dan boundary multipart.
-const MAX_REQUEST_BYTES = 21 * 1024 * 1024
+/**
+ * Publik: kirim pendaftaran (langkah 2). Body JSON berisi data pemohon dan
+ * `documents` = { diploma, appointment, trainingCertificate, practiceEvidence } → upload_token
+ * hasil `POST /api/applications/uploads`.
+ */
 
 const REGISTRATION_WINDOW_MS = 60 * 60 * 1000
 const REGISTRATION_LIMIT_PER_IP = 10
+const TEXT_FIELDS = ['fullName', 'nip', 'institution', 'region', 'email', 'whatsapp', 'education', 'position'] as const
 
 export default defineEventHandler(async (event) => {
   // Endpoint publik: batasi jumlah pendaftaran per IP.
@@ -24,65 +19,31 @@ export default defineEventHandler(async (event) => {
     'Terlalu banyak pengajuan pendaftaran. Silakan coba lagi nanti.',
   )
 
-  // Tolak request yang terlalu besar sebelum isi body dibaca ke memori.
-  const contentLength = Number(getRequestHeader(event, 'content-length'))
+  const body = await readBody<unknown>(event)
 
-  if (!Number.isFinite(contentLength) || contentLength <= 0) {
-    throw createError({
-      statusCode: 411,
-      statusMessage: 'Ukuran data pendaftaran tidak diketahui.',
-    })
+  if (!body || typeof body !== 'object' || Array.isArray(body)) {
+    throw createError({ statusCode: 400, statusMessage: 'Data pendaftaran tidak ditemukan.' })
   }
 
-  if (contentLength > MAX_REQUEST_BYTES) {
-    throw createError({
-      statusCode: 413,
-      statusMessage: 'Total ukuran berkas terlalu besar.',
-    })
-  }
+  const input = body as Record<string, unknown>
+  const text = (name: (typeof TEXT_FIELDS)[number]) => (typeof input[name] === 'string' ? input[name] as string : '')
 
-  // Satu request membawa data pendaftaran sekaligus empat dokumen.
-  const parts = await readMultipartFormData(event)
-
-  if (!parts || parts.length === 0) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: 'Data pendaftaran tidak ditemukan.',
-    })
-  }
-
-  const data: Record<string, string> = {}
-  const files: Array<{ file: File, documentType: string }> = []
-
-  for (const part of parts) {
-    if (!part.name) continue
-
-    // Field tanpa filename adalah data teks dari form.
-    if (!part.filename) {
-      data[part.name] = part.data.toString('utf-8')
-      continue
+  const documents: Record<string, string> = {}
+  if (input.documents && typeof input.documents === 'object' && !Array.isArray(input.documents)) {
+    for (const [key, value] of Object.entries(input.documents as Record<string, unknown>)) {
+      if (typeof value === 'string') documents[key] = value
     }
-
-    const documentType = DOCUMENT_TYPE_MAP[part.name]
-
-    // Hanya field dokumen persyaratan yang dikenal yang diproses.
-    if (!documentType) continue
-
-    files.push({
-      documentType,
-      file: multipartPartToFile(part),
-    })
   }
 
   return await processRegistration({
-    fullName: data.fullName || '',
-    nip: data.nip || '',
-    institution: data.institution || '',
-    region: data.region || '',
-    email: data.email || '',
-    whatsapp: data.whatsapp || '',
-    education: data.education || '',
-    position: data.position || '',
-    files,
+    fullName: text('fullName'),
+    nip: text('nip'),
+    institution: text('institution'),
+    region: text('region'),
+    email: text('email'),
+    whatsapp: text('whatsapp'),
+    education: text('education'),
+    position: text('position'),
+    documents,
   })
 })

@@ -194,7 +194,8 @@ Alur: **`api/` → `services/` → `repositories/` → Google Sheets/Drive.**
 | `GET /api/auth/google/callback` | `auth/google/callback.get.ts` | Super Admin | Simpan refresh token Drive. |
 | `POST /api/account-activation` | `account-activation.post.ts` | Publik (token) | Aktivasi akun peserta. |
 | `GET /api/certification-info` | `certification-info/index.get.ts` | Publik | Info periode aktif untuk form pendaftaran. |
-| `POST /api/applications/register` | `applications/register.post.ts` | Publik (rate limited) | Pendaftaran + unggah 4 dokumen (multipart). |
+| `POST /api/applications/uploads` | `applications/uploads.post.ts` | Publik (rate limited, hanya saat pendaftaran dibuka) | Unggah satu dokumen pendaftaran (multipart `document` + `file`, maks. 4 MB) → `upload_token`. |
+| `POST /api/applications/register` | `applications/register.post.ts` | Publik (rate limited) | Kirim pendaftaran (JSON): data pemohon + `documents` (token dari endpoint unggah). |
 | `GET /api/certification-types` | `certification-types/index.get.ts` | Verifikator, Super Admin | Jenis sertifikasi. |
 | `GET /api/certification-categories` | `certification-categories/index.get.ts` | Verifikator, Super Admin | Kategori. |
 | `GET /api/certification-periods` | `certification-periods/index.get.ts` | Verifikator, Super Admin | Daftar periode. Query opsional `stage` (kode tahap atau `PERIOD`) menambah `stage_start_at`/`stage_end_at`. |
@@ -255,7 +256,7 @@ Alur: **`api/` → `services/` → `repositories/` → Google Sheets/Drive.**
 | --- | --- |
 | `auth.service.ts` | Login, validasi sesi (`getAuthenticatedUser`), ganti kata sandi. |
 | `account-activation.service.ts` | Aktivasi akun peserta dengan token. |
-| `registration.service.ts` | Proses pendaftaran: validasi → cek periode → validasi PDF → unggah Drive → simpan data. |
+| `registration.service.ts` | Pendaftaran dua langkah: `uploadRegistrationDocument` (validasi PDF → unggah Drive → catat berkas, token = ID file Drive) lalu `processRegistration` (validasi data & token: berkas guest, belum tertaut, < 24 jam → simpan pengajuan, tautkan dokumen, ganti nama berkas di Drive). |
 | `application.service.ts` | Validasi data pendaftaran, cek tahap Pendaftaran dibuka, cek konflik NIP/email, buat person & application. |
 | `application-verification.service.ts` | Keputusan verifikasi (idempotent): riwayat, ubah status, superseded, siapkan akun, kirim email. |
 | `application-verification-detail.service.ts` | Gabungkan pengajuan + dokumen + data file. |

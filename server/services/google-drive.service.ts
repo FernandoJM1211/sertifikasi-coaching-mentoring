@@ -114,6 +114,16 @@ export async function uploadToGoogleDrive(
   }
 }
 
+/** Mengganti nama berkas di Google Drive (mis. setelah pendaftaran lengkap). */
+export async function renameGoogleDriveFile(storageFileId: string, fileName: string): Promise<void> {
+  const drive = await getGoogleDriveClient()
+
+  await drive.files.update({
+    fileId: storageFileId,
+    requestBody: { name: fileName },
+  }).catch(handleDriveError)
+}
+
 /**
  * Mengunduh isi berkas dari Google Drive melalui backend,
  * sehingga berkas tidak perlu dibagikan secara publik.

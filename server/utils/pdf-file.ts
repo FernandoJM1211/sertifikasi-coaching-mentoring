@@ -1,4 +1,4 @@
-import { MAX_PDF_SIZE_BYTES } from '../../shared/utils/documents'
+import { MAX_PDF_SIZE_BYTES, MAX_UPLOAD_SIZE_MB } from '../../shared/utils/documents'
 
 /**
  * Memastikan berkas adalah PDF yang valid: tipe MIME, ukuran,
@@ -26,7 +26,7 @@ export async function assertValidPdfFile(
   if (file.size > MAX_PDF_SIZE_BYTES) {
     throw createError({
       statusCode: 400,
-      statusMessage: `${label}: ukuran file maksimal 5 MB.`,
+      statusMessage: `${label}: ukuran file maksimal ${MAX_UPLOAD_SIZE_MB} MB.`,
     })
   }
 

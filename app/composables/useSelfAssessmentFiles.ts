@@ -37,7 +37,7 @@ export function useSelfAssessmentFiles(
     if (file.size > MAX_SELF_ASSESSMENT_FILE_BYTES) {
       toast.add({
         title: 'File terlalu besar',
-        description: 'Ukuran file maksimal 5 MB.',
+        description: 'Ukuran file maksimal 4 MB.',
         color: 'warning',
         icon: 'i-lucide-circle-alert',
       })

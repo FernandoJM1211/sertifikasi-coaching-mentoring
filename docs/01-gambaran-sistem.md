@@ -122,8 +122,10 @@ DRAFT ──► ACTIVE ──► CLOSED ──► COMPLETED
 ```
 
 **B. Pendaftaran Guest** ✅
-- Guest membuka `/pendaftaran`, mengisi data diri dan mengunggah 4 dokumen PDF (maks. 5 MB):
+- Guest membuka `/pendaftaran`, mengisi data diri dan mengunggah 4 dokumen PDF (maks. 4 MB):
   Ijazah, SK Jabatan, Sertifikat Coaching/Mentoring, Bukti Praktik Coaching/Mentoring.
+  Setiap dokumen langsung diunggah saat dipilih (satu request per berkas, di bawah batas
+  4,5 MB hosting serverless); tombol Kirim mengirim data form + token dokumen.
 - Sistem memeriksa: periode aktif ada, tahap Pendaftaran dibuka, NIP/email tidak bentrok,
   NIP belum diterima di periode ini.
 - Data tersimpan dengan status pengajuan `pending_verification`.

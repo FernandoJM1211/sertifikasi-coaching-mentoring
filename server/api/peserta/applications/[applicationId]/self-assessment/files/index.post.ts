@@ -1,7 +1,7 @@
 import { uploadSelfAssessmentFile } from '../../../../../../services/self-assessment.service'
 import { MAX_SELF_ASSESSMENT_FILE_BYTES } from '../../../../../../../shared/utils/self-assessment'
 
-// Satu file (maks. 5 MB) + field teks & boundary multipart.
+// Satu file (maks. 4 MB) + field teks & boundary multipart (tetap di bawah batas 4,5 MB Vercel).
 const MAX_REQUEST_BYTES = MAX_SELF_ASSESSMENT_FILE_BYTES + 64 * 1024
 
 export default defineEventHandler(async (event) => {
@@ -22,7 +22,7 @@ export default defineEventHandler(async (event) => {
   }
 
   if (contentLength > MAX_REQUEST_BYTES) {
-    throw createError({ statusCode: 413, statusMessage: 'Ukuran file maksimal 5 MB.' })
+    throw createError({ statusCode: 413, statusMessage: 'Ukuran file maksimal 4 MB.' })
   }
 
   const parts = await readMultipartFormData(event)

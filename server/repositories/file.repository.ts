@@ -184,6 +184,18 @@ export async function findFileById(
   }
 }
 
+/** Mencari berkas berdasarkan ID penyimpanan (ID file Google Drive). */
+export async function findFileByStorageId(
+  storageFileId: string,
+): Promise<FileRecord | null> {
+  if (!storageFileId) return null
+
+  const rows = await getSheetValues(SHEET_NAME)
+  const row = rows.slice(1).find((item) => item[3] === storageFileId)
+
+  return row ? await findFileById(row[0] ?? '') : null
+}
+
 /** Membaca banyak berkas sekaligus (satu kali baca sheet). */
 export async function findFilesByIds(
   fileIds: string[],

@@ -1,10 +1,15 @@
 
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue'
+import { MAX_PDF_SIZE_BYTES, MAX_UPLOAD_SIZE_MB } from '~~/shared/utils/documents'
 
 type FileField = {
   file: File | null
   error: string
+  /** Sedang diunggah ke server. */
+  uploading: boolean
+  /** Token hasil unggah (dikirim saat pendaftaran). */
+  token: string
 }
 
 type CertificationInfo = {
@@ -100,11 +105,13 @@ const form = reactive({
   position: '',
 })
 
+const emptyFile = (): FileField => ({ file: null, error: '', uploading: false, token: '' })
+
 const files = reactive<Record<string, FileField>>({
-  diploma: { file: null, error: '' },
-  appointment: { file: null, error: '' },
-  trainingCertificate: { file: null, error: '' },
-  practiceEvidence: { file: null, error: '' },
+  diploma: emptyFile(),
+  appointment: emptyFile(),
+  trainingCertificate: emptyFile(),
+  practiceEvidence: emptyFile(),
 })
 
 const touched = reactive<Record<string, boolean>>({
@@ -119,7 +126,7 @@ const touched = reactive<Record<string, boolean>>({
 })
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-const MAX_FILE_SIZE = 5 * 1024 * 1024
+const MAX_FILE_SIZE = MAX_PDF_SIZE_BYTES
 
 const fileLabels: Record<string, string> = {
   diploma: 'Ijazah Terakhir',
@@ -172,8 +179,10 @@ const fieldErrors = computed(() => ({
 }))
 
 const allFilesValid = computed(() =>
-  Object.values(files).every((item) => item.file && !item.error),
+  Object.values(files).every((item) => item.file && item.token && !item.error && !item.uploading),
 )
+
+const anyUploading = computed(() => Object.values(files).some((item) => item.uploading))
 
 const allFieldsValid = computed(() =>
   Object.values(fieldErrors.value).every((error) => !error),
@@ -195,39 +204,89 @@ function handleWhatsappInput() {
   form.whatsapp = form.whatsapp.replace(/\D/g, '').slice(0, 15)
 }
 
-function validateFile(key: string, file: File | null) {
-  files[key].error = ''
+function validateFile(key: string, file: File | null): boolean {
+  const field = files[key]
+  if (!field) return false
+
+  field.error = ''
+  field.token = ''
 
   if (!file) {
-    files[key].file = null
-    return
+    field.file = null
+    return false
   }
 
   if (file.type !== 'application/pdf') {
-    files[key].error = 'File harus dalam format PDF.'
-    files[key].file = null
-    return
+    field.error = 'File harus dalam format PDF.'
+    field.file = null
+    return false
   }
 
   if (file.size > MAX_FILE_SIZE) {
-    files[key].error = 'Ukuran file maksimal 5 MB.'
-    files[key].file = null
-    return
+    field.error = `Ukuran file maksimal ${MAX_UPLOAD_SIZE_MB} MB.`
+    field.file = null
+    return false
   }
 
-  files[key].file = file
+  field.file = file
+  return true
+}
+
+/*
+ * Setiap dokumen langsung diunggah saat dipilih (satu request per berkas, < 4,5 MB),
+ * berurutan agar penulisan sheet tidak bertabrakan.
+ */
+let uploadQueue: Promise<void> = Promise.resolve()
+
+function uploadFile(key: string, file: File) {
+  const field = files[key]
+  if (!field) return
+
+  field.uploading = true
+
+  uploadQueue = uploadQueue.then(async () => {
+    // Berkas sudah diganti/dihapus sebelum gilirannya: lewati.
+    if (field.file !== file) return
+
+    try {
+      const body = new FormData()
+      body.append('document', key)
+      body.append('file', file)
+
+      const response = await $fetch<{ data: { upload_token: string } }>('/api/applications/uploads', {
+        method: 'POST',
+        body,
+      })
+
+      if (field.file === file) field.token = response.data.upload_token
+    } catch (error) {
+      if (field.file === file) {
+        field.error = getApiErrorMessage(error, 'Dokumen gagal diunggah. Silakan coba lagi.')
+        field.file = null
+        const input = document.getElementById(`file-${key}`) as HTMLInputElement | null
+        if (input) input.value = ''
+      }
+    } finally {
+      if (field.file === file || !field.file) field.uploading = false
+    }
+  })
 }
 
 function handleFileChange(key: string, event: Event) {
   const target = event.target as HTMLInputElement
   const file = target.files?.[0] ?? null
 
-  validateFile(key, file)
+  if (validateFile(key, file) && file) uploadFile(key, file)
 }
 
 function removeFile(key: string) {
-  files[key].file = null
-  files[key].error = ''
+  const field = files[key]
+  if (!field) return
+
+  field.file = null
+  field.error = ''
+  field.token = ''
+  field.uploading = false
 
   const input = document.getElementById(
     `file-${key}`,
@@ -282,11 +341,16 @@ async function submitRegistration() {
 
   touchAllFields()
 
-  Object.keys(files).forEach((key) => {
-    if (!files[key].file) {
-      files[key].error = 'Dokumen wajib diunggah.'
+  Object.values(files).forEach((field) => {
+    if (!field.file && !field.error) {
+      field.error = 'Dokumen wajib diunggah.'
     }
   })
+
+  if (anyUploading.value) {
+    showErrorModal('Dokumen masih diunggah. Tunggu hingga semua dokumen selesai diunggah.')
+    return
+  }
 
   if (!formValid.value) {
     showErrorModal(
@@ -298,35 +362,14 @@ async function submitRegistration() {
   submitting.value = true
 
   try {
-    const formData = new FormData()
-
-    formData.append('fullName', form.fullName)
-    formData.append('nip', form.nip)
-    formData.append('institution', form.institution)
-    formData.append('region', form.region)
-    formData.append('email', form.email)
-    formData.append('whatsapp', form.whatsapp)
-    formData.append('education', form.education)
-    formData.append('position', form.position)
-
-    const fileFields = [
-      'diploma',
-      'appointment',
-      'trainingCertificate',
-      'practiceEvidence',
-    ]
-
-    for (const fieldName of fileFields) {
-      const file = files[fieldName].file
-
-      if (file) {
-        formData.append(fieldName, file)
-      }
-    }
+    // Dokumen sudah diunggah sebelumnya; di sini cukup mengirim data + token dokumen.
+    const documents = Object.fromEntries(
+      Object.entries(files).map(([key, field]) => [key, field.token]),
+    )
 
     await $fetch('/api/applications/register', {
       method: 'POST',
-      body: formData,
+      body: { ...form, documents },
     })
 
     submitted.value = true
@@ -355,8 +398,7 @@ function resetForm() {
   form.position = ''
 
   Object.keys(files).forEach((key) => {
-    files[key].file = null
-    files[key].error = ''
+    files[key] = emptyFile()
 
     const input = document.getElementById(
       `file-${key}`,
@@ -685,7 +727,7 @@ function resetForm() {
           </h2>
           <p class="mt-1 text-sm text-slate-500">
             Seluruh dokumen wajib dalam format PDF dengan ukuran maksimal
-            5 MB per file.
+            {{ MAX_UPLOAD_SIZE_MB }} MB per file.
           </p>
         </div>
 
@@ -724,11 +766,18 @@ function resetForm() {
                     </p>
 
                     <p class="mt-0.5 text-xs text-slate-500">
-                      Dokumen PDF, maksimal 5 MB.
+                      Dokumen PDF, maksimal {{ MAX_UPLOAD_SIZE_MB }} MB.
                     </p>
 
                     <p
-                      v-if="item.file"
+                      v-if="item.file && item.uploading"
+                      class="mt-1 flex items-center gap-1.5 break-all text-xs text-slate-500"
+                    >
+                      <UIcon name="i-lucide-loader-circle" class="size-3.5 shrink-0 animate-spin" />
+                      Mengunggah {{ item.file.name }}...
+                    </p>
+                    <p
+                      v-else-if="item.file"
                       class="mt-1 break-all text-xs font-medium text-green-600"
                     >
                       {{ item.file.name }} ({{ formatFileSize(item.file.size) }})
@@ -772,6 +821,8 @@ function resetForm() {
                     variant="outline"
                     icon="i-lucide-upload"
                     class="min-w-28 cursor-pointer justify-center"
+                    :loading="item.uploading"
+                    :disabled="item.uploading"
                   >
                     {{ item.file ? 'Ganti' : 'Pilih File' }}
                   </UButton>

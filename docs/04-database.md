@@ -442,7 +442,7 @@ technical_assessment_id	application_id	period_id	assessor_id	unit_results	note	r
 
 Berkas KTP, Surat Tugas, evidence, dan dokumen pengganti dicatat di sheet `files`
 (`uploaded_by` = `user_id` peserta). Tipe yang diterima dideteksi dari isi file:
-dokumen pendaftaran PDF; KTP/Surat Tugas PDF/JPG/PNG; evidence PDF/DOC/DOCX; maks. 5 MB.
+dokumen pendaftaran PDF; KTP/Surat Tugas PDF/JPG/PNG; evidence PDF/DOC/DOCX; maks. 4 MB (di bawah batas 4,5 MB per request Vercel).
 
 ## Evaluasi Pilihan Ganda
 

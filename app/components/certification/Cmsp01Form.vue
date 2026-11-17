@@ -256,8 +256,8 @@ function documentAccept(documentType: string) {
 
 function documentHint(documentType: string) {
   return documentType === 'KTP' || documentType === 'SURAT_TUGAS'
-    ? 'PDF, JPG, atau PNG. Maksimal 5 MB.'
-    : 'PDF. Maksimal 5 MB.'
+    ? 'PDF, JPG, atau PNG. Maksimal 4 MB.'
+    : 'PDF. Maksimal 4 MB.'
 }
 
 const previewOpen = ref(false)

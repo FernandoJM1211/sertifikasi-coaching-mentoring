@@ -124,6 +124,24 @@ export async function createApplicationDocument(
   return document
 }
 
+/** ID berkas (dari daftar) yang sudah tertaut ke dokumen pengajuan mana pun. */
+export async function findLinkedFileIds(
+  fileIds: string[],
+): Promise<Set<string>> {
+  const wanted = new Set(fileIds.filter(Boolean))
+  const linked = new Set<string>()
+  if (wanted.size === 0) return linked
+
+  const rows = await getSheetValues(SHEET_NAME)
+
+  for (const row of rows.slice(1)) {
+    const fileId = row[3] ?? ''
+    if (wanted.has(fileId)) linked.add(fileId)
+  }
+
+  return linked
+}
+
 export async function findApplicationDocumentsByApplicationId(
   applicationId: string,
 ): Promise<ApplicationDocument[]> {

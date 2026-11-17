@@ -486,7 +486,7 @@ defineExpose({
                       File Evidence
                     </label>
                     <p v-if="!reviewMode" class="mb-2 mt-1 text-xs text-slate-500">
-                      Format PDF, DOC, atau DOCX. Maksimal 5 MB.
+                      Format PDF, DOC, atau DOCX. Maksimal 4 MB.
                     </p>
                     <div class="mt-2 flex flex-col gap-3 rounded-lg border border-dashed border-slate-300 bg-white p-3 sm:flex-row sm:items-center sm:justify-between">
                       <p
