@@ -13,17 +13,37 @@ import { google, type sheets_v4 } from 'googleapis'
 
 let sheetsClient: sheets_v4.Sheets | null = null
 
+/**
+ * Kredensial Service Account:
+ * - `GOOGLE_SERVICE_ACCOUNT_JSON` : isi file JSON (mentah atau base64) — untuk hosting tanpa
+ *   file kredensial, mis. Vercel;
+ * - `GOOGLE_APPLICATION_CREDENTIALS` : path file JSON — untuk development lokal.
+ */
+function readServiceAccountCredentials(): Record<string, unknown> | null {
+  const raw = process.env.GOOGLE_SERVICE_ACCOUNT_JSON?.trim()
+  if (!raw) return null
+
+  const json = raw.startsWith('{') ? raw : Buffer.from(raw, 'base64').toString('utf8')
+
+  try {
+    return JSON.parse(json) as Record<string, unknown>
+  } catch {
+    throw new Error('GOOGLE_SERVICE_ACCOUNT_JSON bukan JSON/base64 yang valid.')
+  }
+}
+
 function getSheetsClient(): sheets_v4.Sheets {
   if (sheetsClient) return sheetsClient
 
+  const credentials = readServiceAccountCredentials()
   const credentialsPath = process.env.GOOGLE_APPLICATION_CREDENTIALS
 
-  if (!credentialsPath) {
-    throw new Error('GOOGLE_APPLICATION_CREDENTIALS belum dikonfigurasi.')
+  if (!credentials && !credentialsPath) {
+    throw new Error('GOOGLE_SERVICE_ACCOUNT_JSON atau GOOGLE_APPLICATION_CREDENTIALS belum dikonfigurasi.')
   }
 
   const auth = new google.auth.GoogleAuth({
-    keyFile: credentialsPath,
+    ...(credentials ? { credentials } : { keyFile: credentialsPath }),
     scopes: ['https://www.googleapis.com/auth/spreadsheets'],
   })
 

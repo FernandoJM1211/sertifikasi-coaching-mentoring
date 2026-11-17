@@ -54,7 +54,16 @@ export async function saveGoogleOAuthTokens(tokens: {
     throw new Error('Refresh token Google tidak tersedia.')
   }
 
-  const tokenPath = requireEnv('GOOGLE_OAUTH_TOKEN_PATH')
+  const tokenPath = process.env.GOOGLE_OAUTH_TOKEN_PATH?.trim()
+
+  // Hosting tanpa penyimpanan file (mis. Vercel): token tidak dapat disimpan otomatis.
+  // Hubungkan Drive dari lingkungan lokal, lalu isi GOOGLE_OAUTH_REFRESH_TOKEN di hosting.
+  if (!tokenPath) {
+    throw new Error(
+      'GOOGLE_OAUTH_TOKEN_PATH tidak dikonfigurasi. Hubungkan Google Drive dari lingkungan lokal, '
+      + 'lalu salin refresh token ke environment variable GOOGLE_OAUTH_REFRESH_TOKEN.',
+    )
+  }
 
   await fs.mkdir(path.dirname(tokenPath), { recursive: true })
 
@@ -71,7 +80,14 @@ export async function saveGoogleOAuthTokens(tokens: {
   })
 }
 
+/**
+ * Refresh token Drive: `GOOGLE_OAUTH_REFRESH_TOKEN` (hosting, mis. Vercel) diutamakan,
+ * jika tidak ada dibaca dari file `GOOGLE_OAUTH_TOKEN_PATH` (development lokal).
+ */
 async function loadGoogleOAuthTokens(): Promise<StoredGoogleTokens | null> {
+  const fromEnv = process.env.GOOGLE_OAUTH_REFRESH_TOKEN?.trim()
+  if (fromEnv) return { refresh_token: fromEnv }
+
   try {
     const content = await fs.readFile(
       requireEnv('GOOGLE_OAUTH_TOKEN_PATH'),

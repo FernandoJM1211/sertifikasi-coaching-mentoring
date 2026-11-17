@@ -56,16 +56,20 @@ Salin `.env.example` menjadi `.env` lalu isi.
 | Variabel | Wajib | Fungsi |
 | --- | --- | --- |
 | `APP_BASE_URL` | ✅ | URL publik aplikasi. Dipakai di tautan aktivasi email & validasi origin. |
-| `GOOGLE_APPLICATION_CREDENTIALS` | ✅ | Path file JSON Service Account (untuk Sheets). |
+| `GOOGLE_APPLICATION_CREDENTIALS` | ✅* | Path file JSON Service Account (untuk Sheets) — dipakai di lokal. |
+| `GOOGLE_SERVICE_ACCOUNT_JSON` | ✅* | Isi file JSON Service Account (mentah atau base64) — untuk hosting tanpa file (Vercel). Diutamakan bila diisi. |
 | `GOOGLE_SPREADSHEET_ID` | ✅ | ID spreadsheet data operasional. |
 | `AUTH_SPREADSHEET_ID` | ✅ | ID spreadsheet autentikasi. |
 | `GOOGLE_DRIVE_FOLDER_ID` | ✅ | Folder Drive tujuan unggahan dokumen. |
 | `GOOGLE_OAUTH_CLIENT_ID` | ✅ | OAuth client untuk akun Drive aplikasi. |
 | `GOOGLE_OAUTH_CLIENT_SECRET` | ✅ | — |
 | `GOOGLE_OAUTH_REDIRECT_URI` | ✅ | Harus `<APP_BASE_URL>/api/auth/google/callback`. |
-| `GOOGLE_OAUTH_TOKEN_PATH` | ✅ | Lokasi file penyimpan refresh token Drive (di luar folder publik). |
+| `GOOGLE_OAUTH_TOKEN_PATH` | ✅* | Lokasi file penyimpan refresh token Drive (di luar folder publik) — lokal. |
+| `GOOGLE_OAUTH_REFRESH_TOKEN` | ✅* | Nilai `refresh_token` dari file token — untuk hosting tanpa penyimpanan file (Vercel). Diutamakan bila diisi. |
 | `GMAIL_USER` | ✅ | Alamat Gmail pengirim email aktivasi. |
 | `GMAIL_APP_PASSWORD` | ✅ | App Password Gmail (bukan kata sandi biasa). |
+
+\* Cukup salah satu dari pasangan tersebut: versi file untuk lokal, versi env untuk Vercel.
 
 Variabel dibaca langsung lewat `process.env` (bukan `runtimeConfig`) agar repository juga
 bisa dipakai oleh script CLI di luar Nuxt.
