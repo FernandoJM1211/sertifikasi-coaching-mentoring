@@ -51,6 +51,10 @@ const filteredPackages = computed(() => {
     (!query || item.package_name.toLowerCase().includes(query)),
   )
 })
+
+/* ---------------- Paginasi tabel ---------------- */
+const { page: tablePage, pageSize: tablePageSize, items: pagedItems, reset: resetTablePage } = useTablePagination(filteredPackages)
+watch([searchQuery, statusFilter], resetTablePage)
 </script>
 
 <template>
@@ -127,7 +131,7 @@ const filteredPackages = computed(() => {
             </tr>
           </thead>
           <tbody>
-            <tr v-for="item in filteredPackages" :key="item.package_id" class="border-b border-slate-100 last:border-0">
+            <tr v-for="item in pagedItems" :key="item.package_id" class="border-b border-slate-200 last:border-0">
               <td class="px-4 py-3">
                 <p class="truncate font-medium text-slate-800" :title="item.package_name">{{ item.package_name }}</p>
               </td>
@@ -156,7 +160,7 @@ const filteredPackages = computed(() => {
       </div>
 
       <template #footer>
-        <p class="text-sm text-slate-500">Menampilkan {{ filteredPackages.length }} dari {{ packages.length }} paket.</p>
+        <TablePagination v-model:page="tablePage" v-model:page-size="tablePageSize" :total="filteredPackages.length" label="paket" />
       </template>
     </UCard>
   </div>

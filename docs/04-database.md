@@ -416,6 +416,30 @@ Simpan Draft & Submit selalu memproses CMSP-01 dan CMSP-02 bersamaan.
 | H | `changed_by` | `user_id` Verifikator/Super Admin |
 | I | `changed_at` | — |
 
+### `technical_assessments` — ID `TAS-000001` (penilaian CMSP-02 Asesor Teknis; satu baris per pengajuan)
+
+| # | Kolom | Isi |
+| --- | --- | --- |
+| A | `technical_assessment_id` | ID |
+| B | `application_id` | Relasi |
+| C | `period_id` | Relasi |
+| D | `assessor_id` | `user_id` Asesor Teknis yang menilai |
+| E | `unit_results` | Hasil per unit: `UK.CMSP.1=K;UK.CMSP.2=BK;...` (unit belum dinilai tidak dicantumkan) |
+| F | `note` | Catatan umum (maks. 3000; wajib bila `NOT_CONTINUE`) |
+| G | `recommendation` | `CONTINUE` (dapat dilanjutkan) / `NOT_CONTINUE` (tidak dapat dilanjutkan) |
+| H | `status` | `DRAFT` / `SUBMITTED` (terkunci) |
+| I | `submitted_at` | — |
+| J | `created_at` | — |
+| K | `updated_at` | — |
+| L | `reopened_by` | `user_id` Super Admin yang terakhir membuka kunci |
+| M | `reopened_at` | — |
+
+Header siap tempel:
+
+```text
+technical_assessment_id	application_id	period_id	assessor_id	unit_results	note	recommendation	status	submitted_at	created_at	updated_at	reopened_by	reopened_at
+```
+
 Berkas KTP, Surat Tugas, evidence, dan dokumen pengganti dicatat di sheet `files`
 (`uploaded_by` = `user_id` peserta). Tipe yang diterima dideteksi dari isi file:
 dokumen pendaftaran PDF; KTP/Surat Tugas PDF/JPG/PNG; evidence PDF/DOC/DOCX; maks. 5 MB.

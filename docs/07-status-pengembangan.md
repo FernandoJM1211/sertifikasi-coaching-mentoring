@@ -23,7 +23,7 @@ Legenda: ✅ selesai · 🚧 sedang dikerjakan · ❌ belum ada
 
 | Fitur | Status | Catatan |
 | --- | --- | --- |
-| Dashboard | ✅ | Masih menandai "Pengelolaan Akun" sebagai *Segera hadir* padahal sudah ada |
+| Beranda (progres timeline periode aktif) | ✅ | Menggantikan dashboard pintasan |
 | Buat periode | ✅ | |
 | Atur timeline 8 tahapan | ✅ | |
 | Override buka/tutup tahapan | ✅ | |
@@ -57,7 +57,7 @@ Legenda: ✅ selesai · 🚧 sedang dikerjakan · ❌ belum ada
 
 | Fitur | Status | Catatan |
 | --- | --- | --- |
-| Beranda peserta (pengajuan, timeline) | ✅ | |
+| Beranda peserta (timeline periode aktif + tombol dinamis per tahap) | ✅ | Beranda serupa untuk Verifikator & Asesor Teknis; Asesor Kepublikan menyusul |
 | Self assessment CMSP-01 | ✅ | Tersimpan di server (draft & submit). Isian awal dari Profil hanya sebelum draft pertama. Dokumen bisa diganti (hanya berlaku untuk CMSP-01) |
 | Self assessment CMSP-02 | ✅ | Evidence file/link per unit, tersimpan di server |
 | Simpan draft & submit gabungan | ✅ | Satu tombol menyimpan keduanya; submit hanya jika keduanya 100% + pernyataan disetujui; terkunci setelah submit |
@@ -72,8 +72,8 @@ Legenda: ✅ selesai · 🚧 sedang dikerjakan · ❌ belum ada
 | Verifikasi CMSP-01 & 02 + minta perbaikan | Verifikator, Super Admin | ✅ |
 | Perbaikan & submit ulang self assessment | Peserta | ✅ |
 | Assign peserta ke Asesor Teknis & Kepublikan | Verifikator, Super Admin | ✅ |
-| Mengerjakan evaluasi pilihan ganda | Peserta | ✅ (anti-kecurangan menyusul) |
-| Penilaian CMSP-02 (K/BK per indikator + catatan) | Asesor Teknis | ❌ |
+| Mengerjakan evaluasi pilihan ganda | Peserta | ✅ (anti-kecurangan ditunda) |
+| Penilaian CMSP-02 (K/BK per unit + catatan + rekomendasi lanjut/tidak) | Asesor Teknis (Super Admin: lihat, isi, & buka kunci) | ✅ |
 | Penilaian form CMSP-03 (indikator menyusul) | Asesor Kepublikan | ❌ |
 | Layout & halaman asesor (`/asesor-teknis`, `/asesor-kepublikan` atau satu `/asesor`) | Asesor | ❌ |
 | Verifikasi penilaian & penetapan kelulusan | Verifikator / Super Admin | ❌ |
@@ -94,7 +94,7 @@ Legenda: ✅ selesai · 🚧 sedang dikerjakan · ❌ belum ada
 | 8 | Aturan jadwal tahapan baru diterapkan untuk Pendaftaran | Tahap lain belum terkunci jadwal | Buat helper `assertStageOpen()` |
 | 9 | Alias role lama `VERIFIER`/`PARTICIPANT` di `roles.ts` | — | Hapus setelah sheet `users` diperbarui |
 | 10 | Setiap navigasi memanggil `/api/auth/me` (3 baca sheet) | Kuota Sheets & kecepatan | Cache sesi singkat di server jika mulai lambat |
-| 11 | Dashboard Super Admin menandai Manajemen Akun "Segera hadir" | Membingungkan | Hapus `comingSoon` di `super-admin/index.vue` |
+| 11 | ~~Dashboard Super Admin menandai Manajemen Akun "Segera hadir"~~ | Selesai — dashboard diganti Beranda | — |
 | 12 | Tidak ada tombol "Hubungkan Google Drive" di UI, dan tidak ada indikator saat token kedaluwarsa (terjadi 15 Nov 2026: `invalid_grant`) | Unggah & preview dokumen gagal tanpa disadari admin | Tambah tombol hubungkan ulang + status koneksi di dashboard Super Admin; publish OAuth app (lihat docs/02) |
 | 13 | Halaman verifikasi Verifikator & Super Admin masih punya modal preview sendiri | Duplikasi | Ganti dengan `<DocumentPreviewModal>` |
 | 14 | Peserta mengganti dokumen setelah diterima; Verifikator tidak mendapat penanda | Verifikator bisa tidak sadar dokumen berubah | Tampilkan "diganti peserta pada …" di halaman verifikasi, atau masukkan ke verifikasi CMSP-01 |
@@ -109,8 +109,8 @@ Urutan mengikuti alur probis di [01-gambaran-sistem.md](01-gambaran-sistem.md):
    `SELF_ASSESSMENT` (menunggu spesifikasi pemilik proyek).
 2. ~~**Verifikasi self assessment**~~ ✅ — menu Verifikasi Self Assessment.
 3. ~~**Assign asesor**~~ ✅ — menu Penugasan Asesor.
-4. ~~**Bank soal & evaluasi**~~ ✅ — berikutnya: pencegahan kecurangan saat evaluasi
+4. ~~**Bank soal & evaluasi**~~ ✅ (pencegahan kecurangan ditunda, belum dibutuhkan)
    (deteksi pindah tab/keluar layar penuh, blokir salin & klik kanan).
-5. **Role asesor** — layout, daftar peserta yang di-assign, penilaian CMSP-02 (K/BK + catatan)
-   dan form CMSP-03 (menunggu daftar indikator).
+5. **Role asesor** — ~~portal & penilaian CMSP-02 Asesor Teknis~~ ✅; berikutnya portal Asesor
+   Kepublikan & form CMSP-03 (menunggu daftar indikator).
 6. **Penetapan kelulusan**, lalu **pengumuman, sertifikat, dan remedial (1x, link bukti)**.

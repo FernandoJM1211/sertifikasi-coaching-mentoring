@@ -5,6 +5,7 @@ useHead({ title: 'Verifikasi Self Assessment' })
 
 <template>
   <PeriodPicker
+    stage-code="SELF_ASSESSMENT_VERIFICATION"
     title="Verifikasi Self Assessment"
     description="Pilih periode sertifikasi untuk memeriksa dan memverifikasi CMSP-01 dan CMSP-02 peserta."
     note="Keputusan verifikasi hanya dapat diberikan pada saat tahap Verifikasi Self Assessment dibuka."

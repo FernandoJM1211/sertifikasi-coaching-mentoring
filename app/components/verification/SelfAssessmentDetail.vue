@@ -163,27 +163,20 @@ async function confirmDecision() {
 </script>
 
 <template>
-  <div class="space-y-6">
-    <div class="flex flex-wrap items-start justify-between gap-4">
+  <!-- Lebar konten sama dengan halaman self assessment peserta & penilaian asesor (UContainer). -->
+  <UContainer class="space-y-6 pb-8">
+    <!-- Header: judul kiri; Kembali + status kanan -->
+    <div class="flex items-start justify-between gap-4">
       <div class="min-w-0">
-        <p class="text-sm font-medium text-primary">Verifikasi Self Assessment</p>
-        <h1 class="mt-1 text-2xl font-semibold text-slate-900">
-          {{ applicantName || 'Detail Self Assessment' }}
-        </h1>
-        <p v-if="data" class="mt-1 text-sm text-slate-500">
-          {{ data.certification.period_name }}
+        <h1 class="text-2xl font-semibold text-slate-900">Detail Self Assessment</h1>
+        <p class="mt-1 text-sm text-slate-500">
+          Pemeriksaan CMSP-01 dan CMSP-02 peserta serta keputusan verifikasi.
         </p>
       </div>
-
-      <UButton
-        :to="backPath"
-        color="neutral"
-        variant="outline"
-        icon="i-lucide-arrow-left"
-        class="shrink-0"
-      >
-        Kembali
-      </UButton>
+      <div class="flex shrink-0 flex-col items-end gap-2">
+        <UButton :to="backPath" color="neutral" variant="outline" icon="i-lucide-arrow-left" size="sm">Kembali</UButton>
+        <CertificationSelfAssessmentStatusBadge v-if="data" :status="data.status" />
+      </div>
     </div>
 
     <div v-if="loading && !data" class="space-y-4">
@@ -209,7 +202,11 @@ async function confirmDecision() {
     <template v-else>
       <!-- Ringkasan peserta -->
       <UCard class="border border-primary/30 bg-white/90 shadow-sm">
-        <dl class="grid gap-4 text-sm sm:grid-cols-2 lg:grid-cols-4">
+        <dl class="grid gap-x-6 gap-y-5 text-center text-sm sm:grid-cols-2 lg:grid-cols-3">
+          <div>
+            <dt class="text-slate-500">Nama Peserta</dt>
+            <dd class="mt-1 font-medium text-slate-900">{{ applicantName || '-' }}</dd>
+          </div>
           <div>
             <dt class="text-slate-500">NIP</dt>
             <dd class="mt-1 font-medium text-slate-900">{{ applicantNip || '-' }}</dd>
@@ -219,18 +216,17 @@ async function confirmDecision() {
             <dd class="mt-1 font-medium text-slate-900">{{ applicantInstitution || '-' }}</dd>
           </div>
           <div>
-            <dt class="text-slate-500">Dikirim</dt>
-            <dd class="mt-1 font-medium text-slate-900">
-              {{ formatDateTime(data.submittedAt) }}
-              <span v-if="data.revisionCount > 0" class="block text-xs font-normal text-slate-500">
-                Perbaikan ke-{{ data.revisionCount }}
-              </span>
-            </dd>
+            <dt class="text-slate-500">Periode</dt>
+            <dd class="mt-1 font-medium text-slate-900">{{ data.certification.period_name || '-' }}</dd>
           </div>
           <div>
-            <dt class="text-slate-500">Status</dt>
-            <dd class="mt-1">
-              <CertificationSelfAssessmentStatusBadge :status="data.status" />
+            <dt class="text-slate-500">Dikirim</dt>
+            <dd class="mt-1 font-medium text-slate-900">{{ formatDateTime(data.submittedAt) }}</dd>
+          </div>
+          <div>
+            <dt class="text-slate-500">Perbaikan</dt>
+            <dd class="mt-1 font-medium text-slate-900">
+              {{ data.revisionCount > 0 ? `${data.revisionCount} kali` : 'Belum pernah' }}
             </dd>
           </div>
         </dl>
@@ -438,5 +434,5 @@ async function confirmDecision() {
         </template>
       </UModal>
     </template>
-  </div>
+  </UContainer>
 </template>

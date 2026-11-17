@@ -133,6 +133,21 @@ async function getEditingAccess(
   return { allowed: false, message: `Self assessment tidak dapat diubah: ${lastMessage}` }
 }
 
+/**
+ * Ringkasan self assessment untuk beranda peserta: status dan apakah saat ini masih
+ * dapat diisi/diperbaiki (mengikuti aturan tahap yang sama dengan halaman Self Assessment).
+ */
+export async function getSelfAssessmentProgress(application: Application) {
+  const [cmsp01, cmsp02] = await Promise.all([
+    findCmsp01ByApplicationId(application.application_id),
+    findCmsp02ByApplicationId(application.application_id),
+  ])
+  const status = cmsp01?.status || cmsp02?.status || 'NEW'
+  const access = await getEditingAccess(application, status)
+
+  return { status, editable: access.allowed }
+}
+
 async function requireEditing(application: Application, status: string) {
   const access = await getEditingAccess(application, status)
 

@@ -1,29 +1,29 @@
 
 <template>
   <div
-    class="min-h-screen w-full min-w-0 overflow-x-hidden bg-gradient-to-br from-blue-50 via-white to-indigo-50"
+    class="min-h-screen w-full min-w-0 overflow-x-clip bg-mesh"
   >
+    <!-- Header (sticky) — seragam dengan navbar landing page -->
     <header
-      class="w-full border-b border-slate-200/70 bg-white/80 backdrop-blur-xl"
+      class="sticky top-0 z-50 w-full border-b border-slate-200/70 bg-white/80 backdrop-blur-xl"
     >
-      <div
-        class="mx-auto flex h-16 w-full max-w-6xl items-center justify-between gap-4 px-6"
-      >
-        <NuxtLink to="/" class="min-w-0">
-          <p class="text-base font-semibold text-slate-900">
-            Sertifikasi Coaching dan Mentoring
-          </p>
-          <p class="text-xs text-slate-500">
-            Sektor Publik
-          </p>
+      <div class="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-4 px-6">
+        <NuxtLink to="/" class="flex min-w-0 items-center gap-3">
+          <div class="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white ring-1 ring-slate-200">
+            <img src="/logo-lan.png" alt="Logo LAN" class="size-full scale-150 object-contain">
+          </div>
+
+          <div class="min-w-0">
+            <p class="truncate text-sm font-semibold text-slate-900">
+              Coaching & Mentoring
+            </p>
+            <p class="truncate text-xs text-slate-500">
+              Sistem Sertifikasi
+            </p>
+          </div>
         </NuxtLink>
 
-        <NuxtLink
-          to="/"
-          class="shrink-0 text-sm font-medium text-slate-600 transition hover:text-primary"
-        >
-          Beranda
-        </NuxtLink>
+        <UButton to="/" label="Home" variant="outline" class="shrink-0" />
       </div>
     </header>
 

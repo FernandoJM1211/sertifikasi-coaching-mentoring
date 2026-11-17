@@ -180,13 +180,18 @@ DRAFT ──► ACTIVE ──► CLOSED ──► COMPLETED
   saat waktu habis jawaban dikirim otomatis.
 - Nilai skala 0–100 (benar ÷ jumlah soal × 100, tidak dijawab = salah), **hanya dilihat Super Admin**
   (di halaman Perencanaan Evaluasi) karena Super Admin yang menetapkan kelulusan.
-- Rencana berikutnya: pencegahan kecurangan (deteksi pindah tab, layar penuh, blokir salin).
+- Pencegahan kecurangan (deteksi pindah tab, layar penuh, blokir salin) **ditunda** — belum dibutuhkan (keputusan Nov 2026).
 
-**G. Penilaian oleh asesor (berurutan)** ❌
-1. **Asesor Teknis — CMSP-02**
-   - Melihat isian CMSP-02 peserta beserta bukti dukungnya.
-   - Untuk **setiap indikator** memilih (radio button) **K** (Kompeten) atau **BK** (Belum Kompeten).
-   - Mengisi **catatan**.
+**G. Penilaian oleh asesor (berurutan)** 🚧
+1. **Asesor Teknis — CMSP-02** ✅ (menu Penilaian CMSP-02 di portal `/asesor-teknis`)
+   - Hanya menilai peserta yang ditugaskan kepadanya; melihat evidence CMSP-02 (tanpa data pribadi CMSP-01).
+   - Untuk **setiap unit kompetensi** (10 unit) memilih **K** (Kompeten) atau **BK** (Belum Kompeten).
+   - Mengisi **satu catatan umum** dan memilih rekomendasi **"Asesmen dapat dilanjutkan"** /
+     **"Asesmen tidak dapat dilanjutkan"** (catatan wajib bila tidak dapat dilanjutkan).
+   - Rekomendasi inilah yang menentukan peserta lanjut ke Asesor Kepublikan; K/BK tidak dihitung otomatis.
+   - Dapat **disimpan sebagai draf**; simpan & kirim hanya saat tahap `ASSESSOR_ASSESSMENT` dibuka.
+     Setelah dikirim terkunci; **Super Admin** dapat melihat semua penilaian, **ikut mengisi/mengirim** (tercatat atas nama Asesor Teknis yang ditugaskan), dan **membuka kunci**.
+   - Asesor Teknis tidak dapat diganti bila penilaian peserta tersebut sudah dimulai.
 2. **Asesor Kepublikan — CMSP-03** (setelah Asesor Teknis selesai)
    - Mengisi form penilaian CMSP-03 secara langsung; tidak ada isian/bukti dari peserta.
    - Daftar indikator CMSP-03 akan diberikan pemilik proyek.

@@ -40,6 +40,11 @@ Gunakan `slate-*`, **bukan** `gray-*` (beberapa file lama masih memakai `gray`; 
 | Gagal / ditutup / ditolak | `error` | `rejected`, `DITOLAK`, `CLOSED`, `DISABLED` |
 | Informasi / selesai | `primary` atau `info` | `COMPLETED`, label role |
 | Netral / draf | `neutral` | `DRAFT`, `superseded` |
+| Selesai dikerjakan/dinilai (ungu) | `secondary` (= `violet`, di `app.config.ts`) | evaluasi & penilaian asesor "Selesai" |
+
+Jika halaman punya **card ringkasan** per status, warna badge di tabel **harus sama** dengan warna card
+terkait (abu = `neutral`, kuning = `warning`, ungu = `secondary`, hijau = `success`, merah = `error`,
+biru = `info`/`primary`).
 
 Selalu tampilkan **label Bahasa Indonesia**, bukan nilai mentah database
 (mis. `pending_verification` → "Menunggu Verifikasi"). Untuk role dan status akun pakai
@@ -185,6 +190,8 @@ Acuan: daftar pengajuan di detail periode dan daftar Verifikasi Self Assessment.
   (pencarian + `USelect` status).
 - Header kolom: `px-4 py-3 font-semibold text-blue-600`. Kolom teks **rata kiri**;
   kolom **Status** dan **Aksi** **rata tengah** (tabel Bank Soal: semua header rata tengah).
+- **Setiap tabel wajib berpaginasi**: `useTablePagination(filteredItems)` + `<TablePagination>` di footer kartu
+  (pilihan 5/10/20/50 per halaman, default 10); panggil `reset` saat filter/pencarian berubah.
 - Garis tipis pemisah antarkolom berlaku otomatis untuk semua `<table>` (aturan global di
   `app/assets/css/main.css`); tidak perlu kelas tambahan.
 - Tabel ringkas (mis. Bank Soal, Manajemen Akun): teks panjang satu baris dengan `truncate`

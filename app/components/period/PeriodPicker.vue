@@ -13,7 +13,7 @@
  *     base-path="/verifikator/self-assessments"
  *   />
  */
-defineProps<{
+const props = defineProps<{
   title: string
   description: string
   /** Keterangan di bawah judul "Daftar Periode". */
@@ -22,12 +22,21 @@ defineProps<{
   actionIcon: string
   /** Tombol kartu menuju `${basePath}/${period_id}`. */
   basePath: string
+  /** Sumber daftar periode; default semua periode (Verifikator/Super Admin). */
+  endpoint?: string
+  /**
+   * Kode tahap timeline fitur ini (mis. `EVALUATION`). Bila diisi, kartu menampilkan
+   * "Jadwal: mulai – selesai" tahap tersebut menggantikan ID Periode.
+   */
+  stageCode?: string
 }>()
 
 type CertificationPeriod = {
   period_id: string
   period_name: string
   period_status: string
+  stage_start_at?: string
+  stage_end_at?: string
 }
 
 const periods = ref<CertificationPeriod[]>([])
@@ -60,8 +69,9 @@ async function fetchPeriods() {
   errorMessage.value = ''
 
   try {
-    const response = await $fetch<{ data: CertificationPeriod[] }>('/api/certification-periods', {
+    const response = await $fetch<{ data: CertificationPeriod[] }>(props.endpoint || '/api/certification-periods', {
       credentials: 'include',
+      query: props.stageCode ? { stage: props.stageCode } : undefined,
     })
 
     // Periode terbaru lebih dulu (sama seperti halaman Periode Sertifikasi).
@@ -88,8 +98,9 @@ onMounted(fetchPeriods)
       </p>
     </div>
 
-    <div class="flex flex-wrap items-center justify-between gap-3">
-      <div>
+    <!-- Judul daftar kiri; jumlah & Muat Ulang selalu di kanan (tidak turun baris di layar lebar) -->
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div class="min-w-0 flex-1">
         <h2 class="text-base font-semibold text-slate-900">
           Daftar Periode
         </h2>
@@ -98,8 +109,8 @@ onMounted(fetchPeriods)
         </p>
       </div>
 
-      <div class="flex flex-wrap items-center gap-2">
-        <UBadge color="primary" variant="subtle" size="lg">
+      <div class="flex shrink-0 items-center gap-2">
+        <UBadge color="primary" variant="subtle" size="lg" class="px-3 py-1.5">
           {{ periods.length }} periode
         </UBadge>
 
@@ -155,7 +166,13 @@ onMounted(fetchPeriods)
                 {{ period.period_name }}
               </h3>
 
-              <p class="text-sm text-slate-500">
+              <p v-if="stageCode" class="text-sm text-slate-500">
+                Jadwal:
+                <span class="font-medium text-slate-700">
+                  {{ formatDateTimeId(period.stage_start_at) }} – {{ formatDateTimeId(period.stage_end_at) }}
+                </span>
+              </p>
+              <p v-else class="text-sm text-slate-500">
                 ID Periode:
                 <span class="font-medium text-slate-700">{{ period.period_id }}</span>
               </p>

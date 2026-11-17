@@ -141,6 +141,16 @@ export async function findAssessorAssignmentsByPeriod(periodId: string) {
     .map((row) => rowToRecord(ASSIGNMENT_COLUMNS, row))
 }
 
+/** Penugasan milik seorang Asesor Teknis (lintas periode). */
+export async function findAssignmentsByTechnicalAssessor(userId: string) {
+  const rows = await getSheetValues(ASSIGNMENT_SHEET)
+
+  return rows
+    .slice(1)
+    .map((row) => rowToRecord(ASSIGNMENT_COLUMNS, row))
+    .filter((item) => item.assignment_id && item.technical_assessor_id === userId)
+}
+
 export type AssignmentChange = {
   application_id: string
   assessor_role: AssessorRole

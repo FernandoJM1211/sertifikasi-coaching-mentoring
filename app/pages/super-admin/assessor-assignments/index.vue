@@ -5,6 +5,7 @@ useHead({ title: 'Penugasan Asesor' })
 
 <template>
   <PeriodPicker
+    stage-code="SELF_ASSESSMENT_VERIFICATION"
     title="Penugasan Asesor"
     description="Pilih periode sertifikasi untuk menugaskan Asesor Teknis dan Asesor Kepublikan kepada peserta."
     note="Penugasan hanya dapat dilakukan pada saat tahap Verifikasi Self Assessment dibuka, untuk peserta yang self assessment-nya telah terverifikasi."

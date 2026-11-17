@@ -122,6 +122,10 @@ function formatDateTime(value: string) {
 
   return new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium', timeStyle: 'short' }).format(date)
 }
+
+/* ---------------- Paginasi tabel ---------------- */
+const { page: tablePage, pageSize: tablePageSize, items: pagedItems, reset: resetTablePage } = useTablePagination(filteredItems)
+watch([activeFilter, searchQuery], resetTablePage)
 </script>
 
 <template>
@@ -261,9 +265,9 @@ function formatDateTime(value: string) {
             </thead>
             <tbody>
               <tr
-                v-for="item in filteredItems"
+                v-for="item in pagedItems"
                 :key="item.application_id"
-                class="border-b border-slate-100 last:border-0"
+                class="border-b border-slate-200 last:border-0"
               >
                 <td class="px-4 py-4 font-medium text-slate-800">{{ item.full_name }}</td>
                 <td class="px-4 py-4 text-slate-600">{{ item.nip }}</td>
@@ -318,9 +322,7 @@ function formatDateTime(value: string) {
         </div>
 
         <template #footer>
-          <p class="text-sm text-slate-500">
-            Menampilkan {{ filteredItems.length }} dari {{ data.items.length }} peserta.
-          </p>
+          <TablePagination v-model:page="tablePage" v-model:page-size="tablePageSize" :total="filteredItems.length" label="peserta" />
         </template>
       </UCard>
     </template>

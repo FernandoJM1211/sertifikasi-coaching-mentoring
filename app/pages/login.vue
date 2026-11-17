@@ -95,10 +95,8 @@ async function handleLogin() {
   <div class="flex min-h-[65vh] items-center justify-center py-8">
     <div class="w-full max-w-md">
       <div class="mb-7 text-center">
-        <div
-          class="mx-auto mb-5 flex size-14 items-center justify-center rounded-2xl bg-primary text-lg font-bold text-white shadow-lg shadow-blue-200/60"
-        >
-          CM
+        <div class="mx-auto mb-5 flex size-16 items-center justify-center overflow-hidden rounded-2xl bg-white shadow-lg shadow-blue-200/60 ring-1 ring-slate-200">
+          <img src="/logo-lan.png" alt="Logo LAN" class="size-full scale-150 object-contain">
         </div>
 
         <p class="mb-2 text-sm font-medium text-primary">
@@ -205,7 +203,6 @@ async function handleLogin() {
             size="xl"
             :loading="isSubmitting"
             :disabled="isSubmitting"
-            trailing-icon="i-lucide-arrow-right"
           >
             Masuk
           </UButton>

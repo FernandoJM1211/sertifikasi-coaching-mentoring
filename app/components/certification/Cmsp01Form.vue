@@ -1073,7 +1073,7 @@ defineExpose({
             </p>
             <p
               class="mt-0.5 truncate text-xs"
-              :class="document.file ? 'text-slate-500' : 'text-slate-400'"
+              :class="document.file ? (readonly ? 'text-slate-500' : 'font-medium text-green-600') : 'text-slate-400'"
             >
               {{ document.file?.original_file_name || 'Belum ada file.' }}
             </p>

@@ -30,6 +30,8 @@ type DashboardApplication = {
     stage_name?: string
     stage_status?: string
     status?: string
+    start_at?: string
+    end_at?: string
   }>
 }
 
@@ -44,158 +46,157 @@ const applications = computed(() => {
   return (data.value?.applications ?? []).filter((item) => item.application?.application_id)
 })
 
-function openSelfAssessment(applicationId: string) {
-  navigateTo(`/peserta/self-assessment/${encodeURIComponent(applicationId)}`)
+/** Jadwal tahap Self Assessment (pengisian CMSP-01 & CMSP-02). */
+const selfAssessmentStage = (item: DashboardApplication) =>
+  item.timelines?.find((stage) => stage.stage_code === 'SELF_ASSESSMENT')
+
+/* Badge status periode — sama dengan kartu pemilihan periode (PeriodPicker). */
+const PERIOD_STATUS_LABELS: Record<string, string> = {
+  DRAFT: 'Draft',
+  ACTIVE: 'Aktif',
+  CLOSED: 'Ditutup',
+  COMPLETED: 'Selesai',
 }
 
-function getApplicationStatus(status?: string) {
-  const normalized = String(status ?? '').toLowerCase()
-
-  if (['approved', 'accepted', 'verified', 'active'].includes(normalized)) {
-    return { label: 'Terverifikasi', color: 'success' as const }
-  }
-
-  if (['rejected', 'declined'].includes(normalized)) {
-    return { label: 'Ditolak', color: 'error' as const }
-  }
-
-  if (['revision', 'needs_revision', 'returned'].includes(normalized)) {
-    return { label: 'Perlu Perbaikan', color: 'warning' as const }
-  }
-
-  return { label: status || 'Dalam Proses', color: 'neutral' as const }
+function formatPeriodStatus(status?: string) {
+  const value = String(status ?? '')
+  return PERIOD_STATUS_LABELS[value.toUpperCase()] || value || '-'
 }
 
-function formatDate(value?: string) {
-  if (!value) return '-'
-
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return '-'
-
-  return new Intl.DateTimeFormat('id-ID', {
-    day: '2-digit',
-    month: 'long',
-    year: 'numeric',
-  }).format(date)
+function getPeriodStatusColor(status?: string) {
+  switch (String(status ?? '').toUpperCase()) {
+    case 'ACTIVE': return 'success' as const
+    case 'CLOSED': return 'error' as const
+    case 'COMPLETED': return 'primary' as const
+    case 'DRAFT': return 'warning' as const
+    default: return 'neutral' as const
+  }
 }
 </script>
 
 <template>
-  <UContainer class="py-8">
-    <div class="mb-6">
-      <p class="text-sm font-semibold text-primary-600">AREA PESERTA</p>
-      <h1 class="mt-1 text-2xl font-bold text-gray-900">Self Assessment</h1>
-      <p class="mt-2 max-w-3xl text-sm leading-6 text-gray-600">
-        Pilih pengajuan sertifikasi yang akan Anda lengkapi melalui Formulir Permohonan
-        Sertifikasi (CMSP.01) dan Self Assessment Teknis (CMSP.02).
+  <!-- Tata letak seragam dengan halaman pemilihan periode (PeriodPicker) -->
+  <div class="mx-auto w-full max-w-5xl space-y-8 pb-8">
+    <div class="space-y-2">
+      <h1 class="text-3xl font-semibold tracking-tight text-slate-900">
+        Self Assessment
+      </h1>
+      <p class="text-sm leading-6 text-slate-500">
+        Pilih periode sertifikasi untuk mengisi Formulir Permohonan Sertifikasi (CMSP.01) dan Self Assessment Teknis (CMSP.02).
       </p>
     </div>
 
-    <UAlert
-      color="info"
-      variant="soft"
-      title="Petunjuk"
-      description="Setiap pengajuan sertifikasi memiliki formulir CMSP.01 dan CMSP.02 masing-masing. Pastikan Anda memilih periode sertifikasi yang sesuai."
-      class="mb-6"
-    />
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div class="min-w-0 flex-1">
+        <h2 class="text-base font-semibold text-slate-900">
+          Daftar Periode
+        </h2>
+        <p class="mt-1 text-sm text-slate-500">
+          Periode sertifikasi yang pengajuannya telah diterima.
+        </p>
+      </div>
 
-    <div v-if="pending" class="space-y-4">
-      <USkeleton class="h-32 w-full" />
-      <USkeleton class="h-32 w-full" />
+      <div class="flex shrink-0 items-center gap-2">
+        <UBadge color="primary" variant="subtle" size="lg" class="px-3 py-1.5">
+          {{ applications.length }} periode
+        </UBadge>
+
+        <UButton
+          color="neutral"
+          variant="outline"
+          icon="i-lucide-refresh-cw"
+          :loading="pending"
+          :disabled="pending"
+          @click="refresh()"
+        >
+          Muat Ulang
+        </UButton>
+      </div>
+    </div>
+
+    <div
+      v-if="pending"
+      class="flex items-center justify-center rounded-xl border border-slate-200 bg-white/90 py-16 shadow-sm"
+    >
+      <UIcon name="i-lucide-loader-circle" class="size-6 animate-spin text-primary" />
+      <span class="ml-3 text-sm text-slate-500">Memuat daftar periode...</span>
     </div>
 
     <UAlert
       v-else-if="error"
+      icon="i-lucide-circle-alert"
       color="error"
       variant="soft"
-      title="Data pengajuan belum dapat dimuat"
-      description="Terjadi kendala saat mengambil daftar pengajuan sertifikasi. Silakan coba muat ulang."
-      class="mb-4"
-    >
-      <template #footer>
-        <UButton color="error" variant="soft" @click="refresh()">
-          Coba Lagi
-        </UButton>
-      </template>
-    </UAlert>
+      title="Daftar periode belum dapat dimuat. Silakan muat ulang."
+    />
 
     <div
-      v-else-if="applications.length === 0"
-      class="rounded-xl border border-dashed border-gray-300 bg-white px-6 py-12 text-center"
+      v-else-if="applications.length > 0"
+      class="grid grid-cols-1 items-start gap-5 md:grid-cols-2"
     >
-      <UIcon name="i-lucide-clipboard-list" class="mx-auto h-10 w-10 text-gray-400" />
-      <h2 class="mt-4 text-base font-semibold text-gray-900">Belum Ada Pengajuan Sertifikasi</h2>
-      <p class="mx-auto mt-2 max-w-md text-sm text-gray-500">
-        Daftar pengajuan sertifikasi Anda akan ditampilkan di halaman ini setelah tersedia.
-      </p>
-      <UButton class="mt-5" to="/peserta" color="primary" variant="soft">
-        Kembali ke Beranda
-      </UButton>
-    </div>
-
-    <div v-else class="space-y-4">
-      <div class="flex items-center justify-between gap-3">
-        <h2 class="text-base font-semibold text-gray-900">Daftar Pengajuan Sertifikasi</h2>
-        <span class="text-sm text-gray-500">{{ applications.length }} pengajuan</span>
-      </div>
-
-      <article
+      <UCard
         v-for="item in applications"
         :key="item.application.application_id"
-        class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm"
+        class="h-full bg-white/90 shadow-sm transition-shadow hover:shadow-md"
       >
-        <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div class="min-w-0 flex-1">
-            <div class="flex flex-wrap items-center gap-2">
-              <h3 class="text-base font-semibold text-gray-900">
+        <div class="flex h-full flex-col gap-5">
+          <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0 space-y-2">
+              <p class="text-xs font-medium text-primary">
+                Periode Sertifikasi
+              </p>
+
+              <h3
+                class="line-clamp-2 min-h-12 text-base font-semibold leading-6 text-slate-900"
+                :title="item.period?.period_name"
+              >
                 {{ item.period?.period_name || 'Periode Sertifikasi' }}
               </h3>
-              <UBadge
-                :color="getApplicationStatus(item.application.application_status).color"
-                variant="subtle"
-              >
-                {{ getApplicationStatus(item.application.application_status).label }}
-              </UBadge>
+
+              <p class="text-sm text-slate-500">
+                Jadwal:
+                <span class="font-medium text-slate-700">
+                  {{ formatDateTimeId(selfAssessmentStage(item)?.start_at) }} – {{ formatDateTimeId(selfAssessmentStage(item)?.end_at) }}
+                </span>
+              </p>
             </div>
 
-            <dl class="mt-3 grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
-              <div>
-                <dt class="text-gray-500">ID Pengajuan</dt>
-                <dd class="mt-0.5 font-medium text-gray-800">
-                  {{ item.application.application_id }}
-                </dd>
-              </div>
-              <div>
-                <dt class="text-gray-500">Instansi</dt>
-                <dd class="mt-0.5 font-medium text-gray-800">
-                  {{ item.application.institution_name || '-' }}
-                </dd>
-              </div>
-              <div>
-                <dt class="text-gray-500">Tanggal Pengajuan</dt>
-                <dd class="mt-0.5 font-medium text-gray-800">
-                  {{ formatDate(item.application.submitted_at) }}
-                </dd>
-              </div>
-              <div>
-                <dt class="text-gray-500">Status Periode</dt>
-                <dd class="mt-0.5 font-medium text-gray-800">
-                  {{ item.period?.period_status || '-' }}
-                </dd>
-              </div>
-            </dl>
+            <UBadge
+              v-if="item.period?.period_status"
+              :color="getPeriodStatusColor(item.period.period_status)"
+              variant="subtle"
+              class="shrink-0"
+            >
+              {{ formatPeriodStatus(item.period.period_status) }}
+            </UBadge>
           </div>
 
-          <UButton
-            color="primary"
-            class="shrink-0"
-            @click="openSelfAssessment(item.application.application_id)"
-          >
-            Buka Self Assessment
-            <UIcon name="i-lucide-arrow-right" class="ml-1 h-4 w-4" />
-          </UButton>
+          <div class="mt-auto border-t border-slate-200 pt-4">
+            <UButton
+              block
+              color="primary"
+              icon="i-lucide-clipboard-check"
+              :to="`/peserta/self-assessment/${encodeURIComponent(item.application.application_id)}`"
+            >
+              Buka Self Assessment
+            </UButton>
+          </div>
         </div>
-      </article>
+      </UCard>
     </div>
-  </UContainer>
+
+    <UCard v-else class="bg-white/90 shadow-sm">
+      <div class="flex flex-col items-center py-12 text-center">
+        <div class="flex size-14 items-center justify-center rounded-full bg-primary/10">
+          <UIcon name="i-lucide-calendar-x" class="size-7 text-primary" />
+        </div>
+        <h3 class="mt-4 text-base font-semibold text-slate-900">
+          Belum ada pengajuan sertifikasi
+        </h3>
+        <p class="mt-2 max-w-md text-sm leading-6 text-slate-500">
+          Periode sertifikasi akan tampil di sini setelah pengajuan Anda diterima.
+        </p>
+      </div>
+    </UCard>
+  </div>
 </template>

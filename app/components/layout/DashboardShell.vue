@@ -72,13 +72,13 @@ async function handleLogout() {
 </script>
 
 <template>
-  <div class="flex h-screen overflow-hidden bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+  <div class="flex h-screen overflow-hidden bg-mesh">
     <!-- Sidebar -->
-    <aside class="relative z-20 flex h-full w-72 shrink-0 flex-col border-r border-slate-200/80 bg-white/95">
+    <aside class="relative z-20 flex h-full w-72 shrink-0 flex-col border-r border-slate-300 bg-white/95">
       <!-- Identitas Sistem -->
-      <div class="flex h-[76px] shrink-0 items-center gap-3 border-b border-slate-200/70 px-6">
-        <div class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary text-sm font-bold text-white shadow-sm">
-          CM
+      <div class="flex h-[76px] shrink-0 items-center gap-3 border-b border-slate-300 px-6">
+        <div class="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white ring-1 ring-slate-200">
+          <img src="/logo-lan.png" alt="Logo LAN" class="size-full scale-150 object-contain">
         </div>
 
         <div class="min-w-0">
@@ -112,7 +112,7 @@ async function handleLogout() {
       </nav>
 
       <!-- Profil Pengguna -->
-      <div class="relative shrink-0 border-t border-slate-200/70 p-4">
+      <div class="relative shrink-0 border-t border-slate-300 p-4">
         <button
           type="button"
           class="flex w-full items-center gap-3 rounded-xl border border-transparent p-2 text-left transition hover:border-slate-200 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-primary"
@@ -198,7 +198,7 @@ async function handleLogout() {
 
     <!-- Area Konten -->
     <div class="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
-      <header class="z-10 flex h-[76px] shrink-0 items-center justify-between border-b border-slate-200/70 bg-white/90 px-5 backdrop-blur-xl sm:px-8">
+      <header class="z-10 flex h-[76px] shrink-0 items-center justify-between border-b border-slate-300 bg-white/90 px-5 backdrop-blur-xl sm:px-8">
         <div class="min-w-0">
           <p class="truncate text-sm font-semibold text-slate-900">
             {{ headerTitle }}

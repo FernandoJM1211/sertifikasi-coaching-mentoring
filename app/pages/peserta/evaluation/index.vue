@@ -1,11 +1,11 @@
 <script setup lang="ts">
-/** Daftar pengajuan peserta untuk membuka halaman evaluasi. */
+/** Daftar periode (pengajuan diterima) untuk membuka halaman evaluasi. Tata letak seragam dengan PeriodPicker. */
 definePageMeta({ layout: 'peserta' })
 useHead({ title: 'Evaluasi' })
 
 type DashboardApplication = {
   application: { application_id: string, period_id: string, application_status?: string, institution_name?: string }
-  period: { period_id: string, period_name: string } | null
+  period: { period_id: string, period_name: string, period_status?: string } | null
   timelines?: { stage_code?: string, start_at?: string, end_at?: string }[]
 }
 
@@ -18,57 +18,153 @@ const applications = computed(() =>
 
 const evaluationStage = (item: DashboardApplication) =>
   item.timelines?.find((stage) => stage.stage_code === 'EVALUATION')
+
+/* Badge status periode — sama dengan kartu pemilihan periode (PeriodPicker). */
+const PERIOD_STATUS_LABELS: Record<string, string> = {
+  DRAFT: 'Draft',
+  ACTIVE: 'Aktif',
+  CLOSED: 'Ditutup',
+  COMPLETED: 'Selesai',
+}
+
+function formatPeriodStatus(status?: string) {
+  const value = String(status ?? '')
+  return PERIOD_STATUS_LABELS[value.toUpperCase()] || value || '-'
+}
+
+function getPeriodStatusColor(status?: string) {
+  switch (String(status ?? '').toUpperCase()) {
+    case 'ACTIVE': return 'success' as const
+    case 'CLOSED': return 'error' as const
+    case 'COMPLETED': return 'primary' as const
+    case 'DRAFT': return 'warning' as const
+    default: return 'neutral' as const
+  }
+}
 </script>
 
 <template>
-  <div class="mx-auto max-w-5xl space-y-6">
-    <section>
-      <h1 class="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">Evaluasi</h1>
-      <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-        Evaluasi pilihan ganda dikerjakan satu kali pada tahap Evaluasi, setelah self assessment Anda terverifikasi.
-      </p>
-    </section>
-
-    <div v-if="pending" class="space-y-4">
-      <USkeleton class="h-28 w-full" />
-    </div>
-
-    <UAlert v-else-if="error" color="error" variant="soft" icon="i-lucide-circle-alert" title="Data pengajuan belum dapat dimuat">
-      <template #actions>
-        <UButton color="error" variant="outline" size="sm" icon="i-lucide-refresh-cw" @click="refresh()">Muat Ulang</UButton>
-      </template>
-    </UAlert>
-
-    <div v-else-if="applications.length === 0" class="rounded-xl border border-dashed border-slate-300 bg-white px-6 py-12 text-center">
-      <UIcon name="i-lucide-file-pen-line" class="mx-auto size-10 text-slate-400" />
-      <h2 class="mt-4 text-base font-semibold text-slate-900">Belum Ada Evaluasi</h2>
-      <p class="mx-auto mt-2 max-w-md text-sm text-slate-500">
-        Evaluasi tersedia untuk pengajuan sertifikasi yang sudah diterima.
+  <div class="mx-auto w-full max-w-5xl space-y-8 pb-8">
+    <div class="space-y-2">
+      <h1 class="text-3xl font-semibold tracking-tight text-slate-900">
+        Evaluasi
+      </h1>
+      <p class="text-sm leading-6 text-slate-500">
+        Pilih periode sertifikasi untuk mengerjakan evaluasi pilihan ganda.
       </p>
     </div>
 
-    <article
-      v-for="item in applications"
-      v-else
-      :key="item.application.application_id"
-      class="flex flex-col gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between"
-    >
-      <div class="min-w-0">
-        <h2 class="font-semibold text-slate-900">{{ item.period?.period_name || 'Periode Sertifikasi' }}</h2>
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div class="min-w-0 flex-1">
+        <h2 class="text-base font-semibold text-slate-900">
+          Daftar Periode
+        </h2>
         <p class="mt-1 text-sm text-slate-500">
-          Jadwal evaluasi:
-          <span class="font-medium text-slate-700">
-            {{ formatDateTimeId(evaluationStage(item)?.start_at) }} – {{ formatDateTimeId(evaluationStage(item)?.end_at) }}
-          </span>
+          Evaluasi dikerjakan satu kali pada tahap Evaluasi, setelah self assessment Anda terverifikasi.
         </p>
       </div>
-      <UButton
-        :to="`/peserta/evaluation/${encodeURIComponent(item.application.application_id)}`"
-        trailing-icon="i-lucide-arrow-right"
-        class="shrink-0"
+
+      <div class="flex shrink-0 items-center gap-2">
+        <UBadge color="primary" variant="subtle" size="lg" class="px-3 py-1.5">
+          {{ applications.length }} periode
+        </UBadge>
+
+        <UButton
+          color="neutral"
+          variant="outline"
+          icon="i-lucide-refresh-cw"
+          :loading="pending"
+          :disabled="pending"
+          @click="refresh()"
+        >
+          Muat Ulang
+        </UButton>
+      </div>
+    </div>
+
+    <div
+      v-if="pending"
+      class="flex items-center justify-center rounded-xl border border-slate-200 bg-white/90 py-16 shadow-sm"
+    >
+      <UIcon name="i-lucide-loader-circle" class="size-6 animate-spin text-primary" />
+      <span class="ml-3 text-sm text-slate-500">Memuat daftar periode...</span>
+    </div>
+
+    <UAlert
+      v-else-if="error"
+      icon="i-lucide-circle-alert"
+      color="error"
+      variant="soft"
+      title="Daftar periode belum dapat dimuat. Silakan muat ulang."
+    />
+
+    <div
+      v-else-if="applications.length > 0"
+      class="grid grid-cols-1 items-start gap-5 md:grid-cols-2"
+    >
+      <UCard
+        v-for="item in applications"
+        :key="item.application.application_id"
+        class="h-full bg-white/90 shadow-sm transition-shadow hover:shadow-md"
       >
-        Buka Evaluasi
-      </UButton>
-    </article>
+        <div class="flex h-full flex-col gap-5">
+          <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0 space-y-2">
+              <p class="text-xs font-medium text-primary">
+                Periode Sertifikasi
+              </p>
+
+              <h3
+                class="line-clamp-2 min-h-12 text-base font-semibold leading-6 text-slate-900"
+                :title="item.period?.period_name"
+              >
+                {{ item.period?.period_name || 'Periode Sertifikasi' }}
+              </h3>
+
+              <p class="text-sm text-slate-500">
+                Jadwal:
+                <span class="font-medium text-slate-700">
+                  {{ formatDateTimeId(evaluationStage(item)?.start_at) }} – {{ formatDateTimeId(evaluationStage(item)?.end_at) }}
+                </span>
+              </p>
+            </div>
+
+            <UBadge
+              v-if="item.period?.period_status"
+              :color="getPeriodStatusColor(item.period.period_status)"
+              variant="subtle"
+              class="shrink-0"
+            >
+              {{ formatPeriodStatus(item.period.period_status) }}
+            </UBadge>
+          </div>
+
+          <div class="mt-auto border-t border-slate-200 pt-4">
+            <UButton
+              block
+              color="primary"
+              icon="i-lucide-file-pen-line"
+              :to="`/peserta/evaluation/${encodeURIComponent(item.application.application_id)}`"
+            >
+              Buka Evaluasi
+            </UButton>
+          </div>
+        </div>
+      </UCard>
+    </div>
+
+    <UCard v-else class="bg-white/90 shadow-sm">
+      <div class="flex flex-col items-center py-12 text-center">
+        <div class="flex size-14 items-center justify-center rounded-full bg-primary/10">
+          <UIcon name="i-lucide-calendar-x" class="size-7 text-primary" />
+        </div>
+        <h3 class="mt-4 text-base font-semibold text-slate-900">
+          Belum ada evaluasi
+        </h3>
+        <p class="mt-2 max-w-md text-sm leading-6 text-slate-500">
+          Evaluasi tersedia untuk pengajuan sertifikasi yang sudah diterima.
+        </p>
+      </div>
+    </UCard>
   </div>
 </template>

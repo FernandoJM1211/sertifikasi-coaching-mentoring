@@ -236,6 +236,16 @@ function removeFile(key: string) {
   if (input) input.value = ''
 }
 
+/* Preview berkas lokal sebelum dikirim */
+const previewOpen = ref(false)
+const previewKey = ref<string | null>(null)
+const previewFile = computed(() => (previewKey.value ? files[previewKey.value]?.file ?? null : null))
+
+function openFilePreview(key: string) {
+  previewKey.value = key
+  previewOpen.value = true
+}
+
 function formatFileSize(bytes: number) {
   if (bytes < 1024 * 1024) {
     return `${Math.ceil(bytes / 1024)} KB`
@@ -745,13 +755,26 @@ function resetForm() {
                     @change="handleFileChange(key, $event)"
                   />
 
-                  <label
-                    :for="`file-${key}`"
-                    class="inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-primary px-4 py-2 text-sm font-medium text-primary transition hover:bg-primary/5"
+                  <UButton
+                    color="neutral"
+                    variant="outline"
+                    icon="i-lucide-eye"
+                    class="min-w-28 justify-center"
+                    :disabled="!item.file"
+                    @click="openFilePreview(String(key))"
                   >
-                    <UIcon name="i-lucide-upload" class="size-4" />
-                    {{ item.file ? 'Ganti File' : 'Pilih File' }}
-                  </label>
+                    Lihat
+                  </UButton>
+
+                  <UButton
+                    as="label"
+                    :for="`file-${key}`"
+                    variant="outline"
+                    icon="i-lucide-upload"
+                    class="min-w-28 cursor-pointer justify-center"
+                  >
+                    {{ item.file ? 'Ganti' : 'Pilih File' }}
+                  </UButton>
 
                   <UButton
                     v-if="item.file"
@@ -852,5 +875,12 @@ function resetForm() {
         </div>
       </template>
     </UModal>
+
+    <DocumentPreviewModal
+      v-model:open="previewOpen"
+      :file="previewFile"
+      :title="previewFile?.name"
+      :description="previewKey ? fileLabels[previewKey] : ''"
+    />
   </div>
 </template>

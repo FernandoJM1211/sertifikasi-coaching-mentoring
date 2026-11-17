@@ -13,6 +13,7 @@ import {
   type AssessorRole,
 } from '../repositories/assessor-assignment.repository'
 import { findCmsp01SubmissionsByPeriod } from '../repositories/self-assessment.repository'
+import { findTechnicalAssessmentsByPeriod } from '../repositories/technical-assessment.repository'
 import { findAllUsers, type User } from '../repositories/user.repository'
 import type { AuthenticatedUser } from './auth.service'
 import { getStageAccess } from './certification-stage.service'
@@ -307,6 +308,26 @@ export async function assignAssessors(
 
   // Mengganti asesor yang sudah ditugaskan wajib disertai alasan.
   const selected = new Set(applicationIds)
+
+  // Asesor Teknis tidak boleh diganti bila penilaian CMSP-02 peserta tersebut sudah dimulai.
+  if (input.technicalAssessorId) {
+    const started = new Set(
+      (await findTechnicalAssessmentsByPeriod(period.period_id).catch(() => [])).map((item) => item.application_id),
+    )
+    const blocked = existingAssignments.filter((item) =>
+      selected.has(item.application_id) &&
+      started.has(item.application_id) &&
+      item.technical_assessor_id &&
+      item.technical_assessor_id !== input.technicalAssessorId,
+    )
+
+    if (blocked.length > 0) {
+      throw createError({
+        statusCode: 409,
+        statusMessage: `${blocked.length} peserta tidak dapat diganti Asesor Teknisnya karena penilaian CMSP-02 sudah dimulai.`,
+      })
+    }
+  }
   const replacing = existingAssignments.some((item) =>
     selected.has(item.application_id) && (
       (input.technicalAssessorId && item.technical_assessor_id && item.technical_assessor_id !== input.technicalAssessorId) ||

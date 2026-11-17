@@ -91,7 +91,8 @@ const ROLE_LABELS: Record<AssessorRole, string> = {
 
 const STATUS_BADGES: Record<AssignmentStatus, { label: string, color: 'success' | 'warning' | 'info' | 'neutral' }> = {
   ASSIGNED: { label: 'Sudah Ditugaskan', color: 'success' },
-  PARTIAL: { label: 'Belum Lengkap', color: 'info' },
+  // Termasuk card "Belum Ditugaskan" (kuning).
+  PARTIAL: { label: 'Belum Lengkap', color: 'warning' },
   UNASSIGNED: { label: 'Belum Ditugaskan', color: 'warning' },
   NOT_VERIFIED: { label: 'SA Belum Terverifikasi', color: 'neutral' },
 }
@@ -170,8 +171,9 @@ const summaryCards = computed(() => [
 const selectedIds = ref<string[]>([])
 const selectedSet = computed(() => new Set(selectedIds.value))
 
+/** Peserta yang tampil di halaman tabel aktif (pilih semua hanya untuk halaman ini). */
 const visibleIds = computed(() =>
-  filteredItems.value.filter((item) => item.sa_verified).map((item) => item.application_id),
+  pagedItems.value.filter((item) => item.sa_verified).map((item) => item.application_id),
 )
 
 const selectAllState = computed<boolean | 'indeterminate'>(() => {
@@ -343,6 +345,10 @@ async function saveAssessors() {
     savingAssessors.value = false
   }
 }
+
+/* ---------------- Paginasi tabel ---------------- */
+const { page: tablePage, pageSize: tablePageSize, items: pagedItems, reset: resetTablePage } = useTablePagination(filteredItems)
+watch([activeFilter, searchQuery], resetTablePage)
 </script>
 
 <template>
@@ -583,9 +589,9 @@ async function saveAssessors() {
             </thead>
             <tbody>
               <tr
-                v-for="item in filteredItems"
+                v-for="item in pagedItems"
                 :key="item.application_id"
-                class="border-b border-slate-100 last:border-0"
+                class="border-b border-slate-200 last:border-0"
                 :class="selectedSet.has(item.application_id) ? 'bg-primary/5' : ''"
               >
                 <td class="px-4 py-4">
@@ -645,12 +651,12 @@ async function saveAssessors() {
         </div>
 
         <template #footer>
-          <p class="text-sm text-slate-500">
-            Menampilkan {{ filteredItems.length }} dari {{ data.items.length }} peserta.
-            <span v-if="!hasPeriodAssessors" class="text-amber-600">
+          <div class="space-y-3">
+            <p v-if="!hasPeriodAssessors" class="text-sm text-amber-600">
               Tambahkan asesor periode terlebih dahulu untuk mulai menugaskan.
-            </span>
-          </p>
+            </p>
+            <TablePagination v-model:page="tablePage" v-model:page-size="tablePageSize" :total="filteredItems.length" label="peserta" />
+          </div>
         </template>
       </UCard>
 

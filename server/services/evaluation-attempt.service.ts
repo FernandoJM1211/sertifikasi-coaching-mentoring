@@ -200,6 +200,24 @@ function startBlocker(application: Application, context: Context): string {
   return ''
 }
 
+/**
+ * Ringkasan evaluasi untuk beranda peserta (tanpa mengubah data):
+ * - `NOT_STARTED` / `IN_PROGRESS` / `SUBMITTED` (pengerjaan kedaluwarsa dianggap selesai);
+ * - `available`: evaluasi dapat dimulai atau dilanjutkan saat ini.
+ */
+export async function getEvaluationProgress(application: Application) {
+  const context = await loadContext(application)
+  const attempt = context.attempt
+
+  if (attempt && (attempt.status !== 'IN_PROGRESS' || isExpired(attempt, DEADLINE_GRACE_MS))) {
+    return { status: 'SUBMITTED' as const, available: false }
+  }
+
+  if (attempt) return { status: 'IN_PROGRESS' as const, available: true }
+
+  return { status: 'NOT_STARTED' as const, available: !startBlocker(application, context) }
+}
+
 /** Batas waktu efektif: mulai + durasi, terpotong pada akhir tahap. */
 function computeDeadline(durationMinutes: number, stageEndAt: string) {
   const byDuration = Date.now() + durationMinutes * 60_000

@@ -1,27 +1,27 @@
 <template>
   <div class="mx-auto w-full max-w-5xl space-y-8 pb-8">
-  <!-- Header dan tombol aksi -->
-<div class="space-y-4">
-  <div class="flex items-center justify-between gap-6">
-    <!-- Judul dan subheading -->
-    <div class="min-w-0 flex-1">
-      <h1 class="whitespace-nowrap text-3xl font-semibold text-primary">
+    <!-- Header (seragam dengan halaman pemilihan periode lain / PeriodPicker) -->
+    <div class="space-y-2">
+      <h1 class="text-3xl font-semibold tracking-tight text-slate-900">
         Periode Sertifikasi
       </h1>
-
-      <p class="mt-2 text-slate-500">
+      <p class="text-sm leading-6 text-slate-500">
         Pilih periode sertifikasi yang ingin dipantau dan dikelola.
       </p>
     </div>
 
-    <!-- Semua tombol dalam satu baris -->
-    <div class="flex shrink-0 items-center gap-3">
-      <UBadge
-        color="info"
-        variant="subtle"
-        size="xl"
-        class="inline-flex items-center"
-      >
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div class="min-w-0 flex-1">
+        <h2 class="text-base font-semibold text-slate-900">
+          Daftar Periode
+        </h2>
+        <p class="mt-1 text-sm text-slate-500">
+          Kelola timeline, pengajuan, dan status setiap periode.
+        </p>
+      </div>
+
+      <div class="flex shrink-0 items-center gap-2">
+      <UBadge color="primary" variant="subtle" size="lg" class="px-3 py-1.5">
         {{ periods.length }} periode
       </UBadge>
 
@@ -41,9 +41,8 @@
       >
         Muat Ulang
       </UButton>
+      </div>
     </div>
-  </div>
-</div>
 
     <!-- Pesan sukses -->
     <UAlert
@@ -86,7 +85,7 @@ class="grid grid-cols-1 items-start gap-5 md:grid-cols-2"
       <UCard
   v-for="period in periods"
   :key="period.period_id"
-  class="bg-white/90 shadow-sm transition-shadow hover:shadow-md"
+  class="h-full bg-white/90 shadow-sm transition-shadow hover:shadow-md"
 >
   <div class="flex h-full flex-col gap-5">
           <!-- Informasi periode -->
@@ -104,9 +103,9 @@ class="grid grid-cols-1 items-start gap-5 md:grid-cols-2"
 </h3>
 
               <p class="text-sm text-slate-500">
-                ID Periode:
+                Jadwal:
                 <span class="font-medium text-slate-700">
-                  {{ period.period_id }}
+                  {{ formatDateTimeId(period.stage_start_at) }} – {{ formatDateTimeId(period.stage_end_at) }}
                 </span>
               </p>
             </div>
@@ -382,6 +381,9 @@ class="grid grid-cols-1 items-start gap-5 md:grid-cols-2"
 
 <script setup lang="ts">
 type CertificationPeriod = {
+  /** Rentang seluruh timeline periode (dari `?stage=PERIOD`). */
+  stage_start_at?: string
+  stage_end_at?: string
   period_id: string
   certification_type_id: string
   category_id: string
@@ -633,7 +635,7 @@ async function fetchPeriods() {
     const response = await $fetch<{
       success: boolean
       data: CertificationPeriod[]
-    }>('/api/certification-periods')
+    }>('/api/certification-periods', { query: { stage: 'PERIOD' } })
 
     periods.value = [...response.data].reverse()
   } catch (error: any) {

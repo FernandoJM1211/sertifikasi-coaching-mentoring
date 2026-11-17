@@ -127,7 +127,7 @@
             </tr>
           </thead>
 
-          <tbody class="divide-y divide-slate-100">
+          <tbody class="divide-y divide-slate-200">
             <tr
               v-if="isRefreshing && accounts.length === 0"
             >
@@ -234,44 +234,8 @@
       </div>
 
       <!-- Footer dan pagination -->
-      <div class="flex flex-col gap-4 border-t border-slate-200 px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-8">
-        <p class="text-sm text-slate-500">
-          Menampilkan
-          <span class="font-medium text-slate-700">
-            {{ paginationStart }} – {{ paginationEnd }}
-          </span>
-          dari
-          <span class="font-medium text-slate-700">
-            {{ filteredAccounts.length }}
-          </span>
-          akun
-        </p>
-
-        <div class="flex flex-wrap items-center justify-between gap-3 sm:justify-end">
-          <UButton
-            color="neutral"
-            variant="outline"
-            icon="i-lucide-chevron-left"
-            :disabled="currentPage <= 1"
-            @click="currentPage--"
-          >
-            Sebelumnya
-          </UButton>
-
-          <span class="min-w-[48px] text-center text-sm text-slate-600">
-            {{ currentPage }} / {{ totalPages }}
-          </span>
-
-          <UButton
-            color="neutral"
-            variant="outline"
-            trailing-icon="i-lucide-chevron-right"
-            :disabled="currentPage >= totalPages"
-            @click="currentPage++"
-          >
-            Berikutnya
-          </UButton>
-        </div>
+      <div class="border-t border-slate-200 px-4 py-4 sm:px-6">
+        <TablePagination v-model:page="currentPage" v-model:page-size="pageSize" :total="filteredAccounts.length" label="akun" />
       </div>
     </div>
 
@@ -648,8 +612,6 @@ const toast = useToast()
 
 const searchQuery = ref('')
 const selectedRole = ref('ALL')
-const currentPage = ref(1)
-const pageSize = 10
 
 const accounts = ref<Account[]>([])
 const isRefreshing = ref(false)
@@ -704,34 +666,10 @@ const filteredAccounts = computed(() => {
   })
 })
 
-const totalPages = computed(() =>
-  Math.max(1, Math.ceil(filteredAccounts.value.length / pageSize)),
-)
+const { page: currentPage, pageSize, items: paginatedAccounts, reset: resetPage } = useTablePagination(filteredAccounts)
 
-const paginatedAccounts = computed(() => {
-  const start = (currentPage.value - 1) * pageSize
-  return filteredAccounts.value.slice(start, start + pageSize)
-})
+watch([searchQuery, selectedRole], resetPage)
 
-const paginationStart = computed(() =>
-  filteredAccounts.value.length === 0
-    ? 0
-    : (currentPage.value - 1) * pageSize + 1,
-)
-
-const paginationEnd = computed(() =>
-  Math.min(currentPage.value * pageSize, filteredAccounts.value.length),
-)
-
-watch([searchQuery, selectedRole], () => {
-  currentPage.value = 1
-})
-
-watch(totalPages, (pages) => {
-  if (currentPage.value > pages) {
-    currentPage.value = pages
-  }
-})
 
 onMounted(() => {
   void refreshAccounts()

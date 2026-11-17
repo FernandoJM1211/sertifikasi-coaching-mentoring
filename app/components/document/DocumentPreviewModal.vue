@@ -6,9 +6,12 @@
  *
  * Contoh:
  *   <DocumentPreviewModal v-model:open="open" :url="url" :title="nama" :description="jenis" />
+ *   <DocumentPreviewModal v-model:open="open" :file="fileLokal" />   // berkas yang belum diunggah
  */
 const props = defineProps<{
-  url: string
+  url?: string
+  /** Berkas lokal dari input file (mis. form pendaftaran); dipakai bila diisi. */
+  file?: File | null
   title?: string
   description?: string
 }>()
@@ -36,6 +39,13 @@ function releaseObjectUrl() {
 async function loadDocument() {
   releaseObjectUrl()
   errorMessage.value = ''
+
+  // Berkas lokal: langsung ditampilkan tanpa memanggil server.
+  if (props.file) {
+    mimeType.value = props.file.type
+    objectUrl.value = URL.createObjectURL(props.file)
+    return
+  }
 
   if (!props.url) {
     errorMessage.value = 'Dokumen tidak dapat ditampilkan.'
@@ -74,7 +84,7 @@ async function loadDocument() {
 }
 
 watch(
-  () => [open.value, props.url] as const,
+  () => [open.value, props.url, props.file] as const,
   ([isOpen]) => {
     if (isOpen) {
       loadDocument()

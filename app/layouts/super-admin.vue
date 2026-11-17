@@ -1,8 +1,8 @@
 <script setup lang="ts">
 const navigation = [
   {
-    label: 'Dashboard',
-    icon: 'i-lucide-layout-dashboard',
+    label: 'Beranda',
+    icon: 'i-lucide-house',
     to: '/super-admin',
     exact: true,
   },
@@ -35,6 +35,11 @@ const navigation = [
     label: 'Perencanaan Evaluasi',
     icon: 'i-lucide-calendar-check',
     to: '/super-admin/evaluations/plans',
+  },
+  {
+    label: 'Penilaian Asesor Teknis',
+    icon: 'i-lucide-clipboard-pen',
+    to: '/super-admin/technical-assessments',
   },
   {
     label: 'Manajemen Akun',

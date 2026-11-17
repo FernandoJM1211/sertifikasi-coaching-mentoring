@@ -1,5 +1,52 @@
 import { findCertificationPeriodById } from '../repositories/certification-period.repository'
-import { findCertificationTimelinesByPeriodId } from '../repositories/certification-timeline.repository'
+import {
+  findAllCertificationTimelines,
+  findCertificationTimelinesByPeriodId,
+} from '../repositories/certification-timeline.repository'
+
+/** Kode jadwal khusus: rentang seluruh timeline periode (tahap pertama s.d. terakhir). */
+export const SCHEDULE_WHOLE_PERIOD = 'PERIOD'
+
+export type StageSchedule = { stage_start_at: string, stage_end_at: string }
+
+/**
+ * Jadwal satu tahap untuk setiap periode (untuk kartu pemilihan periode).
+ * `stageCode = 'PERIOD'` → rentang seluruh timeline periode.
+ */
+export async function getStageSchedules(stageCode: string): Promise<Map<string, StageSchedule>> {
+  const timelines = await findAllCertificationTimelines()
+  const code = stageCode.trim().toUpperCase()
+  const result = new Map<string, StageSchedule>()
+
+  for (const item of timelines) {
+    if (code !== SCHEDULE_WHOLE_PERIOD && item.stage_code.trim().toUpperCase() !== code) continue
+
+    const current = result.get(item.period_id)
+    if (!current) {
+      result.set(item.period_id, { stage_start_at: item.start_at, stage_end_at: item.end_at })
+      continue
+    }
+
+    // Rentang seluruh periode: ambil mulai paling awal & selesai paling akhir.
+    if (item.start_at && (!current.stage_start_at || Date.parse(item.start_at) < Date.parse(current.stage_start_at))) {
+      current.stage_start_at = item.start_at
+    }
+    if (item.end_at && (!current.stage_end_at || Date.parse(item.end_at) > Date.parse(current.stage_end_at))) {
+      current.stage_end_at = item.end_at
+    }
+  }
+
+  return result
+}
+
+/** Menambahkan `stage_start_at`/`stage_end_at` ke setiap periode. */
+export async function withStageSchedule<T extends { period_id: string }>(periods: T[], stageCode: string) {
+  const schedules = await getStageSchedules(stageCode)
+  return periods.map((period) => ({
+    ...period,
+    ...(schedules.get(period.period_id) ?? { stage_start_at: '', stage_end_at: '' }),
+  }))
+}
 
 export type StageAccess = {
   open: boolean

@@ -74,6 +74,33 @@ export async function findCertificationTimelineById(
   return null;
 }
 
+/** Semua baris timeline (semua periode) — satu kali baca sheet. */
+export async function findAllCertificationTimelines(): Promise<CertificationTimeline[]> {
+  const rows = await getSheetValues(SHEET_NAME)
+
+  if (!rows || rows.length <= 1) {
+    return []
+  }
+
+  return rows
+    .slice(1)
+    .filter((row) => row[1])
+    .map((row) => ({
+      timeline_id: row[0] || '',
+      period_id: row[1] || '',
+      stage_order: row[2] || '',
+      stage_code: row[3] || '',
+      stage_name: row[4] || '',
+      start_at: row[5] || '',
+      end_at: row[6] || '',
+      is_override_open: row[7] || '',
+      override_by: row[8] || '',
+      override_at: row[9] || '',
+      created_at: row[10] || '',
+      updated_at: row[11] || '',
+    }))
+}
+
 export async function findCertificationTimelinesByPeriodId(
   periodId: string,
 ): Promise<CertificationTimeline[]> {

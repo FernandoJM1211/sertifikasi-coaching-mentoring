@@ -147,7 +147,7 @@
               <tr
                 v-for="application in paginatedApplications"
                 :key="application.application_id"
-                class="border-b border-slate-100 last:border-0"
+                class="border-b border-slate-200 last:border-0"
               >
                 <td class="px-4 py-4 font-medium text-slate-800">
                   {{ application.full_name_snapshot }}
@@ -199,41 +199,7 @@
         </div>
 
         <template #footer>
-          <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <p class="text-sm text-slate-500">
-              Menampilkan
-              {{ filteredApplications.length === 0 ? 0 : (currentPage - 1) * pageSize + 1 }}–{{ Math.min(currentPage * pageSize, filteredApplications.length) }}
-              dari {{ filteredApplications.length }} pengajuan
-            </p>
-
-            <div class="flex items-center gap-2">
-              <UButton
-                color="neutral"
-                variant="outline"
-                size="sm"
-                icon="i-lucide-chevron-left"
-                :disabled="currentPage <= 1"
-                @click="currentPage--"
-              >
-                Sebelumnya
-              </UButton>
-
-              <span class="px-1 text-sm text-slate-600">
-                {{ currentPage }} / {{ totalPages }}
-              </span>
-
-              <UButton
-                color="neutral"
-                variant="outline"
-                size="sm"
-                trailing-icon="i-lucide-chevron-right"
-                :disabled="currentPage >= totalPages"
-                @click="currentPage++"
-              >
-                Berikutnya
-              </UButton>
-            </div>
-          </div>
+          <TablePagination v-model:page="currentPage" v-model:page-size="pageSize" :total="filteredApplications.length" label="pengajuan" />
         </template>
       </UCard>
     </template>
@@ -310,8 +276,6 @@ const loading = ref(false)
 const errorMessage = ref('')
 const activeFilter = ref('ALL')
 const searchQuery = ref('')
-const currentPage = ref(1)
-const pageSize = 10
 
 const filterOptions = [
   { label: 'Semua Pengajuan', value: 'ALL' },
@@ -385,22 +349,10 @@ const filteredApplications = computed(() => {
   })
 })
 
-const totalPages = computed(() =>
-  Math.max(1, Math.ceil(filteredApplications.value.length / pageSize)),
-)
+const { page: currentPage, pageSize, items: paginatedApplications, reset: resetPage } = useTablePagination(filteredApplications)
 
-const paginatedApplications = computed(() => {
-  const start = (currentPage.value - 1) * pageSize
-  return filteredApplications.value.slice(start, start + pageSize)
-})
+watch([activeFilter, searchQuery], resetPage)
 
-watch([activeFilter, searchQuery], () => {
-  currentPage.value = 1
-})
-
-watch(totalPages, (pages) => {
-  if (currentPage.value > pages) currentPage.value = pages
-})
 
 function formatPeriodStatus(status: string) {
   const labels: Record<string, string> = {

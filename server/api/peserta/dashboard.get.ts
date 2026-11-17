@@ -1,6 +1,8 @@
 import { findApplicationsByPersonId } from '../../repositories/application.repository'
 import { findCertificationPeriodById } from '../../repositories/certification-period.repository'
 import { findCertificationTimelinesByPeriodId } from '../../repositories/certification-timeline.repository'
+import { getEvaluationProgress } from '../../services/evaluation-attempt.service'
+import { getSelfAssessmentProgress } from '../../services/self-assessment.service'
 
 export default defineEventHandler(async (event) => {
   const user = await requireUser(event, ['PESERTA'])
@@ -9,9 +11,13 @@ export default defineEventHandler(async (event) => {
 
   const dashboardApplications = await Promise.all(
     applications.map(async (application) => {
-      const [period, timelines] = await Promise.all([
+      const accepted = application.application_status === 'accepted'
+      const [period, timelines, selfAssessment, evaluation] = await Promise.all([
         findCertificationPeriodById(application.period_id),
         findCertificationTimelinesByPeriodId(application.period_id),
+        // Progres pekerjaan peserta untuk tombol dinamis di beranda.
+        accepted ? getSelfAssessmentProgress(application) : null,
+        accepted ? getEvaluationProgress(application) : null,
       ])
 
       return {
@@ -30,6 +36,7 @@ export default defineEventHandler(async (event) => {
         timelines: timelines.sort(
           (a, b) => Number(a.stage_order) - Number(b.stage_order),
         ),
+        progress: { self_assessment: selfAssessment, evaluation },
       }
     }),
   )

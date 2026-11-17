@@ -22,8 +22,8 @@
     />
 
     <!-- Ringkasan -->
-    <div class="flex flex-wrap items-center justify-between gap-3">
-      <div>
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div class="min-w-0 flex-1">
         <h2 class="text-base font-semibold text-slate-900">
           Daftar Periode
         </h2>
@@ -32,8 +32,8 @@
         </p>
       </div>
 
-<div class="flex flex-wrap items-center gap-2">
-  <UBadge color="primary" variant="subtle" size="lg">
+      <div class="flex shrink-0 items-center gap-2">
+  <UBadge color="primary" variant="subtle" size="lg" class="px-3 py-1.5">
     {{ periods.length }} periode
   </UBadge>
 
@@ -99,9 +99,9 @@ class="grid grid-cols-1 items-start gap-5 md:grid-cols-2"
 </h3>
 
               <p class="text-sm text-slate-500">
-                ID Periode:
+                Jadwal:
                 <span class="font-medium text-slate-700">
-                  {{ period.period_id }}
+                  {{ formatDateTimeId(period.stage_start_at) }} – {{ formatDateTimeId(period.stage_end_at) }}
                 </span>
               </p>
             </div>
@@ -168,6 +168,9 @@ class="grid grid-cols-1 items-start gap-5 md:grid-cols-2"
 
 <script setup lang="ts">
 type CertificationPeriod = {
+  /** Rentang seluruh timeline periode (dari `?stage=PERIOD`). */
+  stage_start_at?: string
+  stage_end_at?: string
   period_id: string
   certification_type_id: string
   category_id: string
@@ -418,7 +421,7 @@ async function fetchPeriods() {
     const response = await $fetch<{
       success: boolean
       data: CertificationPeriod[]
-    }>('/api/certification-periods')
+    }>('/api/certification-periods', { query: { stage: 'PERIOD' } })
 
     periods.value = [...response.data].reverse()
   } catch (error: any) {

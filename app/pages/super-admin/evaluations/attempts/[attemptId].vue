@@ -121,23 +121,16 @@ function optionKeyClass(option: { is_correct: boolean, is_selected: boolean }) {
     <!-- Header: judul kiri; Kembali + status kanan -->
     <div class="flex items-start justify-between gap-4">
       <div class="min-w-0">
-        <h1 class="text-xl font-semibold text-slate-900 sm:text-2xl">
-          {{ data?.participant.full_name || 'Detail Hasil Evaluasi' }}
-        </h1>
+        <h1 class="text-2xl font-semibold text-slate-900">Detail Hasil Evaluasi</h1>
         <p class="mt-1 text-sm text-slate-500">
-          Hasil Evaluasi<template v-if="data?.attempt.period_name"> · {{ data.attempt.period_name }}</template>
+          Jawaban peserta per soal beserta kunci, waktu, dan nilai evaluasi.
         </p>
       </div>
       <div class="flex shrink-0 flex-col items-end gap-2">
         <UButton :to="backPath" color="neutral" variant="outline" icon="i-lucide-arrow-left" size="sm">Kembali</UButton>
-        <div v-if="data" class="flex flex-wrap justify-end gap-2">
-          <UBadge color="primary" variant="subtle" icon="i-lucide-history">
-            {{ data.attempt.config_version ? `Konfigurasi ke-${data.attempt.config_version}` : 'Konfigurasi awal' }}
-          </UBadge>
-          <UBadge :color="STATUS_BADGES[data.attempt.status].color" variant="subtle">
-            {{ STATUS_BADGES[data.attempt.status].label }}
-          </UBadge>
-        </div>
+        <UBadge v-if="data" :color="STATUS_BADGES[data.attempt.status].color" variant="subtle">
+          {{ STATUS_BADGES[data.attempt.status].label }}
+        </UBadge>
       </div>
     </div>
 
@@ -172,14 +165,22 @@ function optionKeyClass(option: { is_correct: boolean, is_selected: boolean }) {
 
       <!-- Identitas & waktu -->
       <UCard>
-        <div class="grid gap-x-6 gap-y-4 text-sm sm:grid-cols-2 lg:grid-cols-3">
+        <div class="grid gap-x-6 gap-y-5 text-center text-sm sm:grid-cols-2 lg:grid-cols-4">
+          <div>
+            <p class="text-slate-500">Nama Peserta</p>
+            <p class="font-medium text-slate-800">{{ data.participant.full_name || '-' }}</p>
+          </div>
           <div>
             <p class="text-slate-500">NIP</p>
             <p class="font-medium text-slate-800">{{ data.participant.nip || '-' }}</p>
           </div>
-          <div class="sm:col-span-1 lg:col-span-2">
+          <div>
             <p class="text-slate-500">Instansi</p>
             <p class="font-medium text-slate-800">{{ data.participant.institution_name || '-' }}</p>
+          </div>
+          <div>
+            <p class="text-slate-500">Periode</p>
+            <p class="font-medium text-slate-800">{{ data.attempt.period_name || '-' }}</p>
           </div>
           <div>
             <p class="text-slate-500">Mulai</p>
@@ -197,6 +198,12 @@ function optionKeyClass(option: { is_correct: boolean, is_selected: boolean }) {
             <p class="font-medium text-slate-800">
               {{ formatWorkTime(data.attempt.work_seconds) }}
               <span class="text-xs font-normal text-slate-500">dari {{ data.attempt.duration_minutes }} menit</span>
+            </p>
+          </div>
+          <div>
+            <p class="text-slate-500">Konfigurasi</p>
+            <p class="font-medium text-slate-800">
+              {{ data.attempt.config_version ? `Konfigurasi ke-${data.attempt.config_version}` : 'Konfigurasi awal' }}
             </p>
           </div>
         </div>

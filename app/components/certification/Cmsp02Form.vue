@@ -26,6 +26,8 @@ const props = defineProps<{
   readonly: boolean
   /** Tampilan ringkas untuk Verifikator/Super Admin: sembunyikan panduan pengisian. */
   reviewMode?: boolean
+  /** Mode tinjau: kode unit yang sudah dinilai (mis. oleh Asesor Teknis) untuk penanda di navigasi unit. */
+  completedUnitCodes?: string[]
   /** Endpoint preview berkas selain milik peserta (mis. halaman Verifikator). */
   filesBasePath?: string
   status: string
@@ -276,7 +278,10 @@ const navigatorUnits = computed(() =>
     number: unit.number,
     code: unit.code,
     title: unit.title,
-    complete: getUnitProgress(unit.number) === 100,
+    // Peserta: unit lengkap diisi. Mode tinjau: unit yang sudah dinilai (bila diberikan).
+    complete: props.reviewMode
+      ? Boolean(props.completedUnitCodes?.includes(unit.code))
+      : getUnitProgress(unit.number) === 100,
   })),
 )
 
@@ -352,6 +357,9 @@ defineExpose({
             />
           </div>
 
+          <!-- Slot opsional per unit, mis. penilaian K/BK oleh Asesor Teknis. -->
+          <slot name="unit-header" :unit="unit" />
+
           <div>
             <p class="text-sm font-semibold text-slate-900">
               Elemen kompetensi
@@ -367,8 +375,8 @@ defineExpose({
             </ol>
           </div>
 
+          <!-- Ditampilkan juga pada mode tinjau sebagai acuan Verifikator/Asesor. -->
           <div
-  v-if="!reviewMode"
   class="rounded-xl border border-primary/25 bg-primary/5 p-5"
 >
   <p class="text-sm font-semibold text-primary">
@@ -483,7 +491,7 @@ defineExpose({
                     <div class="mt-2 flex flex-col gap-3 rounded-lg border border-dashed border-slate-300 bg-white p-3 sm:flex-row sm:items-center sm:justify-between">
                       <p
                         class="min-w-0 truncate text-xs"
-                        :class="evidence.file ? 'text-slate-600' : 'text-slate-400'"
+                        :class="evidence.file ? (readonly ? 'text-slate-600' : 'font-medium text-green-600') : 'text-slate-400'"
                       >
                         {{ formatFileInfo(evidence.file) }}
                       </p>
@@ -590,7 +598,6 @@ defineExpose({
               </div>
             </div>
           </div>
-
         </div>
       </UCard>
     </section>

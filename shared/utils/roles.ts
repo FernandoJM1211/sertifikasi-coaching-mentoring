@@ -39,7 +39,8 @@ export const ROLE_LABELS: Record<UserRole, string> = {
  */
 export const ROLE_HOME_PATHS: Partial<Record<UserRole, string>> = {
   SUPER_ADMIN: '/super-admin',
-  VERIFIKATOR: '/verifikator/periods',
+  VERIFIKATOR: '/verifikator',
+  TECHNICAL_ASSESSOR: '/asesor-teknis',
   PESERTA: '/peserta',
 }
 

@@ -50,8 +50,6 @@ onMounted(load)
 const searchQuery = ref('')
 const topicFilter = ref('ALL')
 const statusFilter = ref('ACTIVE')
-const page = ref(1)
-const PAGE_SIZE = 20
 
 const STATUS_FILTERS = [
   { value: 'ACTIVE', label: 'Aktif' },
@@ -86,13 +84,9 @@ const filteredQuestions = computed(() => {
   })
 })
 
-const pagedQuestions = computed(() =>
-  filteredQuestions.value.slice((page.value - 1) * PAGE_SIZE, page.value * PAGE_SIZE),
-)
+const { page, pageSize, items: pagedQuestions, reset: resetPage } = useTablePagination(filteredQuestions)
 
-watch([searchQuery, topicFilter, statusFilter], () => {
-  page.value = 1
-})
+watch([searchQuery, topicFilter, statusFilter], resetPage)
 
 
 /* ---------------- Modal soal ---------------- */
@@ -278,7 +272,7 @@ async function confirmToggleStatus() {
             </tr>
           </thead>
           <tbody>
-            <tr v-for="item in pagedQuestions" :key="item.question_id" class="border-b border-slate-100 last:border-0">
+            <tr v-for="item in pagedQuestions" :key="item.question_id" class="border-b border-slate-200 last:border-0">
               <td class="px-4 py-3">
                 <p class="truncate font-medium text-slate-800" :title="item.question_text">{{ item.question_text }}</p>
               </td>
@@ -306,10 +300,7 @@ async function confirmToggleStatus() {
       </div>
 
       <template #footer>
-        <div class="flex flex-wrap items-center justify-between gap-3">
-          <p class="text-sm text-slate-500">Menampilkan {{ pagedQuestions.length }} dari {{ filteredQuestions.length }} soal.</p>
-          <UPagination v-if="filteredQuestions.length > PAGE_SIZE" v-model:page="page" :total="filteredQuestions.length" :items-per-page="PAGE_SIZE" />
-        </div>
+        <TablePagination v-model:page="page" v-model:page-size="pageSize" :total="filteredQuestions.length" label="soal" />
       </template>
     </UCard>
 

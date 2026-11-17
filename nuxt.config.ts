@@ -12,6 +12,17 @@ export default defineNuxtConfig({
 
   devtools: { enabled: true },
 
+  app: {
+    head: {
+      // Ikon tab browser: logo LAN versi terpotong (tanpa ruang kosong) agar tampak penuh;
+      // PNG sebagai cadangan untuk browser yang belum mendukung favicon SVG.
+      link: [
+        { rel: 'icon', type: 'image/svg+xml', href: '/favicon-lan.svg' },
+        { rel: 'icon', type: 'image/png', href: '/logo-lan.png' },
+      ],
+    },
+  },
+
   routeRules: {
     '/**': {
       headers: {

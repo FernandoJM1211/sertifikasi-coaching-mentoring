@@ -1,6 +1,12 @@
 <script setup lang="ts">
 const navigation = [
   {
+    label: 'Beranda',
+    icon: 'i-lucide-house',
+    to: '/verifikator',
+    exact: true,
+  },
+  {
     label: 'Periode Sertifikasi',
     icon: 'i-lucide-calendar-days',
     to: '/verifikator/periods',

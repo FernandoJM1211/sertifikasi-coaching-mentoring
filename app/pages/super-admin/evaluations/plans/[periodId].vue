@@ -168,7 +168,8 @@ async function save() {
 const STATUS_BADGES = {
   NOT_STARTED: { label: 'Belum Mulai', color: 'neutral' },
   IN_PROGRESS: { label: 'Mengerjakan', color: 'warning' },
-  SUBMITTED: { label: 'Selesai', color: 'success' },
+  // Ungu, sama dengan card ringkasan "Selesai".
+  SUBMITTED: { label: 'Selesai', color: 'secondary' },
 } as const
 
 const FILTERS = [
@@ -256,6 +257,10 @@ async function confirmReset() {
     resetting.value = false
   }
 }
+
+/* ---------------- Paginasi tabel ---------------- */
+const { page: tablePage, pageSize: tablePageSize, items: pagedItems, reset: resetTablePage } = useTablePagination(filteredItems)
+watch([activeFilter, searchQuery], resetTablePage)
 </script>
 
 <template>
@@ -487,7 +492,7 @@ async function confirmReset() {
               </tr>
             </thead>
             <tbody>
-              <tr v-for="item in filteredItems" :key="item.application_id" class="border-b border-slate-100 last:border-0">
+              <tr v-for="item in pagedItems" :key="item.application_id" class="border-b border-slate-200 last:border-0">
                 <td class="px-4 py-3">
                   <p class="truncate font-medium text-slate-800" :title="item.full_name">{{ item.full_name }}</p>
                   <p class="truncate text-xs text-slate-500">{{ item.nip }}</p>
@@ -547,7 +552,7 @@ async function confirmReset() {
         </div>
 
         <template #footer>
-          <p class="text-sm text-slate-500">Menampilkan {{ filteredItems.length }} dari {{ data.items.length }} peserta.</p>
+          <TablePagination v-model:page="tablePage" v-model:page-size="tablePageSize" :total="filteredItems.length" label="peserta" />
         </template>
       </UCard>
     </template>
