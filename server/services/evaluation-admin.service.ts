@@ -112,7 +112,6 @@ function questionColumns(input: QuestionInput) {
     option_d: option(3),
     option_e: option(4),
     correct_option: input.correctOption,
-    shuffle_options: '', // kolom lama, tidak dipakai
   }
 }
 

@@ -463,9 +463,11 @@ berubah walau soal diedit atau perencanaan diterapkan ulang.
 | C | `question_text` | Maks. 2000 karakter |
 | D–H | `option_a` … `option_e` | 2–5 opsi berurutan mulai A; opsi tak terpakai kosong |
 | I | `correct_option` | `A`–`E` (huruf asli) |
-| J | `shuffle_options` | **Tidak dipakai lagi** (pengaturan acak pindah ke `period_evaluations`); kolom dibiarkan agar urutan kolom tetap |
-| K | `status` | `ACTIVE` / `ARCHIVED` (soal tidak pernah dihapus) |
-| L–O | `created_by`, `created_at`, `updated_by`, `updated_at` | — |
+| J | `status` | `ACTIVE` / `ARCHIVED` (soal tidak pernah dihapus) |
+| K–N | `created_by`, `created_at`, `updated_by`, `updated_at` | — |
+
+Pengaturan acak opsi jawaban tidak per soal, tetapi per periode (`period_evaluations.shuffle_options`).
+Kolom lama `shuffle_options` pada sheet ini sudah dihapus (sheet lama: hapus kolom J).
 
 Soal tidak dihapus, hanya diarsipkan. Soal yang sudah dipakai tetap dapat diubah (ditandai "sudah digunakan").
 
@@ -546,7 +548,7 @@ Urutan baris dalam satu snapshot = urutan soal di paket (dipakai bila acak soal 
 Header siap tempel (baris 1 tiap sheet, dipisah tab):
 
 ```text
-evaluation_questions  question_id	topic	question_text	option_a	option_b	option_c	option_d	option_e	correct_option	shuffle_options	status	created_by	created_at	updated_by	updated_at
+evaluation_questions  question_id	topic	question_text	option_a	option_b	option_c	option_d	option_e	correct_option	status	created_by	created_at	updated_by	updated_at
 evaluation_packages   package_id	package_name	description	question_ids	status	created_by	created_at	updated_by	updated_at
 period_evaluations    period_evaluation_id	period_id	package_id	question_count	duration_minutes	passing_grade	created_by	created_at	updated_by	updated_at	shuffle_questions	shuffle_options	snapshot_id	applied_at	config_version
 evaluation_snapshot_questions  snapshot_question_id	snapshot_id	question_id	topic	question_text	option_a	option_b	option_c	option_d	option_e	correct_option	created_at

@@ -111,14 +111,11 @@ function createTable<C extends readonly string[]>(sheetName: string, columns: C,
 /* Bank soal                                                           */
 /* ------------------------------------------------------------------ */
 
-/**
- * Kolom `shuffle_options` tidak dipakai lagi (pengaturan acak pindah ke `period_evaluations`);
- * dipertahankan agar urutan kolom sheet tetap.
- */
+/** Pengaturan acak opsi ada di `period_evaluations` (per periode), bukan per soal. */
 const QUESTION_COLUMNS = [
   'question_id', 'topic', 'question_text',
   'option_a', 'option_b', 'option_c', 'option_d', 'option_e',
-  'correct_option', 'shuffle_options', 'status',
+  'correct_option', 'status',
   'created_by', 'created_at', 'updated_by', 'updated_at',
 ] as const
 
