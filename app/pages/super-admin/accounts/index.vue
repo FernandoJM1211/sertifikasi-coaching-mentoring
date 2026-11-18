@@ -278,7 +278,21 @@
             <UIcon name="i-lucide-chevron-right" class="size-4 text-slate-500" />
           </button>
 
+          <!-- Akun Super Admin dilindungi -->
+          <div
+            v-if="selectedAccount.role === 'SUPER_ADMIN'"
+            class="flex gap-3 rounded-xl border border-blue-100 bg-blue-50/70 p-4 text-sm text-slate-700"
+          >
+            <UIcon name="i-lucide-shield-check" class="mt-0.5 size-5 shrink-0 text-blue-600" />
+            <p>
+              Akun Super Admin dilindungi: kata sandi dan statusnya tidak dapat diubah dari
+              Manajemen Akun. Gunakan menu <span class="font-medium">Ganti Kata Sandi</span>
+              pada profil untuk mengganti kata sandi sendiri.
+            </p>
+          </div>
+
           <button
+            v-else
             type="button"
             class="flex w-full items-center gap-3 rounded-xl border border-slate-200 p-4 text-left transition hover:border-amber-300 hover:bg-amber-50/50"
             @click="openResetPassword"
@@ -325,7 +339,7 @@
 
 <!-- Aktifkan atau nonaktifkan akun -->
 <button
-  v-if="selectedAccount.status === 'ACTIVE'"
+  v-if="selectedAccount.status === 'ACTIVE' && selectedAccount.role !== 'SUPER_ADMIN'"
   type="button"
   class="flex w-full items-center gap-3 rounded-xl border border-slate-200 p-4 text-left transition hover:border-red-300 hover:bg-red-50/50"
   @click="confirmAccountStatusChange('DISABLED')"
@@ -347,7 +361,7 @@
 </button>
 
 <button
-  v-else-if="selectedAccount.status === 'DISABLED'"
+  v-else-if="selectedAccount.status === 'DISABLED' && selectedAccount.role !== 'SUPER_ADMIN'"
   type="button"
   class="flex w-full items-center gap-3 rounded-xl border border-slate-200 p-4 text-left transition hover:border-emerald-300 hover:bg-emerald-50/50"
   @click="confirmAccountStatusChange('ACTIVE')"

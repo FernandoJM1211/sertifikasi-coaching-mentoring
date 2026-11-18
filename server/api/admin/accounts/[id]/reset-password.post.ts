@@ -12,6 +12,8 @@ export default defineEventHandler(async (event) => {
     })
   }
 
+  await requireManageableAccount(userId)
+
   const body = await readBody<{ new_password?: unknown }>(event)
   const newPassword =
     typeof body?.new_password === 'string' ? body.new_password : ''

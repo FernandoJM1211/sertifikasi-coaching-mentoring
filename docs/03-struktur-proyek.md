@@ -83,6 +83,7 @@ Untuk role baru (mis. asesor), buat layout tipis serupa yang memakai `LayoutDash
 | `period/PeriodPicker.vue` | `<PeriodPicker>` | Kartu pilihan periode sebelum halaman per periode (Verifikasi SA, Penugasan Asesor). Props `title`, `description`, `note`, `actionLabel`, `actionIcon`, `basePath`, `endpoint` (opsional, sumber daftar periode), `stageCode` (opsional; kartu menampilkan "Jadwal" tahap fitur tersebut, mis. `EVALUATION`). |
 | `technical-assessment/List.vue` | `<TechnicalAssessmentList>` | Daftar penilaian CMSP-02 per periode (ringkasan, filter, tabel). Props `periodId`, `basePath`, `backPath`, `showAssessor`. |
 | `technical-assessment/Detail.vue` | `<TechnicalAssessmentDetail>` | Penilaian satu peserta: evidence CMSP-02 + K/BK per unit, catatan, rekomendasi, simpan draf/kirim; buka kunci (Super Admin). Props `applicationId`, `backPath`. |
+| `evaluation/QuestionImportModal.vue` | `<EvaluationQuestionImportModal>` | Modal import soal Excel di Bank Soal: unduh template, pilih .xlsx (dibaca di browser), pratinjau per baris, lewati duplikat, kirim ke `/api/evaluation/questions/import`. Props `existingTexts`, `v-model:open`; emit `imported`. |
 | `assessor-assignment/List.vue` | `<AssessorAssignmentList>` | Asesor periode (kelola), ringkasan, tabel dengan pilih banyak/semua, modal penugasan massal. Props `periodId`, `backPath`. |
 | `verification/SelfAssessmentList.vue` | `<VerificationSelfAssessmentList>` | Daftar self assessment dalam satu periode (Verifikator & Super Admin). Props `periodId`, `basePath`, `backPath`. |
 | `verification/SelfAssessmentDetail.vue` | `<VerificationSelfAssessmentDetail>` | Detail verifikasi: form read-only, riwayat, catatan per form, keputusan. Props `applicationId`, `backPath`. |
@@ -172,6 +173,7 @@ Alur: **`api/` → `services/` → `repositories/` → Google Sheets/Drive.**
 | File | Fungsi |
 | --- | --- |
 | `session.ts` | `requireUser(event, roles?)`, `requireRouterParam()`, cookie sesi (`setSessionCookie`, `clearSessionCookie`, `getSessionToken`), `getClientIp()`. |
+| `account-guard.ts` | `requireManageableAccount(userId)` — tolak reset kata sandi/ubah status untuk akun Super Admin (404 bila akun tidak ada). |
 | `rate-limit.ts` | `assertRateLimit()` / `resetRateLimit()` — pembatas percobaan in-memory. |
 | `password.ts` | `hashPassword()`, `verifyPassword()`, `validateNewPassword()` (12–128 karakter). |
 | `auth-token.ts` | `generateAuthToken()` (token acak) dan `hashAuthToken()` (SHA-256). |
@@ -237,6 +239,7 @@ Alur: **`api/` → `services/` → `repositories/` → Google Sheets/Drive.**
 | `POST /api/peserta/applications/:applicationId/self-assessment/files` | `.../self-assessment/files/index.post.ts` | Peserta (pemilik) | Unggah file (multipart `purpose` + `file`). |
 | `GET /api/peserta/applications/:applicationId/self-assessment/files/:fileId` | `.../self-assessment/files/[fileId].get.ts` | Peserta (pemilik) | Preview/unduh berkas miliknya. |
 | `GET/POST /api/evaluation/questions` | `evaluation/questions/index.{get,post}.ts` | Super Admin | Daftar / tambah soal. |
+| `POST /api/evaluation/questions/import` | `evaluation/questions/import.post.ts` | Super Admin | Import soal hasil baca Excel (`{ questions }`, 1–200). Divalidasi ulang per soal; semua atau tidak sama sekali; ditulis sekali append (`createQuestions`). |
 | `PUT /api/evaluation/questions/:questionId` | `.../[questionId]/index.put.ts` | Super Admin | Ubah soal (ditolak bila sudah dipakai peserta). |
 | `PATCH /api/evaluation/questions/:questionId/status` | `.../[questionId]/status.patch.ts` | Super Admin | Arsipkan / aktifkan (`{ status }`). |
 | `GET/POST /api/evaluation/packages` | `evaluation/packages/index.{get,post}.ts` | Super Admin | Daftar / buat paket. |
@@ -313,6 +316,7 @@ Satu file per sheet. Detail kolom di [04-database.md](04-database.md).
 | `shared/utils/evidence-link.ts` | `parseEvidenceLink()`: kenali link YouTube / file Drive (embed) vs folder Drive / website lain (tab baru). |
 | `shared/utils/technical-assessment.ts` | Tahap `ASSESSOR_ASSESSMENT`, hasil `K`/`BK`, rekomendasi `CONTINUE`/`NOT_CONTINUE`, label status, batas catatan. |
 | `shared/utils/evaluation.ts` | Huruf opsi `A`–`E`, 2–5 opsi, pilihan durasi 30/45/60/90, batas panjang teks evaluasi. |
+| `shared/utils/evaluation-import.ts` | Import soal Excel: nama kolom template, batas (200 soal, 2 MB), `parseQuestionImportSheet` (baris → soal + galat), kunci duplikat. |
 | `shared/utils/documents.ts` | Jenis dokumen pendaftaran + label/ikon, `MAX_PDF_SIZE_BYTES`. |
 | `shared/utils/roles.ts` | `USER_ROLES`, `STAFF_ROLES`, `ROLE_LABELS`, `ROLE_HOME_PATHS`, `ACCOUNT_STATUSES`, `normalizeUserRole()`, `getRoleLabel()`, `getAccountStatusLabel()`. |
 
@@ -320,7 +324,7 @@ Satu file per sheet. Detail kolom di [04-database.md](04-database.md).
 
 | File | Fungsi |
 | --- | --- |
-| `create-super-admin.ts` | Membuat akun Super Admin pertama secara interaktif (`npm run create-super-admin`). |
+| `create-super-admin.ts` | Membuat akun Super Admin secara interaktif (`npm run create-super-admin`). Menolak bila sudah ada Super Admin aktif (hanya satu Super Admin). |
 
 ## `public/`
 
@@ -328,6 +332,8 @@ Satu file per sheet. Detail kolom di [04-database.md](04-database.md).
 | --- | --- |
 | `favicon.ico` | Ikon tab browser. |
 | `robots.txt` | Aturan crawler mesin pencari. |
+| `logo-lan.png`, `favicon-lan.svg` | Logo LAN (brand & favicon). |
+| `templates/template-import-soal.xlsx` | Template import soal: sheet **Soal** (Topik, Pertanyaan, Opsi A–E, Kunci Jawaban) + sheet **Petunjuk**. |
 
 ## Folder yang Dibuat Otomatis (jangan diedit/commit)
 

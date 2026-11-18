@@ -15,9 +15,12 @@ export const USER_ROLES = [
 
 export type UserRole = (typeof USER_ROLES)[number]
 
-/** Role pegawai/petugas yang akunnya dibuat oleh Super Admin. */
+/**
+ * Role pegawai/petugas yang akunnya dapat dibuat Super Admin lewat Manajemen Akun.
+ * SUPER_ADMIN sengaja tidak termasuk: hanya ada satu Super Admin dan akunnya
+ * dibuat lewat `npm run create-super-admin` (terminal).
+ */
 export const STAFF_ROLES = [
-  'SUPER_ADMIN',
   'VERIFIKATOR',
   'TECHNICAL_ASSESSOR',
   'PUBLIC_ASSESSOR',

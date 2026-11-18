@@ -3,6 +3,7 @@ import { stdin, stdout } from 'node:process'
 
 import {
   createUser,
+  findAllUsers,
   findUserByEmail,
 } from '../server/repositories/user.repository'
 import {
@@ -18,6 +19,19 @@ async function main() {
   })
 
   try {
+    // Sistem hanya memiliki satu Super Admin aktif.
+    const activeSuperAdmin = (await findAllUsers()).find(
+      (user) => user.role === 'SUPER_ADMIN' && user.account_status === 'ACTIVE',
+    )
+
+    if (activeSuperAdmin) {
+      throw new Error(
+        `Sudah ada Super Admin aktif (${activeSuperAdmin.user_id}). Sistem hanya mengizinkan satu `
+        + 'Super Admin aktif. Jika perlu mengganti, ubah status akun lama menjadi DISABLED '
+        + 'langsung di sheet users, lalu jalankan perintah ini lagi.',
+      )
+    }
+
     const email = (
       await terminal.question('Email Super Admin: ')
     ).trim().toLowerCase()

@@ -12,6 +12,8 @@ export default defineEventHandler(async (event) => {
     })
   }
 
+  await requireManageableAccount(userId)
+
   const body = await readBody<{ account_status?: unknown }>(event)
   const accountStatus = body?.account_status
 

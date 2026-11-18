@@ -58,7 +58,11 @@ Coach and Mentor*.
 > *"Membuat Periode Sertifikasi & Membuka Akses Pendaftaran"* yang di diagram berada di
 > lajur Verifikator, di sistem dilakukan oleh **Super Admin** (sesuai kode saat ini).
 
-Akun pegawai (Super Admin, Verifikator, Asesor) dibuat oleh Super Admin.
+Akun pegawai (Verifikator, Asesor) dibuat oleh Super Admin lewat Manajemen Akun.
+**Super Admin hanya satu** dan dibuat lewat terminal (`npm run create-super-admin`; script menolak
+jika sudah ada Super Admin aktif). Super Admin tidak dapat dibuat, di-reset kata sandinya, atau
+diubah statusnya dari Manajemen Akun. Tidak ada endpoint yang dapat mengubah role akun.
+Akses edit ke spreadsheet autentikasi & file Service Account tetap harus dibatasi ke pemilik.
 Akun Peserta dibuat **otomatis** saat pendaftarannya diterima Verifikator.
 
 ## Alur Proses Bisnis

@@ -172,6 +172,9 @@ async function saveQuestion() {
   }
 }
 
+/* ---------------- Import Excel ---------------- */
+const importOpen = ref(false)
+
 /* ---------------- Arsip / aktifkan ---------------- */
 const statusTarget = ref<Question | null>(null)
 const statusModalOpen = ref(false)
@@ -213,7 +216,12 @@ async function confirmToggleStatus() {
           Kumpulan soal pilihan ganda evaluasi. Soal aktif dapat disusun menjadi paket soal.
         </p>
       </div>
-      <UButton icon="i-lucide-plus" @click="openCreate">Tambah Soal</UButton>
+      <div class="flex flex-wrap gap-2">
+        <UButton color="primary" variant="outline" icon="i-lucide-file-spreadsheet" @click="importOpen = true">
+          Import Excel
+        </UButton>
+        <UButton icon="i-lucide-plus" @click="openCreate">Tambah Soal</UButton>
+      </div>
     </section>
 
     <div v-if="loading && questions.length === 0" class="flex items-center justify-center py-12">
@@ -413,6 +421,13 @@ async function confirmToggleStatus() {
         </div>
       </template>
     </UModal>
+
+    <!-- Import soal dari Excel -->
+    <EvaluationQuestionImportModal
+      v-model:open="importOpen"
+      :existing-texts="questions.map((item) => item.question_text)"
+      @imported="load"
+    />
 
     <!-- Konfirmasi arsip / aktifkan -->
     <UModal

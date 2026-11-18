@@ -32,6 +32,7 @@ Legenda: ✅ selesai · 🚧 sedang dikerjakan · ❌ belum ada
 | Hubungkan Google Drive | ✅ | Lewat `/api/auth/google` (belum ada tombol di UI) |
 | Kelola master jenis & kategori sertifikasi | ❌ | Diisi manual di sheet |
 | Bank soal, paket soal & perencanaan evaluasi per periode | ✅ | Menu Bank Soal, Paket Soal, Perencanaan Evaluasi (nilai peserta, snapshot soal + Terapkan Ulang, reset progres peserta) |
+| Import soal dari Excel | ✅ | Bank Soal → Import Excel: unduh template, pratinjau per baris (valid/tidak valid/duplikat), maks. 200 soal per import |
 | Penetapan kelulusan | ❌ | |
 | Akses sebagian fitur Verifikator & Asesor | 🚧 | Sudah bisa verifikasi pendaftaran; cakupan lain menunggu keputusan |
 | Penugasan asesor ke peserta | ✅ | Menu Penugasan Asesor |

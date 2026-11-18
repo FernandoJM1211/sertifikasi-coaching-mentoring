@@ -131,6 +131,24 @@ export async function createQuestion(user: AuthenticatedUser, input: QuestionInp
   return toQuestionResponse(question, false, 0)
 }
 
+/** Import soal (Excel): semua soal ditulis dalam satu kali append ke sheet. */
+export async function createQuestions(user: AuthenticatedUser, inputs: QuestionInput[]) {
+  const now = new Date().toISOString()
+
+  const created = await evaluationQuestions.createMany(
+    inputs.map((input) => ({
+      ...questionColumns(input),
+      status: 'ACTIVE',
+      created_by: user.user_id,
+      created_at: now,
+      updated_by: user.user_id,
+      updated_at: now,
+    })),
+  )
+
+  return created.length
+}
+
 export async function updateQuestion(user: AuthenticatedUser, questionId: string, input: QuestionInput) {
   const updated = await evaluationQuestions.update(questionId, {
     ...questionColumns(input),

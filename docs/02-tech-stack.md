@@ -13,6 +13,7 @@
 | Penyimpanan berkas | **Google Drive API** | `googleapis` 183 | Lewat OAuth (akun Drive milik aplikasi) |
 | Email | **Nodemailer** + Gmail | 10.1 | Pakai Gmail App Password |
 | Hash kata sandi | **bcryptjs** | 3.0 | 12 salt rounds |
+| Baca Excel (import soal) | **read-excel-file** | 9.3.14 (versi dikunci) | Dimuat dinamis di browser (`read-excel-file/browser`) hanya saat import soal |
 | Script CLI | **tsx** | — | Menjalankan script TypeScript di `scripts/` |
 | Runtime | **Node.js** | ≥ 20.6 (dev: 24) | Perlu `--env-file` untuk script |
 
