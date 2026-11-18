@@ -451,12 +451,12 @@ defineExpose({
           </p>
 
           <h1
-            class="mt-1.5 text-3xl font-semibold tracking-tight text-slate-900"
+            class="mt-1.5 text-3xl font-semibold tracking-tight text-blue-500"
           >
             Permohonan Sertifikasi
           </h1>
 
-          <p v-if="!reviewMode" class="mt-2 text-sm leading-6 text-slate-500">
+          <p v-if="!reviewMode" class="mt-2 text-sm leading-6 text-slate-600">
             Lengkapi data pemohon, pengalaman coaching dan mentoring,
             serta persyaratan administrasi.
           </p>
@@ -492,7 +492,7 @@ defineExpose({
           1. Informasi Sertifikasi
         </h2>
 
-        <p v-if="!reviewMode" class="mt-1 text-sm text-slate-500">
+        <p v-if="!reviewMode" class="mt-1 text-sm text-slate-600">
           Informasi mengikuti kategori dan periode sertifikasi
           yang sedang aktif.
         </p>
@@ -542,7 +542,7 @@ defineExpose({
           2. Data Pemohon Sertifikasi
         </h2>
 
-        <p v-if="!reviewMode" class="mt-1 text-sm text-slate-500">
+        <p v-if="!reviewMode" class="mt-1 text-sm text-slate-600">
           Lengkapi data diri sesuai identitas dan kondisi saat ini.
         </p>
       </div>
@@ -552,7 +552,7 @@ defineExpose({
         <div v-if="!reviewMode" class="mb-5 flex items-center justify-between gap-3">
           <p class="text-sm font-semibold text-primary">
             Data Pemohon
-            <span class="font-normal text-slate-500">
+            <span class="font-normal text-slate-600">
               ({{ applicantCompletedCount }} dari {{ APPLICANT_FIELD_COUNT }} terisi)
             </span>
           </p>
@@ -728,7 +728,7 @@ defineExpose({
         3. Riwayat Pelatihan Coaching dan Mentoring
       </h2>
 
-      <p v-if="!reviewMode" class="mt-1 text-sm text-slate-500">
+      <p v-if="!reviewMode" class="mt-1 text-sm text-slate-600">
         Minimal satu riwayat pelatihan wajib diisi. Tambahkan riwayat sesuai kebutuhan.
       </p>
     </div>
@@ -750,7 +750,7 @@ defineExpose({
     <div v-if="!reviewMode" class="mb-5 flex items-center justify-between gap-3">
       <p class="text-sm font-semibold text-primary">
         Riwayat Pelatihan
-        <span class="font-normal text-slate-500">
+        <span class="font-normal text-slate-600">
           ({{ completedTrainingCount }} dari {{ trainingHistories.length }} lengkap)
         </span>
       </p>
@@ -880,7 +880,7 @@ defineExpose({
         4. Pengalaman Praktik Coaching dan Mentoring
       </h2>
 
-      <p v-if="!reviewMode" class="mt-1 text-sm text-slate-500">
+      <p v-if="!reviewMode" class="mt-1 text-sm text-slate-600">
         Minimal satu pengalaman praktik wajib diisi. Tambahkan pengalaman sesuai kebutuhan.
       </p>
     </div>
@@ -902,7 +902,7 @@ defineExpose({
     <div v-if="!reviewMode" class="mb-5 flex items-center justify-between gap-3">
       <p class="text-sm font-semibold text-primary">
         Pengalaman Praktik
-        <span class="font-normal text-slate-500">
+        <span class="font-normal text-slate-600">
           ({{ completedPracticeCount }} dari {{ practiceExperiences.length }} lengkap)
         </span>
       </p>
@@ -1031,7 +1031,7 @@ defineExpose({
       5. Persyaratan Administrasi
     </h2>
 
-    <p v-if="!reviewMode" class="mt-1 text-sm text-slate-500">
+    <p v-if="!reviewMode" class="mt-1 text-sm text-slate-600">
       Dokumen dari pendaftaran digunakan kembali dan dapat diganti. Penggantian
       hanya berlaku untuk CMSP-01 (dokumen pendaftaran tidak berubah) dan
       tersimpan saat Simpan Draft.
@@ -1042,7 +1042,7 @@ defineExpose({
     <div v-if="!reviewMode" class="mb-5 flex items-center justify-between gap-3">
       <p class="text-sm font-semibold text-primary">
         Dokumen Persyaratan
-        <span class="font-normal text-slate-500">
+        <span class="font-normal text-slate-600">
           ({{ documentCompletedCount }} dari {{ documents.length }} terunggah)
         </span>
       </p>
@@ -1073,11 +1073,11 @@ defineExpose({
             </p>
             <p
               class="mt-0.5 truncate text-xs"
-              :class="document.file ? (readonly ? 'text-slate-500' : 'font-medium text-green-600') : 'text-slate-400'"
+              :class="document.file ? (readonly ? 'text-slate-600' : 'font-medium text-green-600') : 'text-slate-500'"
             >
               {{ document.file?.original_file_name || 'Belum ada file.' }}
             </p>
-            <p v-if="!readonly" class="mt-0.5 text-xs text-slate-400">
+            <p v-if="!readonly" class="mt-0.5 text-xs text-slate-500">
               {{ documentHint(document.documentType) }}
             </p>
           </div>
@@ -1134,7 +1134,7 @@ defineExpose({
       6. Pernyataan Pemohon
     </h2>
 
-    <p v-if="!reviewMode" class="mt-1 text-sm text-slate-500">
+    <p v-if="!reviewMode" class="mt-1 text-sm text-slate-600">
       Baca dan pahami seluruh pernyataan berikut sebelum melakukan
       Submit Final.
     </p>
@@ -1143,7 +1143,7 @@ defineExpose({
   <!-- Card -->
   <UCard class="border border-primary/30 bg-white/90 shadow-sm">
 
-    <div v-if="applicantProgress < 100" class="text-sm leading-6 text-slate-500">
+    <div v-if="applicantProgress < 100" class="text-sm leading-6 text-slate-600">
       Lengkapi seluruh data dan dokumen yang dipersyaratkan pada CMSP.01
       untuk menampilkan pernyataan pemohon.
     </div>
@@ -1217,7 +1217,7 @@ defineExpose({
           label="Saya telah membaca, memahami, dan menyetujui seluruh pernyataan di atas."
         />
 
-        <p class="mt-2 pl-7 text-xs text-slate-500">
+        <p class="mt-2 pl-7 text-xs text-slate-600">
           Pernyataan ini wajib disetujui sebelum melakukan Submit Final.
         </p>
       </div>

@@ -251,7 +251,7 @@ onBeforeUnmount(() => {
   <div class="mx-auto max-w-6xl space-y-6">
     <div v-if="loading && !data" class="flex items-center justify-center py-16">
       <UIcon name="i-lucide-loader-circle" class="size-6 animate-spin text-primary" />
-      <span class="ml-3 text-sm text-slate-500">Memuat evaluasi...</span>
+      <span class="ml-3 text-sm text-slate-600">Memuat evaluasi...</span>
     </div>
 
     <UAlert v-else-if="errorMessage || !data" color="error" variant="soft" icon="i-lucide-circle-alert" :title="errorMessage || 'Data evaluasi belum dapat dimuat.'">
@@ -265,7 +265,7 @@ onBeforeUnmount(() => {
       <div class="sticky top-0 z-10 -mx-1 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white/95 px-4 py-3 shadow-sm backdrop-blur">
         <div class="min-w-0">
           <p class="truncate text-sm font-semibold text-slate-900">Evaluasi · {{ data.period.period_name }}</p>
-          <p class="text-xs text-slate-500">
+          <p class="text-xs text-slate-600">
             {{ answeredCount }} dari {{ questions.length }} soal dijawab ·
             <span :class="saveState === 'error' ? 'text-red-600' : ''">
               {{ saveState === 'saving' || hasUnsaved ? 'Menyimpan...' : saveState === 'error' ? 'Gagal menyimpan, akan dicoba lagi' : 'Jawaban tersimpan' }}
@@ -347,7 +347,7 @@ onBeforeUnmount(() => {
               {{ question.number }}
             </button>
           </div>
-          <div class="mt-4 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500">
+          <div class="mt-4 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-600">
             <span class="flex items-center gap-1.5"><span class="size-3 rounded bg-primary" /> Dijawab</span>
             <span class="flex items-center gap-1.5"><span class="size-3 rounded border border-slate-300" /> Belum</span>
           </div>
@@ -362,11 +362,11 @@ onBeforeUnmount(() => {
           <div class="space-y-3 text-sm">
             <div class="grid grid-cols-2 gap-3">
               <div class="rounded-lg bg-slate-50 p-3">
-                <p class="text-slate-500">Dijawab</p>
+                <p class="text-slate-600">Dijawab</p>
                 <p class="text-xl font-semibold text-slate-900">{{ answeredCount }}</p>
               </div>
               <div class="rounded-lg p-3" :class="answeredCount < questions.length ? 'bg-amber-50' : 'bg-slate-50'">
-                <p class="text-slate-500">Belum dijawab</p>
+                <p class="text-slate-600">Belum dijawab</p>
                 <p class="text-xl font-semibold" :class="answeredCount < questions.length ? 'text-amber-700' : 'text-slate-900'">
                   {{ questions.length - answeredCount }}
                 </p>
@@ -390,7 +390,7 @@ onBeforeUnmount(() => {
         <div class="flex size-14 items-center justify-center rounded-full bg-emerald-50">
           <UIcon name="i-lucide-circle-check" class="size-8 text-emerald-600" />
         </div>
-        <h1 class="mt-4 text-xl font-semibold text-slate-900">Evaluasi Telah Dikirim</h1>
+        <h1 class="mt-4 text-xl font-semibold text-blue-500">Evaluasi Telah Dikirim</h1>
         <p class="mt-2 max-w-md text-sm leading-6 text-slate-600">
           Jawaban Anda untuk {{ attempt.total_questions }} soal telah diterima pada
           <span class="font-medium text-slate-800">{{ formatDateTimeId(attempt.submitted_at) }}</span>
@@ -405,8 +405,8 @@ onBeforeUnmount(() => {
     <template v-else>
       <div class="flex items-start justify-between gap-4">
         <div class="min-w-0">
-          <h1 class="text-2xl font-semibold text-slate-900">Evaluasi</h1>
-          <p class="mt-1 text-sm text-slate-500">{{ data.period.period_name }}</p>
+          <h1 class="text-2xl font-semibold text-blue-500">Evaluasi</h1>
+          <p class="mt-1 text-sm text-slate-600">{{ data.period.period_name }}</p>
         </div>
         <UButton to="/peserta/evaluation" color="neutral" variant="outline" icon="i-lucide-arrow-left" size="sm" class="shrink-0">Kembali</UButton>
       </div>
@@ -419,15 +419,15 @@ onBeforeUnmount(() => {
         <div class="space-y-5">
           <dl class="grid gap-3 sm:grid-cols-3">
             <div class="rounded-lg bg-slate-50 p-3">
-              <dt class="text-sm text-slate-500">Jumlah Soal</dt>
+              <dt class="text-sm text-slate-600">Jumlah Soal</dt>
               <dd class="mt-0.5 text-lg font-semibold text-slate-900">{{ data.config ? `${data.config.question_count} soal` : '-' }}</dd>
             </div>
             <div class="rounded-lg bg-slate-50 p-3">
-              <dt class="text-sm text-slate-500">Durasi</dt>
+              <dt class="text-sm text-slate-600">Durasi</dt>
               <dd class="mt-0.5 text-lg font-semibold text-slate-900">{{ data.config ? `${data.config.duration_minutes} menit` : '-' }}</dd>
             </div>
             <div class="rounded-lg bg-slate-50 p-3">
-              <dt class="text-sm text-slate-500">Batas Tahap Evaluasi</dt>
+              <dt class="text-sm text-slate-600">Batas Tahap Evaluasi</dt>
               <dd class="mt-0.5 text-sm font-semibold text-slate-900">{{ formatDateTimeId(data.stage.endAt) }}</dd>
             </div>
           </dl>

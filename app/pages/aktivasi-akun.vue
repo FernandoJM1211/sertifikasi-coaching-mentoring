@@ -73,17 +73,17 @@ async function activateAccount() {
 
 <template>
   <main
-    class="flex min-h-screen items-center justify-center px-4 py-10"
+    class="flex min-h-[65vh] items-center justify-center px-4 py-10"
   >
     <section
       class="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-8 shadow-sm"
     >
       <div class="mb-6 text-center">
-        <h1 class="text-2xl font-bold text-gray-900">
+        <h1 class="text-2xl font-bold text-blue-500">
           Aktivasi Akun CMSP
         </h1>
 
-        <p class="mt-2 text-sm text-gray-600">
+        <p class="mt-2 text-sm text-slate-600">
           Buat kata sandi untuk mulai menggunakan akun sertifikasi coaching
           dan mentoring.
         </p>
@@ -114,7 +114,7 @@ async function activateAccount() {
         <div>
           <label
             for="password"
-            class="mb-2 block text-sm font-medium text-gray-700"
+            class="mb-2 block text-sm font-medium text-slate-700"
           >
             Kata Sandi Baru
           </label>
@@ -134,7 +134,7 @@ async function activateAccount() {
         <div>
           <label
             for="confirmPassword"
-            class="mb-2 block text-sm font-medium text-gray-700"
+            class="mb-2 block text-sm font-medium text-slate-700"
           >
             Konfirmasi Kata Sandi
           </label>
@@ -151,7 +151,7 @@ async function activateAccount() {
           />
         </div>
 
-        <p class="text-xs text-gray-500">
+        <p class="text-xs text-slate-600">
           Gunakan kata sandi minimal 12 karakter dan jangan membagikannya
           kepada orang lain.
         </p>
@@ -173,7 +173,7 @@ async function activateAccount() {
         </button>
       </form>
 
-      <p class="mt-6 text-center text-xs text-gray-400">
+      <p class="mt-6 text-center text-xs text-slate-500">
         Sistem Sertifikasi Coaching dan Mentoring (CMSP)
       </p>
     </section>

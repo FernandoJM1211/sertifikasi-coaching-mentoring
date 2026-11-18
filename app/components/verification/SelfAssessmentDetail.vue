@@ -168,8 +168,8 @@ async function confirmDecision() {
     <!-- Header: judul kiri; Kembali + status kanan -->
     <div class="flex items-start justify-between gap-4">
       <div class="min-w-0">
-        <h1 class="text-2xl font-semibold text-slate-900">Detail Self Assessment</h1>
-        <p class="mt-1 text-sm text-slate-500">
+        <h1 class="text-2xl font-semibold text-blue-500">Detail Self Assessment</h1>
+        <p class="mt-1 text-sm text-slate-600">
           Pemeriksaan CMSP-01 dan CMSP-02 peserta serta keputusan verifikasi.
         </p>
       </div>
@@ -204,27 +204,27 @@ async function confirmDecision() {
       <UCard class="border border-primary/30 bg-white/90 shadow-sm">
         <dl class="grid gap-x-6 gap-y-5 text-center text-sm sm:grid-cols-2 lg:grid-cols-3">
           <div>
-            <dt class="text-slate-500">Nama Peserta</dt>
+            <dt class="text-slate-600">Nama Peserta</dt>
             <dd class="mt-1 font-medium text-slate-900">{{ applicantName || '-' }}</dd>
           </div>
           <div>
-            <dt class="text-slate-500">NIP</dt>
+            <dt class="text-slate-600">NIP</dt>
             <dd class="mt-1 font-medium text-slate-900">{{ applicantNip || '-' }}</dd>
           </div>
           <div>
-            <dt class="text-slate-500">Instansi</dt>
+            <dt class="text-slate-600">Instansi</dt>
             <dd class="mt-1 font-medium text-slate-900">{{ applicantInstitution || '-' }}</dd>
           </div>
           <div>
-            <dt class="text-slate-500">Periode</dt>
+            <dt class="text-slate-600">Periode</dt>
             <dd class="mt-1 font-medium text-slate-900">{{ data.certification.period_name || '-' }}</dd>
           </div>
           <div>
-            <dt class="text-slate-500">Dikirim</dt>
+            <dt class="text-slate-600">Dikirim</dt>
             <dd class="mt-1 font-medium text-slate-900">{{ formatDateTime(data.submittedAt) }}</dd>
           </div>
           <div>
-            <dt class="text-slate-500">Perbaikan</dt>
+            <dt class="text-slate-600">Perbaikan</dt>
             <dd class="mt-1 font-medium text-slate-900">
               {{ data.revisionCount > 0 ? `${data.revisionCount} kali` : 'Belum pernah' }}
             </dd>
@@ -260,7 +260,7 @@ async function confirmDecision() {
               >
                 {{ review.decision === 'VERIFIED' ? 'Terverifikasi' : 'Minta Perbaikan' }}
               </UBadge>
-              <span class="text-xs text-slate-500">
+              <span class="text-xs text-slate-600">
                 {{ review.reviewed_by_name }} · {{ formatDateTime(review.reviewed_at) }}
               </span>
             </div>
@@ -300,7 +300,7 @@ async function confirmDecision() {
             </span>
             <span class="min-w-0">
               <span class="block font-semibold text-slate-900">{{ tab.title }}</span>
-              <span class="mt-1 block text-sm text-slate-500">{{ tab.description }}</span>
+              <span class="mt-1 block text-sm text-slate-600">{{ tab.description }}</span>
               <span
                 v-if="(tab.id === 'CMSP01' ? cmsp01Note : cmsp02Note).trim()"
                 class="mt-2 inline-flex items-center gap-1.5 text-xs font-medium text-amber-600"
@@ -371,7 +371,7 @@ async function confirmDecision() {
         <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div class="min-w-0">
             <h2 class="font-semibold text-slate-900">Keputusan Verifikasi</h2>
-            <p class="mt-1 text-sm text-slate-500">
+            <p class="mt-1 text-sm text-slate-600">
               Catatan perbaikan:
               <span :class="cmsp01Note.trim() ? 'font-medium text-slate-700' : ''">
                 CMSP-01 {{ cmsp01Note.trim() ? 'terisi' : 'kosong' }}

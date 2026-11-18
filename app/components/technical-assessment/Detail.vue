@@ -187,10 +187,10 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', onBeforeUnload)
     <!-- Header: judul kiri; Kembali + status kanan -->
     <div class="flex items-start justify-between gap-4">
       <div class="min-w-0">
-        <h1 class="text-xl font-semibold text-slate-900 sm:text-2xl">
+        <h1 class="text-xl font-semibold text-blue-500 sm:text-2xl">
           {{ data?.period.period_name || 'Penilaian CMSP-02' }}
         </h1>
-        <p class="mt-1 text-sm text-slate-500">Penilaian CMSP-02 oleh Asesor Teknis</p>
+        <p class="mt-1 text-sm text-slate-600">Penilaian CMSP-02 oleh Asesor Teknis</p>
       </div>
       <div class="flex shrink-0 flex-col items-end gap-2">
         <UButton :to="backPath" color="neutral" variant="outline" icon="i-lucide-arrow-left" size="sm">Kembali</UButton>
@@ -202,7 +202,7 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', onBeforeUnload)
 
     <div v-if="loading && !data" class="flex items-center justify-center py-12">
       <UIcon name="i-lucide-loader-circle" class="size-6 animate-spin text-primary" />
-      <span class="ml-3 text-sm text-slate-500">Memuat data penilaian...</span>
+      <span class="ml-3 text-sm text-slate-600">Memuat data penilaian...</span>
     </div>
 
     <UAlert v-else-if="errorMessage || !data" color="error" variant="soft" icon="i-lucide-circle-alert" :title="errorMessage || 'Data penilaian belum dapat dimuat.'">
@@ -216,15 +216,15 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', onBeforeUnload)
       <UCard>
         <div class="grid gap-x-6 gap-y-5 text-center text-sm sm:grid-cols-3">
           <div>
-            <p class="text-slate-500">Nama Peserta</p>
+            <p class="text-slate-600">Nama Peserta</p>
             <p class="font-medium text-slate-800">{{ data.participant.full_name || '-' }}</p>
           </div>
           <div>
-            <p class="text-slate-500">NIP</p>
+            <p class="text-slate-600">NIP</p>
             <p class="font-medium text-slate-800">{{ data.participant.nip || '-' }}</p>
           </div>
           <div>
-            <p class="text-slate-500">Instansi</p>
+            <p class="text-slate-600">Instansi</p>
             <p class="font-medium text-slate-800">{{ data.participant.institution_name || '-' }}</p>
           </div>
         </div>
@@ -298,7 +298,7 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', onBeforeUnload)
           <div class="flex flex-wrap items-start justify-between gap-3">
             <div>
               <h2 class="font-semibold text-slate-900">Kesimpulan Asesor Teknis</h2>
-              <p class="mt-1 text-sm text-slate-500">
+              <p class="mt-1 text-sm text-slate-600">
                 {{ assessedCount }}/{{ totalUnits }} unit dinilai ·
                 <span class="font-medium text-emerald-700">{{ kCount }} K</span> ·
                 <span class="font-medium text-rose-700">{{ bkCount }} BK</span>
@@ -356,7 +356,7 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', onBeforeUnload)
               Kirim Penilaian
             </UButton>
           </div>
-          <p v-if="editable && submitError" class="text-right text-xs text-slate-500">{{ submitError }}</p>
+          <p v-if="editable && submitError" class="text-right text-xs text-slate-600">{{ submitError }}</p>
         </div>
       </UCard>
     </template>

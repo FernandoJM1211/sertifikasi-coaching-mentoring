@@ -25,7 +25,7 @@ function formatDateTime(value?: string) {
       <div class="min-w-0 flex-1">
         <div class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
           <p class="text-sm font-semibold text-slate-900">{{ title }}</p>
-          <p v-if="formatDateTime(reviewedAt)" class="text-xs text-slate-500">
+          <p v-if="formatDateTime(reviewedAt)" class="text-xs text-slate-600">
             {{ formatDateTime(reviewedAt) }}
           </p>
         </div>

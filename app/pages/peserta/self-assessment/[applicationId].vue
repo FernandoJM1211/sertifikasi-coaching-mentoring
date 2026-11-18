@@ -256,10 +256,10 @@ onBeforeUnmount(() => {
       <div class="mb-6 flex flex-wrap items-start justify-between gap-4">
         <div class="min-w-0">
           <p class="text-sm font-medium text-primary">Pengajuan Sertifikasi</p>
-          <h1 class="mt-1 text-2xl font-semibold text-slate-900">
+          <h1 class="mt-1 text-2xl font-semibold text-blue-500">
             {{ data.certification.period_name || 'Formulir Self Assessment' }}
           </h1>
-          <p class="mt-2 text-sm text-slate-500">
+          <p class="mt-2 text-sm text-slate-600">
             Lengkapi kedua formulir berikut, lalu kirim bersamaan untuk diverifikasi.
           </p>
         </div>
@@ -306,7 +306,7 @@ onBeforeUnmount(() => {
             </span>
             <span class="min-w-0">
               <span class="block font-semibold text-slate-900">{{ tab.title }}</span>
-              <span class="mt-1 block text-sm text-slate-500">{{ tab.description }}</span>
+              <span class="mt-1 block text-sm text-slate-600">{{ tab.description }}</span>
               <span
                 v-if="tab.id === 'CMSP01' ? revisionNotes.cmsp01 : revisionNotes.cmsp02"
                 class="mt-2 inline-flex items-center gap-1.5 text-xs font-medium text-amber-600"

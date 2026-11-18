@@ -4,10 +4,10 @@
     <!-- Header: judul kiri; Kembali kanan -->
     <div class="flex items-start justify-between gap-4">
       <div class="min-w-0">
-        <h1 class="text-2xl font-semibold text-slate-900">
+        <h1 class="text-2xl font-semibold text-blue-500">
           Tambah Periode Sertifikasi
         </h1>
-        <p class="mt-1 text-sm text-slate-500">
+        <p class="mt-1 text-sm text-slate-600">
           Isi informasi periode sertifikasi yang akan dikelola.
         </p>
       </div>
@@ -81,7 +81,7 @@
             @update:model-value="handleCategoryChange"
           />
 
-          <p class="text-xs text-slate-500">
+          <p class="text-xs text-slate-600">
             Pilihan kategori mengikuti jenis sertifikasi yang dipilih.
           </p>
         </div>

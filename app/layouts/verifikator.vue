@@ -26,8 +26,8 @@ const navigation = [
 
 <template>
   <LayoutDashboardShell
-    panel-label="Sistem Sertifikasi"
-    header-title="Dashboard Verifikator"
+    panel-label="Panel Verifikator"
+    header-title="Panel Verifikator"
     base-path="/verifikator"
     :navigation="navigation"
   >

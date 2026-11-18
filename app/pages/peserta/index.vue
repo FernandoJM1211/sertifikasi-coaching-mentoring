@@ -209,10 +209,10 @@ const tasks = computed<TimelineTask[]>(() => {
 <template>
   <UContainer class="space-y-6 pb-8">
     <div class="space-y-2">
-      <h1 class="text-3xl font-semibold tracking-tight text-slate-900">
+      <h1 class="text-3xl font-semibold tracking-tight text-blue-500">
         {{ periodName || 'Beranda' }}
       </h1>
-      <p class="text-sm leading-6 text-slate-500">
+      <p class="text-sm leading-6 text-slate-600">
         Timeline sertifikasi dan tahapan yang sedang berlangsung.
       </p>
     </div>
@@ -241,7 +241,7 @@ const tasks = computed<TimelineTask[]>(() => {
           <UIcon name="i-lucide-calendar-x" class="size-8 text-blue-500" />
         </div>
         <h2 class="text-xl font-semibold text-slate-900">Anda Belum Terdaftar pada Periode Aktif</h2>
-        <p class="mt-3 max-w-lg text-sm leading-6 text-slate-500">
+        <p class="mt-3 max-w-lg text-sm leading-6 text-slate-600">
           Saat ini Anda tidak terdaftar pada periode sertifikasi Coaching dan Mentoring yang sedang berlangsung.
           Timeline dan tahapan sertifikasi akan tampil di sini setelah Anda terdaftar pada periode yang aktif.
         </p>

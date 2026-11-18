@@ -208,7 +208,7 @@ async function confirmToggleStatus() {
   <div class="mx-auto max-w-7xl space-y-6">
     <section class="flex flex-wrap items-start justify-between gap-4">
       <div class="min-w-0">
-        <h1 class="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">Bank Soal</h1>
+        <h1 class="text-2xl font-bold tracking-tight text-blue-500 sm:text-3xl">Bank Soal</h1>
         <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
           Kumpulan soal pilihan ganda evaluasi. Soal aktif dapat disusun menjadi paket soal.
         </p>
@@ -218,7 +218,7 @@ async function confirmToggleStatus() {
 
     <div v-if="loading && questions.length === 0" class="flex items-center justify-center py-12">
       <UIcon name="i-lucide-loader-circle" class="size-6 animate-spin text-primary" />
-      <span class="ml-3 text-sm text-slate-500">Memuat bank soal...</span>
+      <span class="ml-3 text-sm text-slate-600">Memuat bank soal...</span>
     </div>
 
     <UAlert v-else-if="errorMessage" color="error" variant="soft" icon="i-lucide-circle-alert" :title="errorMessage">
@@ -245,11 +245,11 @@ async function confirmToggleStatus() {
       </template>
 
       <div v-if="filteredQuestions.length === 0" class="py-10 text-center">
-        <UIcon name="i-lucide-library" class="mx-auto size-9 text-slate-400" />
+        <UIcon name="i-lucide-library" class="mx-auto size-9 text-slate-500" />
         <p class="mt-3 font-medium text-slate-700">
           {{ questions.length === 0 ? 'Belum Ada Soal' : 'Tidak ada soal yang sesuai' }}
         </p>
-        <p class="mt-1 text-sm text-slate-500">
+        <p class="mt-1 text-sm text-slate-600">
           {{ questions.length === 0 ? 'Tambahkan soal pertama untuk mulai menyusun bank soal.' : 'Coba ubah filter atau kata pencarian.' }}
         </p>
         <UButton v-if="questions.length === 0" class="mt-4" icon="i-lucide-plus" @click="openCreate">Tambah Soal</UButton>
@@ -334,7 +334,7 @@ async function confirmToggleStatus() {
           <div class="space-y-2">
             <div class="flex items-center justify-between gap-3">
               <p class="text-sm font-medium text-slate-700">Opsi Jawaban <span class="text-red-500">*</span></p>
-              <p class="text-xs text-slate-500">Klik huruf untuk menandai jawaban benar.</p>
+              <p class="text-xs text-slate-600">Klik huruf untuk menandai jawaban benar.</p>
             </div>
 
             <div v-for="(_, index) in form.options" :key="index" class="flex items-center gap-2">
@@ -384,7 +384,7 @@ async function confirmToggleStatus() {
             </div>
           </div>
 
-          <p v-if="formError" class="text-sm text-slate-500">{{ formError }}</p>
+          <p v-if="formError" class="text-sm text-slate-600">{{ formError }}</p>
         </div>
       </template>
 

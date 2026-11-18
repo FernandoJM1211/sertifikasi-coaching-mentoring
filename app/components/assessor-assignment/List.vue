@@ -356,10 +356,10 @@ watch([activeFilter, searchQuery], resetTablePage)
     <!-- Header: judul kiri; Kembali + status periode kanan -->
     <div class="flex items-start justify-between gap-4">
       <div class="min-w-0">
-        <h1 class="text-xl font-semibold text-slate-900 sm:text-2xl">
+        <h1 class="text-xl font-semibold text-blue-500 sm:text-2xl">
           {{ data?.period.period_name || 'Penugasan Asesor' }}
         </h1>
-        <p class="mt-1 text-sm text-slate-500">
+        <p class="mt-1 text-sm text-slate-600">
           Penugasan Asesor · ID Periode:
           <span class="font-medium text-slate-700">{{ periodId }}</span>
         </p>
@@ -387,7 +387,7 @@ watch([activeFilter, searchQuery], resetTablePage)
 
     <div v-if="loading && !data" class="flex items-center justify-center py-12">
       <UIcon name="i-lucide-loader-circle" class="size-6 animate-spin text-primary" />
-      <span class="ml-3 text-sm text-slate-500">Memuat data penugasan...</span>
+      <span class="ml-3 text-sm text-slate-600">Memuat data penugasan...</span>
     </div>
 
     <UAlert
@@ -431,7 +431,7 @@ watch([activeFilter, searchQuery], resetTablePage)
               <div class="min-w-0">
                 <p class="font-semibold text-slate-900">
                   {{ ROLE_LABELS[section.role] }}
-                  <span class="font-normal text-slate-500">({{ section.data?.period.length ?? 0 }})</span>
+                  <span class="font-normal text-slate-600">({{ section.data?.period.length ?? 0 }})</span>
                 </p>
               </div>
               <UButton
@@ -458,10 +458,10 @@ watch([activeFilter, searchQuery], resetTablePage)
                 class="flex items-center justify-between gap-3 py-2 text-sm"
               >
                 <span class="min-w-0 truncate text-slate-700">{{ assessor.full_name }}</span>
-                <span class="shrink-0 text-xs text-slate-500">{{ assessor.assigned_count }} peserta</span>
+                <span class="shrink-0 text-xs text-slate-600">{{ assessor.assigned_count }} peserta</span>
               </li>
             </ul>
-            <p v-else class="mt-4 rounded-lg border border-dashed border-slate-200 p-3 text-center text-sm text-slate-400">
+            <p v-else class="mt-4 rounded-lg border border-dashed border-slate-200 p-3 text-center text-sm text-slate-500">
               Belum ada {{ ROLE_LABELS[section.role] }} pada periode ini.
             </p>
           </UCard>
@@ -496,7 +496,7 @@ watch([activeFilter, searchQuery], resetTablePage)
             <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div>
                 <h2 class="font-semibold text-slate-900">Daftar Penugasan Asesor</h2>
-                <p class="mt-1 text-sm text-slate-500">
+                <p class="mt-1 text-sm text-slate-600">
                   Centang beberapa peserta untuk menugaskan asesor secara bersamaan.
                 </p>
               </div>
@@ -559,9 +559,9 @@ watch([activeFilter, searchQuery], resetTablePage)
         </template>
 
         <div v-if="filteredItems.length === 0" class="py-8 text-center">
-          <UIcon name="i-lucide-inbox" class="mx-auto size-9 text-slate-400" />
+          <UIcon name="i-lucide-inbox" class="mx-auto size-9 text-slate-500" />
           <p class="mt-3 font-medium text-slate-700">Tidak ada data yang sesuai</p>
-          <p class="mt-1 text-sm text-slate-500">
+          <p class="mt-1 text-sm text-slate-600">
             {{ data.items.length === 0
               ? 'Belum ada peserta dengan self assessment terverifikasi.'
               : 'Coba ubah filter atau kata pencarian.' }}
@@ -604,13 +604,13 @@ watch([activeFilter, searchQuery], resetTablePage)
                 </td>
                 <td class="px-4 py-4">
                   <p class="font-medium text-slate-800">{{ item.full_name }}</p>
-                  <p class="text-xs text-slate-500">{{ item.nip }}</p>
+                  <p class="text-xs text-slate-600">{{ item.nip }}</p>
                 </td>
                 <td class="px-4 py-4 text-slate-600">{{ item.institution_name }}</td>
-                <td class="px-4 py-4" :class="item.technical_assessor ? 'text-slate-700' : 'text-slate-400'">
+                <td class="px-4 py-4" :class="item.technical_assessor ? 'text-slate-700' : 'text-slate-500'">
                   {{ item.technical_assessor?.full_name || 'Belum ditugaskan' }}
                 </td>
-                <td class="px-4 py-4" :class="item.public_assessor ? 'text-slate-700' : 'text-slate-400'">
+                <td class="px-4 py-4" :class="item.public_assessor ? 'text-slate-700' : 'text-slate-500'">
                   {{ item.public_assessor?.full_name || 'Belum ditugaskan' }}
                 </td>
                 <td class="px-4 py-4 text-center">
@@ -707,7 +707,7 @@ watch([activeFilter, searchQuery], resetTablePage)
               />
             </UFormField>
 
-            <p class="text-xs leading-5 text-slate-500">
+            <p class="text-xs leading-5 text-slate-600">
               Pilih "Tidak diubah" untuk mempertahankan asesor yang sudah ada.
               Angka di samping nama adalah jumlah peserta yang ditangani asesor tersebut pada periode ini.
             </p>
@@ -748,7 +748,7 @@ watch([activeFilter, searchQuery], resetTablePage)
             />
 
             <div class="max-h-80 overflow-y-auto rounded-lg border border-slate-200">
-              <p v-if="manageCandidates.length === 0" class="p-4 text-center text-sm text-slate-500">
+              <p v-if="manageCandidates.length === 0" class="p-4 text-center text-sm text-slate-600">
                 Tidak ada akun asesor aktif. Akun asesor dibuat oleh Super Admin melalui menu Manajemen Akun.
               </p>
               <label
@@ -763,11 +763,11 @@ watch([activeFilter, searchQuery], resetTablePage)
                   />
                   <span class="truncate text-sm text-slate-700">{{ candidate.full_name }}</span>
                 </span>
-                <span class="shrink-0 text-xs text-slate-500">{{ candidate.assigned_count }} peserta</span>
+                <span class="shrink-0 text-xs text-slate-600">{{ candidate.assigned_count }} peserta</span>
               </label>
             </div>
 
-            <p class="text-xs leading-5 text-slate-500">
+            <p class="text-xs leading-5 text-slate-600">
               {{ manageSelection.length }} asesor dipilih. Asesor yang masih menangani peserta
               tidak dapat dikeluarkan dari periode.
             </p>

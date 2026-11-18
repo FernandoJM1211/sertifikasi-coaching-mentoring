@@ -92,22 +92,18 @@ async function handleLogin() {
 </script>
 
 <template>
-  <div class="flex min-h-[65vh] items-center justify-center py-8">
+  <div class="flex min-h-[65vh] items-center justify-center">
     <div class="w-full max-w-md">
       <div class="mb-7 text-center">
         <div class="mx-auto mb-5 flex size-16 items-center justify-center overflow-hidden rounded-2xl bg-white shadow-lg shadow-blue-200/60 ring-1 ring-slate-200">
           <img src="/logo-lan.png" alt="Logo LAN" class="size-full scale-150 object-contain">
         </div>
 
-        <p class="mb-2 text-sm font-medium text-primary">
-          Selamat datang kembali
-        </p>
-
-        <h1 class="text-3xl font-semibold tracking-tight text-slate-900">
+        <h1 class="text-3xl font-semibold tracking-tight text-blue-500">
           Masuk ke akun Anda
         </h1>
 
-        <p class="mt-3 text-sm leading-6 text-slate-500">
+        <p class="mt-3 text-sm leading-6 text-slate-600">
           Masuk untuk melanjutkan proses Sertifikasi Coaching dan Mentoring
           Sektor Publik.
         </p>
@@ -213,7 +209,7 @@ async function handleLogin() {
             </div>
 
             <div class="relative flex justify-center">
-              <span class="bg-white px-3 text-xs text-slate-400">
+              <span class="bg-white px-3 text-xs text-slate-500">
                 Belum memiliki akun?
               </span>
             </div>
@@ -231,7 +227,7 @@ async function handleLogin() {
         </form>
       </UCard>
 
-      <p class="mt-6 text-center text-xs leading-5 text-slate-500">
+      <p class="mt-6 text-center text-xs leading-5 text-slate-600">
         Dengan masuk, Anda dapat mengakses layanan sesuai dengan peran dan
         status akun Anda.
       </p>

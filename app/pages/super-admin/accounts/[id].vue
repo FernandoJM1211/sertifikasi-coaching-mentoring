@@ -8,11 +8,11 @@
           Pengaturan Akun
         </p>
 
-        <h1 class="mt-2 text-3xl font-bold tracking-tight text-slate-900">
+        <h1 class="mt-2 text-3xl font-bold tracking-tight text-blue-500">
           Profil Akun Staf
         </h1>
 
-        <p class="mt-2 text-slate-500">
+        <p class="mt-2 text-slate-600">
           Informasi akun dan status akses pengguna dalam sistem sertifikasi.
         </p>
       </div>
@@ -30,7 +30,7 @@
 
     <!-- Loading -->
     <UCard v-if="status === 'pending'">
-      <div class="flex items-center justify-center gap-3 py-12 text-sm text-slate-500">
+      <div class="flex items-center justify-center gap-3 py-12 text-sm text-slate-600">
         <UIcon
           name="i-lucide-loader-circle"
           class="size-5 animate-spin"
@@ -52,7 +52,7 @@
             Informasi akun tidak dapat dimuat
           </p>
 
-          <p class="mt-1 text-sm text-slate-500">
+          <p class="mt-1 text-sm text-slate-600">
             Akun mungkin tidak ditemukan atau terjadi kendala saat mengambil data.
           </p>
 
@@ -89,7 +89,7 @@
               {{ account.full_name || 'Nama belum tersedia' }}
             </h2>
 
-            <p class="mt-1 break-all text-sm text-slate-500">
+            <p class="mt-1 break-all text-sm text-slate-600">
               {{ account.username_email }}
             </p>
 
@@ -127,7 +127,7 @@
                 Informasi Akun
               </h2>
 
-              <p class="mt-1 text-sm text-slate-500">
+              <p class="mt-1 text-sm text-slate-600">
                 Identitas dan hak akses akun yang tercatat dalam sistem.
               </p>
             </div>
@@ -140,7 +140,7 @@
             :key="item.label"
             class="min-w-0 rounded-xl border border-slate-200/80 bg-slate-50/50 p-4"
           >
-            <p class="text-sm text-slate-500">
+            <p class="text-sm text-slate-600">
               {{ item.label }}
             </p>
 
@@ -167,7 +167,7 @@
                 Riwayat Akun
               </h2>
 
-              <p class="mt-1 text-sm text-slate-500">
+              <p class="mt-1 text-sm text-slate-600">
                 Informasi waktu pembuatan dan aktivitas akun yang tersedia.
               </p>
             </div>
@@ -180,7 +180,7 @@
             :key="item.label"
             class="min-w-0 rounded-xl border border-slate-200/80 bg-slate-50/50 p-4"
           >
-            <p class="text-sm text-slate-500">
+            <p class="text-sm text-slate-600">
               {{ item.label }}
             </p>
 

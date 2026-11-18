@@ -17,7 +17,7 @@ const navigation = [
 <template>
   <LayoutDashboardShell
     panel-label="Panel Asesor Teknis"
-    header-title="Dashboard Asesor Teknis"
+    header-title="Panel Asesor Teknis"
     base-path="/asesor-teknis"
     :navigation="navigation"
   >

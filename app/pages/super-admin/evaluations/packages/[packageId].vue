@@ -197,10 +197,10 @@ async function confirmToggleStatus() {
     <!-- Header: judul kiri; Kembali + status kanan -->
     <div class="flex items-start justify-between gap-4">
       <div class="min-w-0">
-        <h1 class="text-2xl font-semibold text-slate-900">
+        <h1 class="text-2xl font-semibold text-blue-500">
           {{ isNew ? 'Buat Paket Soal' : 'Ubah Paket Soal' }}
         </h1>
-        <p class="mt-1 text-sm text-slate-500">
+        <p class="mt-1 text-sm text-slate-600">
           {{ isNew ? 'Pilih soal dari bank soal untuk dimasukkan ke paket.' : 'Atur nama paket dan soal di dalamnya.' }}
         </p>
       </div>
@@ -214,7 +214,7 @@ async function confirmToggleStatus() {
 
     <div v-if="loading" class="flex items-center justify-center py-12">
       <UIcon name="i-lucide-loader-circle" class="size-6 animate-spin text-primary" />
-      <span class="ml-3 text-sm text-slate-500">Memuat data paket...</span>
+      <span class="ml-3 text-sm text-slate-600">Memuat data paket...</span>
     </div>
 
     <UAlert v-else-if="errorMessage" color="error" variant="soft" icon="i-lucide-circle-alert" :title="errorMessage">
@@ -262,12 +262,12 @@ async function confirmToggleStatus() {
                 {{ period.period_name }}
               </UButton>
             </div>
-            <p class="text-xs text-slate-500">
+            <p class="text-xs text-slate-600">
               Setelah paket diubah, buka perencanaan periode di atas lalu tekan <span class="font-medium">Terapkan Ulang</span>
               agar perubahan berlaku. Periode tersebut memakai {{ detail.required_count }} soal per peserta.
             </p>
           </div>
-          <p v-else class="mt-1 text-sm text-slate-500">Belum dipakai pada perencanaan evaluasi periode mana pun.</p>
+          <p v-else class="mt-1 text-sm text-slate-600">Belum dipakai pada perencanaan evaluasi periode mana pun.</p>
         </div>
       </UCard>
 
@@ -277,7 +277,7 @@ async function confirmToggleStatus() {
             <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
               <div>
                 <h2 class="font-semibold text-slate-900">Soal dalam Paket</h2>
-                <p class="mt-1 text-sm text-slate-500">
+                <p class="mt-1 text-sm text-slate-600">
                   <span class="font-semibold text-slate-800">{{ selected.length }}</span> soal dipilih.
                   <span v-if="archivedSelectedCount" class="text-amber-600">{{ archivedSelectedCount }} di antaranya sudah diarsipkan.</span>
                 </p>
@@ -292,11 +292,11 @@ async function confirmToggleStatus() {
         </template>
 
         <div v-if="filteredQuestions.length === 0" class="py-10 text-center">
-          <UIcon name="i-lucide-library" class="mx-auto size-9 text-slate-400" />
+          <UIcon name="i-lucide-library" class="mx-auto size-9 text-slate-500" />
           <p class="mt-3 font-medium text-slate-700">
             {{ availableQuestions.length === 0 ? 'Bank soal masih kosong' : 'Tidak ada soal yang sesuai' }}
           </p>
-          <p class="mt-1 text-sm text-slate-500">
+          <p class="mt-1 text-sm text-slate-600">
             {{ availableQuestions.length === 0 ? 'Tambahkan soal terlebih dahulu melalui menu Bank Soal.' : 'Coba ubah filter atau kata pencarian.' }}
           </p>
           <UButton v-if="availableQuestions.length === 0" class="mt-4" to="/super-admin/evaluations/questions" icon="i-lucide-library">
@@ -370,7 +370,7 @@ async function confirmToggleStatus() {
         <span v-else />
 
         <div class="flex items-center gap-3">
-          <p v-if="formError" class="hidden text-sm text-slate-500 md:block">{{ formError }}</p>
+          <p v-if="formError" class="hidden text-sm text-slate-600 md:block">{{ formError }}</p>
           <UButton :to="BACK_PATH" color="neutral" variant="outline" :disabled="saving">Batal</UButton>
           <UButton icon="i-lucide-save" :loading="saving" :disabled="saving || Boolean(formError)" @click="save">Simpan Paket</UButton>
         </div>

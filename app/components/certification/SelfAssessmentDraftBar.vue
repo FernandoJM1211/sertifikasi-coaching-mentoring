@@ -18,7 +18,7 @@ const savedLabel = computed(() =>
   props.saving ? 'Menyimpan perubahan...' : 'Ada perubahan yang belum disimpan.',
 )
 
-const savedClass = computed(() => (props.saving ? 'text-slate-500' : 'text-warning-600'))
+const savedClass = computed(() => (props.saving ? 'text-slate-600' : 'text-warning-600'))
 </script>
 
 <template>

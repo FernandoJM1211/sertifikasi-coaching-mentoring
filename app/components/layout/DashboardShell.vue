@@ -8,9 +8,9 @@ export type DashboardNavItem = {
 }
 
 const props = defineProps<{
-  /** Subjudul di bawah nama sistem pada sidebar. */
+  /** Nama panel sesuai role (sub judul header), mis. "Panel Verifikator". */
   panelLabel: string
-  /** Judul pada header konten. */
+  /** Judul header bila halaman tidak cocok dengan menu mana pun. */
   headerTitle: string
   navigation: DashboardNavItem[]
   /** Prefix route role, mis. "/verifikator". */
@@ -36,6 +36,19 @@ const userInitial = computed(() => (
 ))
 
 const roleLabel = computed(() => getRoleLabel(currentUser.value?.role))
+
+/** Judul header mengikuti menu yang sedang dibuka. */
+const currentTitle = computed(() => (
+  props.navigation.find(isActive)?.label || props.headerTitle
+))
+
+const todayLabel = new Intl.DateTimeFormat('id-ID', {
+  weekday: 'long',
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+  timeZone: 'Asia/Jakarta',
+}).format(new Date())
 
 function isActive(item: DashboardNavItem) {
   if (item.exact) {
@@ -83,17 +96,17 @@ async function handleLogout() {
 
         <div class="min-w-0">
           <p class="truncate text-sm font-semibold text-slate-900">
-            Coaching &amp; Mentoring
+            Sertifikasi CMSP
           </p>
-          <p class="truncate text-xs text-slate-500">
-            {{ panelLabel }}
+          <p class="mt-0.5 truncate text-xs text-slate-600">
+            Lembaga Administrasi Negara
           </p>
         </div>
       </div>
 
       <!-- Navigasi -->
       <nav class="min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-4 py-5">
-        <p class="mb-3 px-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+        <p class="mb-3 px-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
           Menu Utama
         </p>
 
@@ -115,7 +128,8 @@ async function handleLogout() {
       <div class="relative shrink-0 border-t border-slate-300 p-4">
         <button
           type="button"
-          class="flex w-full items-center gap-3 rounded-xl border border-transparent p-2 text-left transition hover:border-slate-200 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-primary"
+          class="flex w-full items-center gap-3 rounded-xl border border-slate-300 bg-slate-50 p-2.5 text-left shadow-sm transition hover:border-blue-300 hover:bg-blue-50/60 focus-visible:outline-2 focus-visible:outline-primary"
+          :class="{ 'border-blue-300 bg-blue-50/60': isProfileMenuOpen }"
           :aria-expanded="isProfileMenuOpen"
           aria-label="Buka menu profil"
           @click="isProfileMenuOpen = !isProfileMenuOpen"
@@ -131,14 +145,14 @@ async function handleLogout() {
             <p class="truncate text-sm font-semibold text-slate-900">
               {{ displayName }}
             </p>
-            <p class="truncate text-xs text-slate-500">
+            <p class="truncate text-xs text-slate-600">
               {{ roleLabel }}
             </p>
           </div>
 
           <UIcon
             :name="isProfileMenuOpen ? 'i-lucide-chevron-down' : 'i-lucide-chevron-up'"
-            class="size-4 shrink-0 text-slate-500"
+            class="size-4 shrink-0 text-slate-600"
           />
         </button>
 
@@ -151,7 +165,7 @@ async function handleLogout() {
             <p class="truncate text-sm font-semibold text-slate-900">
               {{ displayName }}
             </p>
-            <p class="break-all text-xs text-slate-500">
+            <p class="break-all text-xs text-slate-600">
               {{ currentUser?.username_email || '' }}
             </p>
             <UBadge class="mt-2" color="info" variant="subtle">
@@ -200,25 +214,36 @@ async function handleLogout() {
     <div class="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
       <header class="z-10 flex h-[76px] shrink-0 items-center justify-between border-b border-slate-300 bg-white/90 px-5 backdrop-blur-xl sm:px-8">
         <div class="min-w-0">
-          <p class="truncate text-sm font-semibold text-slate-900">
-            {{ headerTitle }}
+          <p class="truncate text-base font-semibold text-slate-900">
+            {{ currentTitle }}
           </p>
-          <p class="truncate text-xs text-slate-500">
-            Sistem Sertifikasi Coaching dan Mentoring
+          <p class="truncate text-xs text-slate-600">
+            {{ panelLabel }}
           </p>
         </div>
 
-        <UButton
+        <div class="flex shrink-0 items-center gap-3">
+          <div class="hidden items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 md:flex">
+            <UIcon name="i-lucide-calendar-days" class="size-4 text-blue-500" />
+            {{ todayLabel }}
+          </div>
+
+          <UButton
           icon="i-lucide-bell"
           color="neutral"
           variant="ghost"
           square
           aria-label="Notifikasi"
-        />
+          />
+        </div>
       </header>
 
-      <main class="min-h-0 flex-1 overflow-x-hidden overflow-y-auto p-4 sm:p-6 lg:p-8">
-        <slot />
+      <main class="flex min-h-0 flex-1 flex-col overflow-x-hidden overflow-y-auto px-4 pt-4 pb-3 sm:px-6 sm:pt-6 sm:pb-4 lg:px-8 lg:pt-8 lg:pb-4">
+        <div class="min-w-0 flex-1">
+          <slot />
+        </div>
+
+        <LayoutAppFooter variant="compact" />
       </main>
     </div>
   </div>

@@ -7,16 +7,14 @@ import {
 import {
   createUser,
   findUserByEmail,
+  findUserById,
   findUsersByPersonId,
 } from '../repositories/user.repository'
 import {
   createAccountActivationToken,
   revokeActiveTokensForUser,
 } from '../repositories/account-activation-token.repository'
-import {
-  generateAuthToken,
-  hashAuthToken,
-} from '../utils/auth-token'
+import { generateAuthToken, hashAuthToken } from '../utils/auth-token'
 import { hashPassword } from '../utils/password'
 import { sendAccountActivationEmail } from '../utils/email'
 
@@ -152,38 +150,77 @@ export async function preparePesertaAccount(
     userId = newUser.user_id
   }
 
-  // Token sebelumnya dicabut sebelum token baru diterbitkan.
-  await revokeActiveTokensForUser(userId)
+  // Email belum dikirim di tahap ini.
+  return {
+    accountStatus: 'PENDING_ACTIVATION',
+    activationEmail: {
+      recipientEmail: email,
+      activationUrl: await issueActivationUrl(userId),
+    },
+  }
+}
 
-  const rawToken = generateAuthToken()
-  const tokenHash = hashAuthToken(rawToken)
-  const expiresAt = new Date(
-    Date.now() + ACTIVATION_TOKEN_DURATION_MS,
-  ).toISOString()
-
-  await createAccountActivationToken({
-    user_id: userId,
-    token_hash: tokenHash,
-    expires_at: expiresAt,
-  })
-
+/**
+ * Menerbitkan token aktivasi baru (token lama dicabut) dan mengembalikan tautannya.
+ * Tautan selalu memakai APP_BASE_URL — di hosting harus berisi URL publik, bukan localhost.
+ */
+async function issueActivationUrl(userId: string): Promise<string> {
   const appBaseUrl = process.env.APP_BASE_URL?.trim().replace(/\/+$/, '')
 
   if (!appBaseUrl) {
     throw new Error('APP_BASE_URL belum dikonfigurasi.')
   }
 
+  // Token sebelumnya dicabut sebelum token baru diterbitkan.
+  await revokeActiveTokensForUser(userId)
+
+  const rawToken = generateAuthToken()
+  const expiresAt = new Date(
+    Date.now() + ACTIVATION_TOKEN_DURATION_MS,
+  ).toISOString()
+
+  await createAccountActivationToken({
+    user_id: userId,
+    token_hash: hashAuthToken(rawToken),
+    expires_at: expiresAt,
+  })
+
   const activationUrl = new URL('/aktivasi-akun', appBaseUrl)
   activationUrl.searchParams.set('token', rawToken)
 
-  // Email belum dikirim di tahap ini.
-  return {
-    accountStatus: 'PENDING_ACTIVATION',
-    activationEmail: {
-      recipientEmail: email,
-      activationUrl: activationUrl.toString(),
-    },
+  return activationUrl.toString()
+}
+
+/**
+ * Kirim ulang tautan aktivasi untuk akun peserta yang belum aktif
+ * (mis. email tidak masuk, terhapus, atau tautan sudah kedaluwarsa).
+ * Tautan lama otomatis tidak berlaku lagi.
+ */
+export async function resendPesertaActivation(userId: string): Promise<{ recipientEmail: string }> {
+  const user = await findUserById(userId)
+
+  if (!user) {
+    throw createError({ statusCode: 404, statusMessage: 'Akun tidak ditemukan.' })
   }
+
+  if (user.role !== 'PESERTA') {
+    conflict('Tautan aktivasi hanya untuk akun peserta.')
+  }
+
+  if (user.account_status !== 'PENDING_ACTIVATION') {
+    conflict('Akun ini sudah aktif atau tidak berstatus menunggu aktivasi.')
+  }
+
+  const recipientEmail = user.username_email.trim().toLowerCase()
+
+  if (!recipientEmail) {
+    conflict('Email akun belum tersedia.')
+  }
+
+  const activationUrl = await issueActivationUrl(user.user_id)
+  await sendAccountActivationEmail(recipientEmail, activationUrl)
+
+  return { recipientEmail }
 }
 
 export async function sendPesertaActivationEmail(

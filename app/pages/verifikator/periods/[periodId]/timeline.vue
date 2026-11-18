@@ -8,11 +8,11 @@
           Periode Sertifikasi
         </p>
 
-        <h1 class="mt-1 text-2xl font-semibold text-slate-900">
+        <h1 class="mt-1 text-2xl font-semibold text-blue-500">
           Timeline Sertifikasi
         </h1>
 
-        <p class="mt-1 text-sm text-slate-500">
+        <p class="mt-1 text-sm text-slate-600">
           Lihat jadwal pelaksanaan setiap tahapan sertifikasi.
         </p>
       </div>
@@ -36,7 +36,7 @@
         name="i-lucide-loader-circle"
         class="size-6 animate-spin text-primary"
       />
-      <span class="ml-3 text-sm text-slate-500">
+      <span class="ml-3 text-sm text-slate-600">
         Memuat informasi timeline...
       </span>
     </div>
@@ -85,7 +85,7 @@
               Tahapan Sertifikasi
             </h2>
 
-            <p class="mt-1 text-sm text-slate-500">
+            <p class="mt-1 text-sm text-slate-600">
               Jadwal mulai dan selesai untuk seluruh 8 tahapan sertifikasi.
             </p>
           </div>
@@ -211,7 +211,7 @@
                 {{ notificationTitle }}
               </h2>
 
-              <p class="mt-1 text-sm leading-6 text-slate-500">
+              <p class="mt-1 text-sm leading-6 text-slate-600">
                 {{ notificationSubtitle }}
               </p>
             </div>

@@ -4,10 +4,10 @@
 <!-- Page Header -->
 <div class="flex items-start justify-between gap-4">
   <div class="min-w-0">
-    <h1 class="text-2xl font-semibold text-slate-900">
+    <h1 class="text-2xl font-semibold text-blue-500">
       Detail Pengajuan
     </h1>
-    <p class="mt-1 text-sm text-slate-500">
+    <p class="mt-1 text-sm text-slate-600">
       Pemeriksaan data dan dokumen pendaftaran sertifikasi.
     </p>
   </div>
@@ -37,7 +37,7 @@
           name="i-lucide-loader-circle"
           class="size-7 animate-spin text-primary"
         />
-        <span class="ml-3 text-sm text-slate-500">
+        <span class="ml-3 text-sm text-slate-600">
           Memuat detail pengajuan...
         </span>
       </div>
@@ -68,7 +68,7 @@
             <h2 class="text-base font-semibold !text-blue-600">
   Data Peserta
 </h2>
-            <p class="mt-1 text-sm text-slate-500">
+            <p class="mt-1 text-sm text-slate-600">
               Informasi yang disampaikan pada saat pendaftaran.
             </p>
           </div>
@@ -77,7 +77,7 @@
         <div class="participant-grid">
           <!-- Nama Lengkap -->
           <div class="participant-field min-w-0">
-            <p class="text-sm font-medium text-slate-500">
+            <p class="text-sm font-medium text-slate-600">
               Nama Lengkap
             </p>
             <p
@@ -89,7 +89,7 @@
           </div>
           <!-- NIP -->
           <div class="participant-field min-w-0">
-            <p class="text-sm font-medium text-slate-500">
+            <p class="text-sm font-medium text-slate-600">
               NIP
             </p>
             <p class="mt-2 truncate text-sm font-medium text-slate-900">
@@ -98,7 +98,7 @@
           </div>
           <!-- Instansi -->
           <div class="participant-field min-w-0">
-            <p class="text-sm font-medium text-slate-500">
+            <p class="text-sm font-medium text-slate-600">
               Instansi
             </p>
             <p
@@ -110,7 +110,7 @@
           </div>
           <!-- Wilayah -->
           <div class="participant-field min-w-0">
-            <p class="text-sm font-medium text-slate-500">
+            <p class="text-sm font-medium text-slate-600">
               Wilayah
             </p>
             <p class="mt-2 truncate text-sm font-medium text-slate-900">
@@ -119,7 +119,7 @@
           </div>
           <!-- Email -->
           <div class="participant-field min-w-0">
-            <p class="text-sm font-medium text-slate-500">
+            <p class="text-sm font-medium text-slate-600">
               Email
             </p>
             <p
@@ -131,7 +131,7 @@
           </div>
           <!-- WhatsApp -->
           <div class="participant-field min-w-0">
-            <p class="text-sm font-medium text-slate-500">
+            <p class="text-sm font-medium text-slate-600">
               WhatsApp
             </p>
             <p class="mt-2 truncate text-sm font-medium text-slate-900">
@@ -140,7 +140,7 @@
           </div>
           <!-- Pendidikan -->
           <div class="participant-field min-w-0">
-            <p class="text-sm font-medium text-slate-500">
+            <p class="text-sm font-medium text-slate-600">
               Pendidikan
             </p>
             <p class="mt-2 truncate text-sm font-medium text-slate-900">
@@ -149,7 +149,7 @@
           </div>
           <!-- Jabatan -->
           <div class="participant-field min-w-0">
-            <p class="text-sm font-medium text-slate-500">
+            <p class="text-sm font-medium text-slate-600">
               Jabatan
             </p>
             <p
@@ -161,7 +161,7 @@
           </div>
           <!-- Tanggal Pengajuan -->
           <div class="min-w-0">
-            <p class="text-sm font-medium text-slate-500">
+            <p class="text-sm font-medium text-slate-600">
               Tanggal Pengajuan
             </p>
             <p class="mt-2 truncate text-sm font-medium text-slate-900">
@@ -170,7 +170,7 @@
           </div>
           <!-- ID Pengajuan -->
           <div class="min-w-0">
-            <p class="text-sm font-medium text-slate-500">
+            <p class="text-sm font-medium text-slate-600">
               ID Pengajuan
             </p>
             <p class="mt-2 truncate text-sm font-medium text-slate-900">
@@ -188,7 +188,7 @@
             <h2 class="text-base font-semibold !text-blue-600">
   Dokumen Persyaratan
 </h2>
-            <p class="mt-1 text-sm text-slate-500">
+            <p class="mt-1 text-sm text-slate-600">
               Periksa berkas yang diunggah peserta melalui fitur preview.
             </p>
           </div>
@@ -221,7 +221,7 @@
               <!-- Nama file -->
               <p
                 v-if="document.file"
-                class="mt-2 truncate text-sm text-slate-500"
+                class="mt-2 truncate text-sm text-slate-600"
                 :title="document.file.original_file_name"
               >
                 {{ document.file.original_file_name }}
@@ -257,7 +257,7 @@
             <h2 class="text-base font-semibold !text-blue-600">
   Catatan Verifikator
 </h2>
-            <p class="mt-1 text-sm text-slate-500">
+            <p class="mt-1 text-sm text-slate-600">
               Catatan pemeriksaan terhadap pengajuan.
             </p>
           </div>
@@ -291,7 +291,7 @@
       <h2 class="text-base font-semibold text-slate-900">
         Keputusan Verifikasi
       </h2>
-      <p class="mt-1 text-sm text-slate-500">
+      <p class="mt-1 text-sm text-slate-600">
         Tentukan hasil pemeriksaan terhadap data dan dokumen pengajuan.
       </p>
     </div>
@@ -359,7 +359,7 @@
           </div>
           <div
             v-else
-            class="flex h-64 items-center justify-center text-sm text-slate-500"
+            class="flex h-64 items-center justify-center text-sm text-slate-600"
           >
             Dokumen tidak dapat ditampilkan.
           </div>

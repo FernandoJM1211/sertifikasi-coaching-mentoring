@@ -300,11 +300,11 @@ defineExpose({
             CMSP.02
           </p>
 
-          <h1 class="mt-1.5 text-3xl font-semibold tracking-tight text-slate-900">
+          <h1 class="mt-1.5 text-3xl font-semibold tracking-tight text-blue-500">
             Self-Assessment Teknis
           </h1>
 
-          <p v-if="!reviewMode" class="mt-2 text-sm leading-6 text-slate-500">
+          <p v-if="!reviewMode" class="mt-2 text-sm leading-6 text-slate-600">
             Lengkapi evidence pada setiap unit kompetensi teknis. Satu unit dapat memiliki lebih dari satu evidence.
           </p>
         </div>
@@ -403,7 +403,7 @@ defineExpose({
                 <p class="text-sm font-semibold text-slate-900">
                   Evidence / Bukti yang Relevan
                 </p>
-                <p v-if="!reviewMode" class="mt-1 text-xs leading-5 text-slate-500">
+                <p v-if="!reviewMode" class="mt-1 text-xs leading-5 text-slate-600">
                   Bukti dapat berupa file atau link eksternal.
                 </p>
               </div>
@@ -485,13 +485,13 @@ defineExpose({
                     <label class="block text-sm font-medium text-slate-700">
                       File Evidence
                     </label>
-                    <p v-if="!reviewMode" class="mb-2 mt-1 text-xs text-slate-500">
+                    <p v-if="!reviewMode" class="mb-2 mt-1 text-xs text-slate-600">
                       Format PDF, DOC, atau DOCX. Maksimal 4 MB.
                     </p>
                     <div class="mt-2 flex flex-col gap-3 rounded-lg border border-dashed border-slate-300 bg-white p-3 sm:flex-row sm:items-center sm:justify-between">
                       <p
                         class="min-w-0 truncate text-xs"
-                        :class="evidence.file ? (readonly ? 'text-slate-600' : 'font-medium text-green-600') : 'text-slate-400'"
+                        :class="evidence.file ? (readonly ? 'text-slate-600' : 'font-medium text-green-600') : 'text-slate-500'"
                       >
                         {{ formatFileInfo(evidence.file) }}
                       </p>
@@ -544,7 +544,7 @@ defineExpose({
                     <label class="block text-sm font-medium text-slate-700">
                       Link Evidence
                     </label>
-                    <p v-if="!reviewMode" class="mb-2 mt-1 text-xs text-slate-500">
+                    <p v-if="!reviewMode" class="mb-2 mt-1 text-xs text-slate-600">
                       Format link folder Google Drive, video Google Drive, atau YouTube.
                     </p>
                     <div class="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center">

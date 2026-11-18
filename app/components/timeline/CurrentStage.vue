@@ -36,7 +36,7 @@ const ICON: Record<TimelineTask['tone'], { name: string, color: string }> = {
     <div v-if="activeStage">
       <p class="text-sm font-semibold text-primary">Tahapan Saat Ini</p>
       <h2 class="mt-1 text-xl font-semibold text-slate-900">{{ activeStage.name }}</h2>
-      <div class="mt-2 flex flex-wrap items-center gap-x-5 gap-y-1 text-sm text-slate-500">
+      <div class="mt-2 flex flex-wrap items-center gap-x-5 gap-y-1 text-sm text-slate-600">
         <p>
           Tanggal Mulai:
           <span class="font-semibold text-slate-900">{{ formatDateTimeId(activeStage.startAt) }}</span>
@@ -80,7 +80,7 @@ const ICON: Record<TimelineTask['tone'], { name: string, color: string }> = {
     <div v-else class="py-4 text-center">
       <p class="text-sm font-semibold text-primary">Tahapan Saat Ini</p>
       <p class="mt-2 font-medium text-slate-700">Tidak ada tahapan yang sedang berlangsung.</p>
-      <p v-if="nextStage" class="mt-1 text-sm text-slate-500">
+      <p v-if="nextStage" class="mt-1 text-sm text-slate-600">
         Tahap berikutnya: <span class="font-medium text-slate-700">{{ nextStage.name }}</span>,
         mulai {{ formatDateTimeId(nextStage.startAt) }}.
       </p>

@@ -268,10 +268,10 @@ watch([activeFilter, searchQuery], resetTablePage)
     <!-- Header: judul kiri; Kembali + status periode kanan -->
     <div class="flex items-start justify-between gap-4">
       <div class="min-w-0">
-        <h1 class="text-xl font-semibold text-slate-900 sm:text-2xl">
+        <h1 class="text-xl font-semibold text-blue-500 sm:text-2xl">
           {{ data?.period.period_name || 'Perencanaan Evaluasi' }}
         </h1>
-        <p class="mt-1 text-sm text-slate-500">Perencanaan Evaluasi</p>
+        <p class="mt-1 text-sm text-slate-600">Perencanaan Evaluasi</p>
       </div>
       <div class="flex shrink-0 flex-col items-end gap-2">
         <UButton :to="BACK_PATH" color="neutral" variant="outline" icon="i-lucide-arrow-left" size="sm">Kembali</UButton>
@@ -283,7 +283,7 @@ watch([activeFilter, searchQuery], resetTablePage)
 
     <div v-if="loading && !data" class="flex items-center justify-center py-12">
       <UIcon name="i-lucide-loader-circle" class="size-6 animate-spin text-primary" />
-      <span class="ml-3 text-sm text-slate-500">Memuat data evaluasi...</span>
+      <span class="ml-3 text-sm text-slate-600">Memuat data evaluasi...</span>
     </div>
 
     <UAlert v-else-if="errorMessage || !data" color="error" variant="soft" icon="i-lucide-circle-alert" :title="errorMessage || 'Data evaluasi belum dapat dimuat.'">
@@ -299,8 +299,8 @@ watch([activeFilter, searchQuery], resetTablePage)
           <UIcon name="i-lucide-calendar-clock" class="size-4 text-primary" />
           Tahap Evaluasi
         </span>
-        <span class="text-slate-500">Mulai: <span class="font-medium text-slate-800">{{ formatDateTimeId(data.stage.startAt) }}</span></span>
-        <span class="text-slate-500">Selesai: <span class="font-medium text-slate-800">{{ formatDateTimeId(data.stage.endAt) }}</span></span>
+        <span class="text-slate-600">Mulai: <span class="font-medium text-slate-800">{{ formatDateTimeId(data.stage.startAt) }}</span></span>
+        <span class="text-slate-600">Selesai: <span class="font-medium text-slate-800">{{ formatDateTimeId(data.stage.endAt) }}</span></span>
         <UBadge :color="data.stage.open ? 'success' : 'neutral'" variant="subtle" class="ml-auto">
           {{ data.stage.open ? 'Sedang Dibuka' : 'Tidak Dibuka' }}
         </UBadge>
@@ -311,7 +311,7 @@ watch([activeFilter, searchQuery], resetTablePage)
           <div class="flex flex-wrap items-start justify-between gap-3">
             <div>
               <h2 class="font-semibold text-slate-900">Pengaturan Evaluasi</h2>
-              <p class="mt-1 text-sm text-slate-500">
+              <p class="mt-1 text-sm text-slate-600">
                 <template v-if="data.config?.applied_at">Terakhir diterapkan {{ formatDateTimeId(data.config.applied_at) }}.</template>
                 <template v-else>Pengaturan berlaku bagi peserta setelah disimpan &amp; diterapkan.</template>
               </p>
@@ -403,7 +403,7 @@ watch([activeFilter, searchQuery], resetTablePage)
           </ul>
 
           <div class="flex items-center justify-end gap-3">
-            <p v-if="formError" class="text-sm text-slate-500">{{ formError }}</p>
+            <p v-if="formError" class="text-sm text-slate-600">{{ formError }}</p>
             <UButton
               :icon="data.apply_state === 'OUTDATED' && !isDirty ? 'i-lucide-refresh-ccw' : 'i-lucide-save'"
               :loading="saving"
@@ -466,9 +466,9 @@ watch([activeFilter, searchQuery], resetTablePage)
         </template>
 
         <div v-if="filteredItems.length === 0" class="py-8 text-center">
-          <UIcon name="i-lucide-inbox" class="mx-auto size-9 text-slate-400" />
+          <UIcon name="i-lucide-inbox" class="mx-auto size-9 text-slate-500" />
           <p class="mt-3 font-medium text-slate-700">Tidak ada data yang sesuai</p>
-          <p class="mt-1 text-sm text-slate-500">Coba ubah filter atau kata pencarian.</p>
+          <p class="mt-1 text-sm text-slate-600">Coba ubah filter atau kata pencarian.</p>
         </div>
 
         <div v-else class="overflow-x-auto">
@@ -495,7 +495,7 @@ watch([activeFilter, searchQuery], resetTablePage)
               <tr v-for="item in pagedItems" :key="item.application_id" class="border-b border-slate-200 last:border-0">
                 <td class="px-4 py-3">
                   <p class="truncate font-medium text-slate-800" :title="item.full_name">{{ item.full_name }}</p>
-                  <p class="truncate text-xs text-slate-500">{{ item.nip }}</p>
+                  <p class="truncate text-xs text-slate-600">{{ item.nip }}</p>
                 </td>
                 <td class="px-4 py-3 text-slate-600">
                   <p class="truncate" :title="item.institution_name">{{ item.institution_name }}</p>
@@ -517,7 +517,7 @@ watch([activeFilter, searchQuery], resetTablePage)
                   >
                     {{ formatScore(item.score) }}
                   </span>
-                  <span v-else class="text-slate-400">-</span>
+                  <span v-else class="text-slate-500">-</span>
 
                 </td>
                 <td class="px-4 py-3 text-center">
@@ -544,7 +544,7 @@ watch([activeFilter, searchQuery], resetTablePage)
                       @click="askReset(item)"
                     />
                   </div>
-                  <span v-else class="text-slate-400">-</span>
+                  <span v-else class="text-slate-500">-</span>
                 </td>
               </tr>
             </tbody>

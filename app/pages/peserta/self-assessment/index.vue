@@ -78,10 +78,10 @@ function getPeriodStatusColor(status?: string) {
   <!-- Tata letak seragam dengan halaman pemilihan periode (PeriodPicker) -->
   <div class="mx-auto w-full max-w-5xl space-y-8 pb-8">
     <div class="space-y-2">
-      <h1 class="text-3xl font-semibold tracking-tight text-slate-900">
+      <h1 class="text-3xl font-semibold tracking-tight text-blue-500">
         Self Assessment
       </h1>
-      <p class="text-sm leading-6 text-slate-500">
+      <p class="text-sm leading-6 text-slate-600">
         Pilih periode sertifikasi untuk mengisi Formulir Permohonan Sertifikasi (CMSP.01) dan Self Assessment Teknis (CMSP.02).
       </p>
     </div>
@@ -91,7 +91,7 @@ function getPeriodStatusColor(status?: string) {
         <h2 class="text-base font-semibold text-slate-900">
           Daftar Periode
         </h2>
-        <p class="mt-1 text-sm text-slate-500">
+        <p class="mt-1 text-sm text-slate-600">
           Periode sertifikasi yang pengajuannya telah diterima.
         </p>
       </div>
@@ -119,7 +119,7 @@ function getPeriodStatusColor(status?: string) {
       class="flex items-center justify-center rounded-xl border border-slate-200 bg-white/90 py-16 shadow-sm"
     >
       <UIcon name="i-lucide-loader-circle" class="size-6 animate-spin text-primary" />
-      <span class="ml-3 text-sm text-slate-500">Memuat daftar periode...</span>
+      <span class="ml-3 text-sm text-slate-600">Memuat daftar periode...</span>
     </div>
 
     <UAlert
@@ -153,7 +153,7 @@ function getPeriodStatusColor(status?: string) {
                 {{ item.period?.period_name || 'Periode Sertifikasi' }}
               </h3>
 
-              <p class="text-sm text-slate-500">
+              <p class="text-sm text-slate-600">
                 Jadwal:
                 <span class="font-medium text-slate-700">
                   {{ formatDateTimeId(selfAssessmentStage(item)?.start_at) }} – {{ formatDateTimeId(selfAssessmentStage(item)?.end_at) }}
@@ -193,7 +193,7 @@ function getPeriodStatusColor(status?: string) {
         <h3 class="mt-4 text-base font-semibold text-slate-900">
           Belum ada pengajuan sertifikasi
         </h3>
-        <p class="mt-2 max-w-md text-sm leading-6 text-slate-500">
+        <p class="mt-2 max-w-md text-sm leading-6 text-slate-600">
           Periode sertifikasi akan tampil di sini setelah pengajuan Anda diterima.
         </p>
       </div>

@@ -21,10 +21,14 @@ Tema di `app/app.config.ts`: `primary = blue`, `neutral = slate`.
 | --- | --- |
 | Latar halaman dashboard | `bg-gradient-to-br from-blue-50 via-white to-indigo-50` (sudah di layout) |
 | Aksen / eyebrow / ikon utama | `text-primary`, latar ikon `bg-blue-50` |
-| Judul | `text-slate-900` |
-| Teks isi | `text-slate-600` |
-| Teks sekunder / keterangan | `text-slate-500` |
-| Teks sangat redup | `text-slate-400` |
+| Judul halaman (h1) — tingkat 1 | `text-blue-500` |
+| Judul section/kartu (h2/h3) — tingkat 2 | `text-slate-900` |
+| Teks isi, sub judul & keterangan — tingkat 3 | `text-slate-600` |
+| Teks redup (keterangan kecil, ikon pendukung) | `text-slate-500` |
+
+**Hierarki warna teks:** judul halaman **biru** → judul section/kartu **hitam** → sub judul,
+deskripsi, dan label **abu-abu** (`slate-600`). Jangan memakai `text-slate-400` atau
+`text-gray-*` untuk teks; gunakan skala `slate` di atas. Pengecualian: hero landing page.
 | Border | `border-slate-200` atau `ring-1 ring-slate-200/70` |
 | Kotak informasi abu-abu | `rounded-xl border border-slate-200 bg-slate-50 p-4` |
 | Kotak info biru | `rounded-xl border border-blue-100 bg-blue-50/70 p-4` |
@@ -55,11 +59,11 @@ Selalu tampilkan **label Bahasa Indonesia**, bukan nilai mentah database
 | Elemen | Class |
 | --- | --- |
 | Eyebrow (label kecil di atas judul) | `text-sm font-medium text-primary` |
-| Judul halaman (h1) | `text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl` |
+| Judul halaman (h1) | `text-2xl font-bold tracking-tight text-blue-500 sm:text-3xl` |
 | Deskripsi halaman | `mt-2 max-w-2xl text-sm leading-6 text-slate-600` |
 | Judul kartu/section (h2) | `font-semibold text-slate-900` (atau `text-lg font-semibold`) |
-| Deskripsi kartu | `mt-1 text-sm text-slate-500` |
-| Label field | `text-sm text-slate-500` |
+| Deskripsi kartu | `mt-1 text-sm text-slate-600` |
+| Label field | `text-sm text-slate-600` |
 | Nilai field | `text-sm font-semibold text-slate-800` |
 
 ## Kerangka Halaman Dashboard
@@ -78,7 +82,7 @@ useHead({ title: 'Judul Halaman' })
     <section class="flex flex-wrap items-start justify-between gap-4">
       <div class="min-w-0">
         <p class="text-sm font-medium text-primary">Nama Modul</p>
-        <h1 class="mt-2 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+        <h1 class="mt-2 text-2xl font-bold tracking-tight text-blue-500 sm:text-3xl">
           Judul Halaman
         </h1>
         <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
@@ -119,7 +123,7 @@ useHead({ title: 'Judul Halaman' })
       </div>
       <div>
         <h2 class="font-semibold text-slate-900">Judul Kartu</h2>
-        <p class="mt-1 text-sm text-slate-500">Keterangan singkat.</p>
+        <p class="mt-1 text-sm text-slate-600">Keterangan singkat.</p>
       </div>
     </div>
   </template>
@@ -133,7 +137,7 @@ useHead({ title: 'Judul Halaman' })
 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
   <div v-for="item in details" :key="item.label"
        class="min-w-0 rounded-xl border border-slate-200/80 bg-slate-50/50 p-4">
-    <p class="text-sm text-slate-500">{{ item.label }}</p>
+    <p class="text-sm text-slate-600">{{ item.label }}</p>
     <p class="mt-2 break-words text-sm font-semibold text-slate-800">
       {{ item.value || 'Belum diisi' }}
     </p>
@@ -160,7 +164,7 @@ Jika halaman punya badge status (periode, pengajuan), letakkan **di bawah** tomb
 <div class="flex items-start justify-between gap-4">
   <div class="min-w-0">
     <h1 class="text-xl font-semibold text-slate-900 sm:text-2xl">Judul</h1>
-    <p class="mt-1 text-sm text-slate-500">Keterangan singkat</p>
+    <p class="mt-1 text-sm text-slate-600">Keterangan singkat</p>
   </div>
   <div class="flex shrink-0 flex-col items-end gap-2">
     <UButton to="/..." color="neutral" variant="outline" icon="i-lucide-arrow-left" size="sm">Kembali</UButton>

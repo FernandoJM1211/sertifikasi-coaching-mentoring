@@ -156,10 +156,10 @@ async function handleSubmit() {
   <div class="mx-auto w-full max-w-5xl space-y-6 pb-8">
     <div class="flex flex-wrap items-start justify-between gap-4">
       <div class="min-w-0">
-        <h1 class="text-2xl font-bold tracking-tight text-slate-900">
+        <h1 class="text-2xl font-bold tracking-tight text-blue-500">
           Ganti Kata Sandi
         </h1>
-        <p class="mt-1 text-sm text-slate-500">
+        <p class="mt-1 text-sm text-slate-600">
           Perbarui kata sandi untuk menjaga keamanan akun Anda.
         </p>
       </div>
@@ -191,7 +191,7 @@ async function handleSubmit() {
             <h2 class="font-semibold text-slate-900">
               Keamanan Akun
             </h2>
-            <p class="mt-1 text-sm text-slate-500">
+            <p class="mt-1 text-sm text-slate-600">
               Masukkan kata sandi saat ini dan kata sandi baru Anda.
             </p>
           </div>
@@ -249,7 +249,7 @@ async function handleSubmit() {
               class="text-xs font-medium"
               :class="
                 !newPassword
-                  ? 'text-slate-400'
+                  ? 'text-slate-500'
                   : passwordLengthValid
                     ? 'text-emerald-600'
                     : 'text-red-600'
@@ -282,7 +282,7 @@ async function handleSubmit() {
             </template>
           </UInput>
 
-          <p class="text-xs text-slate-500">
+          <p class="text-xs text-slate-600">
             Gunakan minimal 12 karakter dan hindari penggunaan kata sandi yang sama dengan sebelumnya.
           </p>
         </div>

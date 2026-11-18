@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-mesh">
+  <div class="flex min-h-screen flex-col bg-mesh">
     <!-- Header (sticky) -->
     <header
       class="sticky top-0 z-50 border-b border-slate-200/70 bg-white/80 backdrop-blur-xl"
@@ -15,7 +15,7 @@
               Coaching & Mentoring
             </p>
 
-            <p class="text-xs text-slate-500">
+            <p class="text-xs text-slate-600">
               Sistem Sertifikasi
             </p>
           </div>
@@ -37,8 +37,10 @@
     </header>
 
     <!-- Content -->
-    <main>
+    <main class="flex-1">
       <slot />
     </main>
+
+    <LayoutAppFooter />
   </div>
 </template>

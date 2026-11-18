@@ -132,7 +132,7 @@ const today = new Date().toISOString().slice(0, 10)
 
 /** Field terkunci (NIP/Email) yang sedang difokus, untuk menampilkan pesan. */
 const lockedFocus = ref<'nip' | 'email' | null>(null)
-const lockedInputClass = 'bg-slate-50 text-slate-500 cursor-not-allowed'
+const lockedInputClass = 'bg-slate-50 text-slate-600 cursor-not-allowed'
 const isSaving = ref(false)
 
 async function saveProfile() {
@@ -183,7 +183,7 @@ async function saveProfile() {
       <p class="text-sm font-medium text-primary">
         Pengaturan Akun
       </p>
-      <h1 class="mt-2 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+      <h1 class="mt-2 text-2xl font-bold tracking-tight text-blue-500 sm:text-3xl">
         Profil Saya
       </h1>
       <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
@@ -197,7 +197,7 @@ async function saveProfile() {
       v-if="status === 'pending' && !data"
       class="flex items-center justify-center rounded-2xl border border-slate-200 bg-white p-12"
     >
-      <div class="flex items-center gap-3 text-sm text-slate-500">
+      <div class="flex items-center gap-3 text-sm text-slate-600">
         <UIcon name="i-lucide-loader-circle" class="size-5 animate-spin" />
         Memuat profil...
       </div>
@@ -211,7 +211,7 @@ async function saveProfile() {
           <p class="font-semibold text-slate-900">
             Profil tidak dapat dimuat
           </p>
-          <p class="mt-1 text-sm text-slate-500">
+          <p class="mt-1 text-sm text-slate-600">
             Silakan periksa koneksi atau login kembali.
           </p>
           <UButton class="mt-4" icon="i-lucide-refresh-cw" @click="refresh()">
@@ -236,13 +236,13 @@ async function saveProfile() {
             <h2 class="truncate text-xl font-bold text-slate-900">
               {{ displayName }}
             </h2>
-            <p class="mt-1 break-all text-sm text-slate-500">
+            <p class="mt-1 break-all text-sm text-slate-600">
               {{ displayEmail }}
             </p>
           </div>
 
           <div v-if="completion" class="shrink-0 sm:text-right">
-            <p class="text-xs text-slate-500">
+            <p class="text-xs text-slate-600">
               Kelengkapan profil
             </p>
             <p class="mt-1 text-sm font-semibold text-slate-900">
@@ -263,7 +263,7 @@ async function saveProfile() {
               <h2 class="font-semibold text-slate-900">
                 Data Diri
               </h2>
-              <p class="mt-1 text-sm text-slate-500">
+              <p class="mt-1 text-sm text-slate-600">
                 <template v-if="hasPersonProfile">
                   Tidak semua data wajib diisi sekarang. Lengkapi sebelum mengisi formulir sertifikasi.
                 </template>
@@ -403,7 +403,7 @@ async function saveProfile() {
             <h2 class="font-semibold text-slate-900">
               Keamanan Akun
             </h2>
-            <p class="mt-1 text-sm leading-6 text-slate-500">
+            <p class="mt-1 text-sm leading-6 text-slate-600">
               Jaga kerahasiaan kata sandi untuk melindungi akun Anda.
             </p>
           </div>

@@ -121,8 +121,8 @@ function optionKeyClass(option: { is_correct: boolean, is_selected: boolean }) {
     <!-- Header: judul kiri; Kembali + status kanan -->
     <div class="flex items-start justify-between gap-4">
       <div class="min-w-0">
-        <h1 class="text-2xl font-semibold text-slate-900">Detail Hasil Evaluasi</h1>
-        <p class="mt-1 text-sm text-slate-500">
+        <h1 class="text-2xl font-semibold text-blue-500">Detail Hasil Evaluasi</h1>
+        <p class="mt-1 text-sm text-slate-600">
           Jawaban peserta per soal beserta kunci, waktu, dan nilai evaluasi.
         </p>
       </div>
@@ -136,7 +136,7 @@ function optionKeyClass(option: { is_correct: boolean, is_selected: boolean }) {
 
     <div v-if="loading && !data" class="flex items-center justify-center py-12">
       <UIcon name="i-lucide-loader-circle" class="size-6 animate-spin text-primary" />
-      <span class="ml-3 text-sm text-slate-500">Memuat detail hasil...</span>
+      <span class="ml-3 text-sm text-slate-600">Memuat detail hasil...</span>
     </div>
 
     <UAlert v-else-if="errorMessage || !data" color="error" variant="soft" icon="i-lucide-circle-alert" :title="errorMessage || 'Detail hasil evaluasi belum dapat dimuat.'">
@@ -167,41 +167,41 @@ function optionKeyClass(option: { is_correct: boolean, is_selected: boolean }) {
       <UCard>
         <div class="grid gap-x-6 gap-y-5 text-center text-sm sm:grid-cols-2 lg:grid-cols-4">
           <div>
-            <p class="text-slate-500">Nama Peserta</p>
+            <p class="text-slate-600">Nama Peserta</p>
             <p class="font-medium text-slate-800">{{ data.participant.full_name || '-' }}</p>
           </div>
           <div>
-            <p class="text-slate-500">NIP</p>
+            <p class="text-slate-600">NIP</p>
             <p class="font-medium text-slate-800">{{ data.participant.nip || '-' }}</p>
           </div>
           <div>
-            <p class="text-slate-500">Instansi</p>
+            <p class="text-slate-600">Instansi</p>
             <p class="font-medium text-slate-800">{{ data.participant.institution_name || '-' }}</p>
           </div>
           <div>
-            <p class="text-slate-500">Periode</p>
+            <p class="text-slate-600">Periode</p>
             <p class="font-medium text-slate-800">{{ data.attempt.period_name || '-' }}</p>
           </div>
           <div>
-            <p class="text-slate-500">Mulai</p>
+            <p class="text-slate-600">Mulai</p>
             <p class="font-medium text-slate-800">{{ formatDateTimeId(data.attempt.started_at) }}</p>
           </div>
           <div>
-            <p class="text-slate-500">Selesai</p>
+            <p class="text-slate-600">Selesai</p>
             <p class="font-medium text-slate-800">
               {{ formatDateTimeId(data.attempt.submitted_at) }}
               <span v-if="data.attempt.submit_type === 'AUTO'" class="text-xs font-normal text-amber-600">(otomatis, waktu habis)</span>
             </p>
           </div>
           <div>
-            <p class="text-slate-500">Waktu Mengerjakan</p>
+            <p class="text-slate-600">Waktu Mengerjakan</p>
             <p class="font-medium text-slate-800">
               {{ formatWorkTime(data.attempt.work_seconds) }}
-              <span class="text-xs font-normal text-slate-500">dari {{ data.attempt.duration_minutes }} menit</span>
+              <span class="text-xs font-normal text-slate-600">dari {{ data.attempt.duration_minutes }} menit</span>
             </p>
           </div>
           <div>
-            <p class="text-slate-500">Konfigurasi</p>
+            <p class="text-slate-600">Konfigurasi</p>
             <p class="font-medium text-slate-800">
               {{ data.attempt.config_version ? `Konfigurasi ke-${data.attempt.config_version}` : 'Konfigurasi awal' }}
             </p>
@@ -239,13 +239,13 @@ function optionKeyClass(option: { is_correct: boolean, is_selected: boolean }) {
           <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h2 class="font-semibold text-slate-900">Jawaban per Soal</h2>
-              <p class="mt-1 text-sm text-slate-500">Urutan soal & huruf opsi sesuai yang dilihat peserta.</p>
+              <p class="mt-1 text-sm text-slate-600">Urutan soal & huruf opsi sesuai yang dilihat peserta.</p>
             </div>
             <USelect v-model="resultFilter" :items="FILTERS" value-key="value" label-key="label" class="w-full sm:w-48" />
           </div>
         </template>
 
-        <div v-if="filteredQuestions.length === 0" class="py-8 text-center text-sm text-slate-500">
+        <div v-if="filteredQuestions.length === 0" class="py-8 text-center text-sm text-slate-600">
           Tidak ada soal pada filter ini.
         </div>
 
@@ -256,7 +256,7 @@ function optionKeyClass(option: { is_correct: boolean, is_selected: boolean }) {
             class="rounded-xl border border-slate-200 p-4"
           >
             <div class="flex items-start justify-between gap-3">
-              <p class="text-sm font-semibold text-slate-500">
+              <p class="text-sm font-semibold text-slate-600">
                 Soal {{ question.number }}<template v-if="question.topic"> · {{ question.topic }}</template>
               </p>
               <UBadge :color="RESULT_BADGES[question.result].color" variant="subtle" :icon="RESULT_BADGES[question.result].icon">
@@ -283,7 +283,7 @@ function optionKeyClass(option: { is_correct: boolean, is_selected: boolean }) {
               </div>
             </div>
 
-            <p class="mt-3 text-xs text-slate-500">
+            <p class="mt-3 text-xs text-slate-600">
               Jawaban peserta: <span class="font-semibold text-slate-700">{{ question.answer || '-' }}</span>
               · Kunci: <span class="font-semibold text-slate-700">{{ question.correct_answer || '-' }}</span>
             </p>

@@ -51,10 +51,10 @@ function tasksOf(period: { period_id: string, stages: TimelineStage[] }) {
 <template>
   <UContainer class="space-y-6 pb-8">
     <div class="space-y-2">
-      <h1 class="text-3xl font-semibold tracking-tight text-slate-900">
+      <h1 class="text-3xl font-semibold tracking-tight text-blue-500">
         {{ periods.length === 1 ? periods[0]?.period_name : 'Beranda' }}
       </h1>
-      <p class="text-sm leading-6 text-slate-500">
+      <p class="text-sm leading-6 text-slate-600">
         Timeline sertifikasi dan tahapan yang sedang berlangsung.
       </p>
     </div>
@@ -83,7 +83,7 @@ function tasksOf(period: { period_id: string, stages: TimelineStage[] }) {
           <UIcon name="i-lucide-calendar-x" class="size-8 text-blue-500" />
         </div>
         <h2 class="text-xl font-semibold text-slate-900">Belum Ada Periode Aktif</h2>
-        <p class="mt-3 max-w-lg text-sm leading-6 text-slate-500">{{ emptyDescription }}</p>
+        <p class="mt-3 max-w-lg text-sm leading-6 text-slate-600">{{ emptyDescription }}</p>
       </div>
     </UCard>
 

@@ -16,13 +16,13 @@ function formatShortDate(value: string) {
 const CIRCLE: Record<TimelineStageStatus, string> = {
   completed: 'bg-emerald-500 text-white',
   active: 'bg-blue-500 text-white',
-  upcoming: 'bg-gray-200 text-gray-500',
+  upcoming: 'bg-gray-200 text-slate-600',
 }
 
 const LABEL: Record<TimelineStageStatus, string> = {
   completed: 'text-emerald-600',
   active: 'text-blue-600',
-  upcoming: 'text-gray-400',
+  upcoming: 'text-slate-500',
 }
 </script>
 
@@ -48,22 +48,22 @@ const LABEL: Record<TimelineStageStatus, string> = {
           />
           <div class="mt-4 w-full px-1 text-center">
             <p class="text-xs font-semibold" :class="LABEL[stage.status]">Tahap {{ stage.order }}</p>
-            <p class="mt-1 text-xs font-medium leading-relaxed text-gray-700">{{ stage.name }}</p>
+            <p class="mt-1 text-xs font-medium leading-relaxed text-slate-700">{{ stage.name }}</p>
           </div>
         </div>
       </div>
     </div>
 
     <div class="flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-gray-200 pt-4">
-      <div class="flex items-center gap-2 text-xs text-gray-500">
+      <div class="flex items-center gap-2 text-xs text-slate-600">
         <span class="size-2.5 rounded-full bg-emerald-500" />
         Selesai
       </div>
-      <div class="flex items-center gap-2 text-xs text-gray-500">
+      <div class="flex items-center gap-2 text-xs text-slate-600">
         <span class="size-2.5 rounded-full bg-blue-500" />
         Sedang Berlangsung
       </div>
-      <div class="flex items-center gap-2 text-xs text-gray-500">
+      <div class="flex items-center gap-2 text-xs text-slate-600">
         <span class="size-2.5 rounded-full bg-gray-300" />
         Belum Dimulai
       </div>
@@ -71,6 +71,6 @@ const LABEL: Record<TimelineStageStatus, string> = {
   </UCard>
 
   <UCard v-else>
-    <p class="py-6 text-center text-sm text-gray-500">Timeline untuk periode ini belum tersedia.</p>
+    <p class="py-6 text-center text-sm text-slate-600">Timeline untuk periode ini belum tersedia.</p>
   </UCard>
 </template>

@@ -107,7 +107,7 @@ onBeforeUnmount(releaseObjectUrl)
     <template #body>
       <div
         v-if="loading"
-        class="flex h-[70vh] items-center justify-center gap-3 text-sm text-slate-500"
+        class="flex h-[70vh] items-center justify-center gap-3 text-sm text-slate-600"
       >
         <UIcon name="i-lucide-loader-circle" class="size-5 animate-spin" />
         Memuat dokumen...

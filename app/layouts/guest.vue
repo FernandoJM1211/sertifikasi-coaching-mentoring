@@ -1,7 +1,7 @@
 
 <template>
   <div
-    class="min-h-screen w-full min-w-0 overflow-x-clip bg-mesh"
+    class="flex min-h-screen w-full min-w-0 flex-col overflow-x-clip bg-mesh"
   >
     <!-- Header (sticky) — seragam dengan navbar landing page -->
     <header
@@ -17,7 +17,7 @@
             <p class="truncate text-sm font-semibold text-slate-900">
               Coaching & Mentoring
             </p>
-            <p class="truncate text-xs text-slate-500">
+            <p class="truncate text-xs text-slate-600">
               Sistem Sertifikasi
             </p>
           </div>
@@ -27,18 +27,12 @@
       </div>
     </header>
 
-    <main class="w-full min-w-0 px-6 py-8 lg:py-10">
+    <main class="w-full min-w-0 flex-1 px-6 py-8 lg:py-10">
       <div class="mx-auto w-full max-w-6xl min-w-0">
         <slot />
       </div>
     </main>
 
-    <footer class="w-full border-t border-slate-200/70 bg-white/70">
-      <div
-        class="mx-auto w-full max-w-6xl px-6 py-5 text-center text-xs text-slate-500"
-      >
-        Sistem Sertifikasi Coaching dan Mentoring Sektor Publik
-      </div>
-    </footer>
+    <LayoutAppFooter />
   </div>
 </template>

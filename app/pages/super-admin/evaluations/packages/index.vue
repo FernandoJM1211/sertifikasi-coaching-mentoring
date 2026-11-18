@@ -61,7 +61,7 @@ watch([searchQuery, statusFilter], resetTablePage)
   <div class="mx-auto max-w-7xl space-y-6">
     <section class="flex flex-wrap items-start justify-between gap-4">
       <div class="min-w-0">
-        <h1 class="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">Paket Soal</h1>
+        <h1 class="text-2xl font-bold tracking-tight text-blue-500 sm:text-3xl">Paket Soal</h1>
         <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
           Kumpulan soal pilihan dari bank soal. Paket dipasangkan ke periode melalui menu Perencanaan Evaluasi.
         </p>
@@ -71,7 +71,7 @@ watch([searchQuery, statusFilter], resetTablePage)
 
     <div v-if="loading && packages.length === 0" class="flex items-center justify-center py-12">
       <UIcon name="i-lucide-loader-circle" class="size-6 animate-spin text-primary" />
-      <span class="ml-3 text-sm text-slate-500">Memuat paket soal...</span>
+      <span class="ml-3 text-sm text-slate-600">Memuat paket soal...</span>
     </div>
 
     <UAlert v-else-if="errorMessage" color="error" variant="soft" icon="i-lucide-circle-alert" :title="errorMessage">
@@ -86,7 +86,7 @@ watch([searchQuery, statusFilter], resetTablePage)
           <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <h2 class="font-semibold text-slate-900">Daftar Paket Soal</h2>
-              <p class="mt-1 text-sm text-slate-500">Perubahan paket berlaku pada periode setelah perencanaan evaluasinya diterapkan ulang.</p>
+              <p class="mt-1 text-sm text-slate-600">Perubahan paket berlaku pada periode setelah perencanaan evaluasinya diterapkan ulang.</p>
             </div>
             <UButton color="neutral" variant="outline" icon="i-lucide-refresh-cw" size="sm" :loading="loading" class="self-start" @click="load">
               Muat Ulang
@@ -100,11 +100,11 @@ watch([searchQuery, statusFilter], resetTablePage)
       </template>
 
       <div v-if="filteredPackages.length === 0" class="py-10 text-center">
-        <UIcon name="i-lucide-package" class="mx-auto size-9 text-slate-400" />
+        <UIcon name="i-lucide-package" class="mx-auto size-9 text-slate-500" />
         <p class="mt-3 font-medium text-slate-700">
           {{ packages.length === 0 ? 'Belum Ada Paket Soal' : 'Tidak ada paket yang sesuai' }}
         </p>
-        <p class="mt-1 text-sm text-slate-500">
+        <p class="mt-1 text-sm text-slate-600">
           {{ packages.length === 0 ? 'Buat paket dengan memilih soal dari bank soal.' : 'Coba ubah filter atau kata pencarian.' }}
         </p>
         <UButton v-if="packages.length === 0" class="mt-4" icon="i-lucide-plus" to="/super-admin/evaluations/packages/baru">

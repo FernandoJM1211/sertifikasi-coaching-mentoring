@@ -40,7 +40,7 @@ const open = defineModel<boolean>('open', { default: false })
         </div>
 
         <div class="flex flex-wrap items-center justify-between gap-3">
-          <p class="text-xs text-slate-500">
+          <p class="text-xs text-slate-600">
             Jika tidak tampil, pastikan akses link sudah dibuka untuk "Siapa saja yang memiliki link".
           </p>
           <UButton

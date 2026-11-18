@@ -49,6 +49,7 @@ Legenda: ✅ selesai · 🚧 sedang dikerjakan · ❌ belum ada
 | Terima / tolak pengajuan | ✅ | |
 | Pembuatan akun peserta + email aktivasi | ✅ | |
 | Aktivasi akun peserta | ✅ | |
+| Kirim ulang tautan aktivasi | ✅ | Manajemen Akun → Pengaturan Akun (peserta berstatus menunggu aktivasi) |
 | Kirim ulang email aktivasi | ❌ | Bisa dengan memproses ulang keputusan "Diterima" |
 | Email pemberitahuan penolakan | ❌ | |
 | Verifikasi per dokumen | ❌ | Kolom `application_documents.status` belum dipakai |

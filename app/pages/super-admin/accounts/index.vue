@@ -4,10 +4,10 @@
     <!-- Header halaman -->
     <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div>
-        <h1 class="text-2xl font-bold tracking-tight text-slate-900">
+        <h1 class="text-2xl font-bold tracking-tight text-blue-500">
           Manajemen Akun
         </h1>
-        <p class="mt-1 text-sm text-slate-500">
+        <p class="mt-1 text-sm text-slate-600">
           Kelola akun pengguna Sistem Sertifikasi Coaching dan Mentoring.
         </p>
       </div>
@@ -30,7 +30,7 @@
             <h2 class="text-lg font-semibold text-slate-900">
               Daftar Akun
             </h2>
-            <p class="mt-1 text-sm text-slate-500">
+            <p class="mt-1 text-sm text-slate-600">
               Kelola informasi akun dan akses pengguna.
             </p>
           </div>
@@ -131,7 +131,7 @@
             <tr
               v-if="isRefreshing && accounts.length === 0"
             >
-              <td colspan="6" class="px-5 py-16 text-center text-slate-500">
+              <td colspan="6" class="px-5 py-16 text-center text-slate-600">
                 <UIcon
                   name="i-lucide-loader-circle"
                   class="mr-2 inline size-5 animate-spin"
@@ -149,7 +149,7 @@
                 <p class="font-semibold text-slate-800">
                   {{ account.name }}
                 </p>
-                <p class="mt-1 text-xs text-slate-500">
+                <p class="mt-1 text-xs text-slate-600">
                   {{ account.id }}
                 </p>
               </td>
@@ -209,13 +209,13 @@
                 <div class="mx-auto flex size-12 items-center justify-center rounded-xl bg-slate-100">
                   <UIcon
                     name="i-lucide-search-x"
-                    class="size-6 text-slate-400"
+                    class="size-6 text-slate-500"
                   />
                 </div>
                 <p class="mt-3 font-semibold text-slate-800">
                   Akun tidak ditemukan
                 </p>
-                <p class="mt-1 text-sm text-slate-500">
+                <p class="mt-1 text-sm text-slate-600">
                   Coba ubah kata kunci pencarian atau filter role.
                 </p>
                 <UButton
@@ -251,7 +251,7 @@
             <p class="font-semibold text-slate-900">
               {{ selectedAccount.name }}
             </p>
-            <p class="mt-1 break-all text-sm text-slate-500">
+            <p class="mt-1 break-all text-sm text-slate-600">
               {{ selectedAccount.email }}
             </p>
             <p class="mt-2 text-sm text-slate-600">
@@ -271,11 +271,11 @@
               <p class="font-medium text-slate-900">
                 Lihat Profil
               </p>
-              <p class="mt-1 text-xs text-slate-500">
+              <p class="mt-1 text-xs text-slate-600">
                 Lihat informasi dan data profil akun.
               </p>
             </div>
-            <UIcon name="i-lucide-chevron-right" class="size-4 text-slate-400" />
+            <UIcon name="i-lucide-chevron-right" class="size-4 text-slate-500" />
           </button>
 
           <button
@@ -290,14 +290,39 @@
               <p class="font-medium text-slate-900">
                 Atur Ulang Password
               </p>
-              <p class="mt-1 text-xs text-slate-500">
+              <p class="mt-1 text-xs text-slate-600">
                 Atur ulang kata sandi akun melalui prosedur admin.
               </p>
             </div>
-            <UIcon name="i-lucide-chevron-right" class="size-4 text-slate-400" />
+            <UIcon name="i-lucide-chevron-right" class="size-4 text-slate-500" />
           </button>
 
-         
+          <!-- Kirim ulang tautan aktivasi (peserta yang belum aktivasi) -->
+          <button
+            v-if="selectedAccount.status === 'PENDING_ACTIVATION' && selectedAccount.role === 'PESERTA'"
+            type="button"
+            class="flex w-full items-center gap-3 rounded-xl border border-slate-200 p-4 text-left transition hover:border-sky-300 hover:bg-sky-50/50 disabled:cursor-not-allowed disabled:opacity-60"
+            :disabled="isResendingActivation"
+            @click="resendActivation"
+          >
+            <div class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-sky-50 text-sky-600">
+              <UIcon
+                :name="isResendingActivation ? 'i-lucide-loader-circle' : 'i-lucide-mail-plus'"
+                class="size-5"
+                :class="{ 'animate-spin': isResendingActivation }"
+              />
+            </div>
+            <div class="min-w-0 flex-1">
+              <p class="font-medium text-slate-900">
+                {{ isResendingActivation ? 'Mengirim Tautan...' : 'Kirim Ulang Tautan Aktivasi' }}
+              </p>
+              <p class="mt-1 text-xs text-slate-600">
+                Kirim tautan aktivasi baru ke email peserta. Tautan sebelumnya tidak berlaku lagi.
+              </p>
+            </div>
+            <UIcon name="i-lucide-chevron-right" class="size-4 text-slate-500" />
+          </button>
+
 <!-- Aktifkan atau nonaktifkan akun -->
 <button
   v-if="selectedAccount.status === 'ACTIVE'"
@@ -313,12 +338,12 @@
     <p class="font-medium text-slate-900">
       Nonaktifkan Akun
     </p>
-    <p class="mt-1 text-xs text-slate-500">
+    <p class="mt-1 text-xs text-slate-600">
       Menonaktifkan akses akun ke sistem.
     </p>
   </div>
 
-  <UIcon name="i-lucide-chevron-right" class="size-4 text-slate-400" />
+  <UIcon name="i-lucide-chevron-right" class="size-4 text-slate-500" />
 </button>
 
 <button
@@ -335,12 +360,12 @@
     <p class="font-medium text-slate-900">
       Aktifkan Kembali
     </p>
-    <p class="mt-1 text-xs text-slate-500">
+    <p class="mt-1 text-xs text-slate-600">
       Memulihkan akses akun ke sistem.
     </p>
   </div>
 
-  <UIcon name="i-lucide-chevron-right" class="size-4 text-slate-400" />
+  <UIcon name="i-lucide-chevron-right" class="size-4 text-slate-500" />
 </button>
 
 
@@ -379,14 +404,14 @@
           Atur Ulang Password
         </h2>
 
-        <p class="mt-1 text-sm text-slate-500">
+        <p class="mt-1 text-sm text-slate-600">
           Buat kata sandi baru untuk akun staf.
         </p>
       </div>
 
       <button
         type="button"
-        class="rounded-lg p-2 text-slate-400 hover:bg-slate-100"
+        class="rounded-lg p-2 text-slate-500 hover:bg-slate-100"
         aria-label="Tutup modal"
         :disabled="isResettingPassword"
         @click="isResetPasswordModalOpen = false"
@@ -402,10 +427,10 @@
       <p class="font-semibold text-slate-900">
         {{ selectedAccount.name }}
       </p>
-      <p class="mt-1 break-all text-sm text-slate-500">
+      <p class="mt-1 break-all text-sm text-slate-600">
         {{ selectedAccount.email }}
       </p>
-      <p class="mt-1 text-xs text-slate-400">
+      <p class="mt-1 text-xs text-slate-500">
         ID: {{ selectedAccount.id }}
       </p>
     </div>
@@ -434,7 +459,7 @@
           class="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
         />
 
-        <p class="mt-2 text-xs text-slate-500">
+        <p class="mt-2 text-xs text-slate-600">
           Minimal 12 karakter dan maksimal 128 karakter.
         </p>
       </div>
@@ -504,7 +529,7 @@
               class="w-full"
               required
             />
-            <p class="text-xs text-slate-500">
+            <p class="text-xs text-slate-600">
               Email digunakan untuk login ke sistem.
             </p>
           </div>
@@ -538,7 +563,7 @@
               minlength="12"
               autocomplete="new-password"
             />
-            <p class="text-xs text-slate-500">
+            <p class="text-xs text-slate-600">
               Pegawai dapat mengganti kata sandi setelah login.
             </p>
           </div>
@@ -623,6 +648,7 @@ const isResetPasswordModalOpen = ref(false)
 const newPassword = ref('')
 const isResettingPassword = ref(false)
 const isChangingAccountStatus = ref(false)
+const isResendingActivation = ref(false)
 
 const isAddAccountModalOpen = ref(false)
 const isSubmittingAccount = ref(false)
@@ -939,6 +965,49 @@ async function confirmAccountStatusChange(
     })
   } finally {
     isChangingAccountStatus.value = false
+  }
+}
+
+async function resendActivation() {
+  if (!selectedAccount.value || isResendingActivation.value) return
+
+  const account = selectedAccount.value
+
+  if (!window.confirm(
+    `Kirim ulang tautan aktivasi ke ${account.email}? Tautan aktivasi sebelumnya tidak akan berlaku lagi.`,
+  )) return
+
+  isResendingActivation.value = true
+
+  try {
+    const response = await $fetch<{ success: boolean; message: string }>(
+      `/api/admin/accounts/${encodeURIComponent(account.id)}/resend-activation`,
+      { method: 'POST', credentials: 'include' },
+    )
+
+    toast.add({
+      title: 'Tautan aktivasi terkirim',
+      description: response.message,
+      color: 'success',
+      icon: 'i-lucide-mail-check',
+    })
+
+    isActionModalOpen.value = false
+    selectedAccount.value = null
+  } catch (error: unknown) {
+    const fetchError = error as { data?: { statusMessage?: string; message?: string } }
+
+    toast.add({
+      title: 'Gagal mengirim tautan aktivasi',
+      description:
+        fetchError.data?.statusMessage
+        || fetchError.data?.message
+        || 'Terjadi kesalahan saat mengirim tautan aktivasi.',
+      color: 'error',
+      icon: 'i-lucide-circle-alert',
+    })
+  } finally {
+    isResendingActivation.value = false
   }
 }
 

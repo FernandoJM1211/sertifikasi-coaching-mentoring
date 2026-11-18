@@ -4,11 +4,11 @@
     <!-- Header -->
     <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
       <div>
-        <h1 class="text-2xl font-semibold text-primary">
+        <h1 class="text-2xl font-semibold text-blue-500">
           Pengaturan Timeline Sertifikasi
         </h1>
 
-        <p class="mt-1 text-sm text-slate-500">
+        <p class="mt-1 text-sm text-slate-600">
           Tentukan jadwal mulai dan selesai setiap tahapan agar proses sertifikasi berjalan teratur sesuai waktu yang ditetapkan.
         </p>
       </div>
@@ -32,7 +32,7 @@
         name="i-lucide-loader-circle"
         class="size-6 animate-spin text-primary"
       />
-      <span class="ml-3 text-sm text-slate-500">
+      <span class="ml-3 text-sm text-slate-600">
         Memuat informasi timeline...
       </span>
     </div>
@@ -109,7 +109,7 @@
                   {{ stage.stageName }}
                 </h3>
 
-                <p class="mt-1 text-sm leading-6 text-slate-500">
+                <p class="mt-1 text-sm leading-6 text-slate-600">
                   {{ stage.description }}
                 </p>
 
@@ -243,7 +243,7 @@
               <h2 class="text-lg font-semibold text-slate-900">
                 {{ overrideConfirmTitle }}
               </h2>
-              <p class="mt-1 text-sm leading-6 text-slate-500">
+              <p class="mt-1 text-sm leading-6 text-slate-600">
                 Tinjau perubahan akses sebelum melanjutkan.
               </p>
             </div>
@@ -306,7 +306,7 @@
                 {{ notificationTitle }}
               </h2>
 
-              <p class="mt-1 text-sm leading-6 text-slate-500">
+              <p class="mt-1 text-sm leading-6 text-slate-600">
                 {{ notificationSubtitle }}
               </p>
             </div>

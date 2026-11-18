@@ -123,7 +123,7 @@ onBeforeUnmount(() => {
       @focusin="handleMouseEnter"
       @focusout="handleMouseLeave"
     >
-      <p class="mb-1.5 text-center text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+      <p class="mb-1.5 text-center text-[10px] font-semibold uppercase tracking-wide text-slate-500">
         Unit
       </p>
 

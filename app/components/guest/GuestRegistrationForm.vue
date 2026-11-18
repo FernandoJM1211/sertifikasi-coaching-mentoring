@@ -431,11 +431,11 @@ function resetForm() {
             />
           </div>
 
-          <h1 class="mt-6 text-2xl font-semibold text-slate-900">
+          <h1 class="mt-6 text-2xl font-semibold text-blue-500">
             Pendaftaran Berhasil Dikirim
           </h1>
 
-          <p class="mt-3 max-w-xl text-sm leading-6 text-slate-500">
+          <p class="mt-3 max-w-xl text-sm leading-6 text-slate-600">
             Data dan dokumen pendaftaran Anda telah berhasil dikirim dan
             selanjutnya akan diperiksa oleh Verifikator.
           </p>
@@ -445,35 +445,35 @@ function resetForm() {
           >
             <div class="space-y-3">
               <div>
-                <p class="text-xs text-slate-500">Nama</p>
+                <p class="text-xs text-slate-600">Nama</p>
                 <p class="text-sm font-medium text-slate-900">
                   {{ form.fullName }}
                 </p>
               </div>
 
               <div>
-                <p class="text-xs text-slate-500">NIP</p>
+                <p class="text-xs text-slate-600">NIP</p>
                 <p class="text-sm font-medium text-slate-900">
                   {{ form.nip }}
                 </p>
               </div>
 
               <div>
-                <p class="text-xs text-slate-500">Nama Sertifikasi</p>
+                <p class="text-xs text-slate-600">Nama Sertifikasi</p>
                 <p class="text-sm font-medium text-slate-900">
                   {{ activePeriod.certificationName }}
                 </p>
               </div>
 
               <div>
-                <p class="text-xs text-slate-500">Kategori</p>
+                <p class="text-xs text-slate-600">Kategori</p>
                 <p class="text-sm font-medium text-slate-900">
                   {{ activePeriod.category }}
                 </p>
               </div>
 
               <div>
-                <p class="text-xs text-slate-500">Periode</p>
+                <p class="text-xs text-slate-600">Periode</p>
                 <p class="text-sm font-medium text-slate-900">
                   {{ activePeriod.name }}
                 </p>
@@ -481,7 +481,7 @@ function resetForm() {
             </div>
           </div>
 
-          <p class="mt-6 text-xs leading-5 text-slate-500">
+          <p class="mt-6 text-xs leading-5 text-slate-600">
             Mohon menunggu informasi selanjutnya dari penyelenggara sertifikasi.
           </p>
 
@@ -507,7 +507,7 @@ function resetForm() {
           Pendaftaran Sertifikasi
         </h1>
 
-        <p class="max-w text-sm leading-6 text-slate-500">
+        <p class="max-w text-sm leading-6 text-slate-600">
           Silakan lengkapi data dan dokumen persyaratan pendaftaran dengan benar.
           Seluruh data dan dokumen wajib diisi sebelum pendaftaran dikirim.
         </p>
@@ -522,7 +522,7 @@ function resetForm() {
         <UCard class="bg-white/90 shadow-sm">
           <div class="space-y-5">
             <div>
-              <p class="text-xs font-medium text-slate-500">
+              <p class="text-xs font-medium text-slate-600">
                 Nama Sertifikasi
               </p>
               <p class="mt-1 text-base font-medium text-slate-900">
@@ -531,7 +531,7 @@ function resetForm() {
             </div>
 
             <div>
-              <p class="text-xs font-medium text-slate-500">
+              <p class="text-xs font-medium text-slate-600">
                 Kategori
               </p>
               <p class="mt-1 text-base font-medium text-slate-900">
@@ -540,7 +540,7 @@ function resetForm() {
             </div>
 
             <div>
-              <p class="text-xs font-medium text-slate-500">
+              <p class="text-xs font-medium text-slate-600">
                 Periode
               </p>
               <p class="mt-1 text-base font-medium text-slate-900">
@@ -566,7 +566,7 @@ function resetForm() {
           <h2 class="text-lg font-semibold text-slate-900">
             2. Data Pemohon
           </h2>
-          <p class="mt-1 text-sm text-slate-500">
+          <p class="mt-1 text-sm text-slate-600">
             Lengkapi data sesuai identitas dan kondisi saat ini.
           </p>
         </div>
@@ -578,7 +578,7 @@ function resetForm() {
                 <UInput
                   v-model="form.fullName"
                   class="w-full"
-                  placeholder="Masukkan nama lengkap beserta gelar"
+                  placeholder="Contoh: Dr. Budi Santoso, S.E., M.Si."
                   :color="errorFor('fullName') ? 'error' : 'neutral'"
                   @blur="markTouched('fullName')"
                 />
@@ -596,7 +596,7 @@ function resetForm() {
                   class="w-full"
                   inputmode="numeric"
                   maxlength="18"
-                  placeholder="Masukkan NIP 18 digit"
+                  placeholder="Contoh: 198501012010011001 (18 digit tanpa spasi)"
                   :color="errorFor('nip') ? 'error' : 'neutral'"
                   @input="handleNipInput"
                   @blur="markTouched('nip')"
@@ -615,7 +615,7 @@ function resetForm() {
                 <UInput
                   v-model="form.institution"
                   class="w-full"
-                  placeholder="Masukkan nama instansi"
+                  placeholder="Contoh: Lembaga Administrasi Negara"
                   :color="errorFor('institution') ? 'error' : 'neutral'"
                   @blur="markTouched('institution')"
                 />
@@ -631,7 +631,7 @@ function resetForm() {
                 <UInput
                   v-model="form.region"
                   class="w-full"
-                  placeholder="Masukkan asal daerah"
+                  placeholder="Contoh: Kota Bandung, Jawa Barat"
                   :color="errorFor('region') ? 'error' : 'neutral'"
                   @blur="markTouched('region')"
                 />
@@ -650,7 +650,7 @@ function resetForm() {
                   v-model="form.email"
                   class="w-full"
                   type="email"
-                  placeholder="contoh@email.com"
+                  placeholder="Contoh: budi.santoso@instansi.go.id"
                   :color="errorFor('email') ? 'error' : 'neutral'"
                   @blur="markTouched('email')"
                 />
@@ -668,7 +668,7 @@ function resetForm() {
                   class="w-full"
                   inputmode="numeric"
                   maxlength="15"
-                  placeholder="Masukkan nomor WhatsApp"
+                  placeholder="Contoh: 081234567890 (hanya angka)"
                   :color="errorFor('whatsapp') ? 'error' : 'neutral'"
                   @input="handleWhatsappInput"
                   @blur="markTouched('whatsapp')"
@@ -687,7 +687,7 @@ function resetForm() {
                 <UInput
                   v-model="form.education"
                   class="w-full"
-                  placeholder="Contoh: S1 Ilmu Komputer"
+                  placeholder="Contoh: S2 Administrasi Publik"
                   :color="errorFor('education') ? 'error' : 'neutral'"
                   @blur="markTouched('education')"
                 />
@@ -703,7 +703,7 @@ function resetForm() {
                 <UInput
                   v-model="form.position"
                   class="w-full"
-                  placeholder="Masukkan jabatan"
+                  placeholder="Contoh: Analis Kebijakan Ahli Muda"
                   :color="errorFor('position') ? 'error' : 'neutral'"
                   @blur="markTouched('position')"
                 />
@@ -725,7 +725,7 @@ function resetForm() {
           <h2 class="text-lg font-semibold text-slate-900">
             3. Dokumen Persyaratan
           </h2>
-          <p class="mt-1 text-sm text-slate-500">
+          <p class="mt-1 text-sm text-slate-600">
             Seluruh dokumen wajib dalam format PDF dengan ukuran maksimal
             {{ MAX_UPLOAD_SIZE_MB }} MB per file.
           </p>
@@ -765,13 +765,13 @@ function resetForm() {
                       <span class="text-red-500">*</span>
                     </p>
 
-                    <p class="mt-0.5 text-xs text-slate-500">
+                    <p class="mt-0.5 text-xs text-slate-600">
                       Dokumen PDF, maksimal {{ MAX_UPLOAD_SIZE_MB }} MB.
                     </p>
 
                     <p
                       v-if="item.file && item.uploading"
-                      class="mt-1 flex items-center gap-1.5 break-all text-xs text-slate-500"
+                      class="mt-1 flex items-center gap-1.5 break-all text-xs text-slate-600"
                     >
                       <UIcon name="i-lucide-loader-circle" class="size-3.5 shrink-0 animate-spin" />
                       Mengunggah {{ item.file.name }}...
@@ -782,7 +782,7 @@ function resetForm() {
                     >
                       {{ item.file.name }} ({{ formatFileSize(item.file.size) }})
                     </p>
-                    <p v-else class="mt-1 text-xs text-slate-400">
+                    <p v-else class="mt-1 text-xs text-slate-600">
                       Belum ada file dipilih.
                     </p>
 
@@ -902,7 +902,7 @@ function resetForm() {
               <h2 class="text-lg font-semibold text-slate-900">
                 Pendaftaran Belum Dapat Diproses
               </h2>
-              <p class="mt-1 text-sm leading-6 text-slate-500">
+              <p class="mt-1 text-sm leading-6 text-slate-600">
                 Periksa informasi berikut sebelum mencoba kembali.
               </p>
             </div>

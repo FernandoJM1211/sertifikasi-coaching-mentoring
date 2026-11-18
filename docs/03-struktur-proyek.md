@@ -61,7 +61,8 @@ Untuk role baru (mis. asesor), buat layout tipis serupa yang memakai `LayoutDash
 
 | File | Tag | Fungsi |
 | --- | --- | --- |
-| `layout/DashboardShell.vue` | `<LayoutDashboardShell>` | Kerangka dashboard: sidebar, menu profil (Profil, Ganti Kata Sandi, Keluar), header, area konten. Props: `panelLabel`, `headerTitle`, `navigation`, `basePath`. |
+| `layout/DashboardShell.vue` | `<LayoutDashboardShell>` | Kerangka dashboard: sidebar, menu profil (Profil, Ganti Kata Sandi, Keluar), header, area konten. Brand: "Sertifikasi CMSP" / "Lembaga Administrasi Negara". Header: judul = label menu aktif (fallback `headerTitle`), sub judul = `panelLabel` (nama panel role), tanggal hari ini, notifikasi. Props: `panelLabel`, `headerTitle`, `navigation`, `basePath`. |
+| `layout/AppFooter.vue` | `<LayoutAppFooter>` | Footer aplikasi. `variant="full"` (default) di layout publik `default`/`guest`: satu pita horizontal (unit, alamat, email, WhatsApp); `variant="compact"` kartu di bawah konten dashboard dengan tombol "Butuh Bantuan?" (modal pilihan email/WhatsApp). Data kontak ada di konstanta `contact` dalam file ini. |
 | `account/AccountProfile.vue` | `<AccountProfile>` | Halaman profil (semua role). Peserta: data diri dari sheet `persons`, bisa diedit (NIP & email terkunci). Pegawai: nama & email. Prop `changePasswordPath`. |
 | `document/DocumentPreviewModal.vue` | `<DocumentPreviewModal>` | Modal preview PDF via iframe dari endpoint backend. Props: `v-model:open`, `url`, `title`, `description`. |
 | `account/ChangePasswordForm.vue` | `<AccountChangePasswordForm>` | Form ganti kata sandi; setelah berhasil semua sesi dicabut dan diarahkan ke login. Prop `profilePath`. |
@@ -226,6 +227,7 @@ Alur: **`api/` → `services/` → `repositories/` → Google Sheets/Drive.**
 | `POST /api/admin/accounts` | `admin/accounts/index.post.ts` | Super Admin | Buat akun pegawai. |
 | `GET /api/admin/accounts/:id` | `admin/accounts/[id].get.ts` | Super Admin | Detail akun. |
 | `POST /api/admin/accounts/:id/reset-password` | `admin/accounts/[id]/reset-password.post.ts` | Super Admin | Atur ulang kata sandi akun lain. |
+| `POST /api/admin/accounts/:id/resend-activation` | `admin/accounts/[id]/resend-activation.post.ts` | Super Admin | Kirim ulang tautan aktivasi ke akun peserta berstatus menunggu aktivasi (token lama dicabut). |
 | `PATCH /api/admin/accounts/:id/status` | `admin/accounts/[id]/status.patch.ts` | Super Admin | `ACTIVE` / `DISABLED`. |
 | `GET /api/peserta/dashboard` | `peserta/dashboard.get.ts` | Peserta | Pengajuan milik peserta + periode + timeline + `progress` (status self assessment & evaluasi, apakah masih dapat dikerjakan). |
 | `GET /api/home/periods` | `home/periods.get.ts` | Super Admin, Verifikator, Asesor Teknis | Periode aktif (Asesor: yang memiliki peserta ditugaskan) + timeline untuk beranda. |
@@ -272,7 +274,7 @@ Alur: **`api/` → `services/` → `repositories/` → Google Sheets/Drive.**
 | `evaluation-attempt.service.ts` | Pengerjaan peserta: kelayakan, mulai (acak soal/opsi), autosave, submit, penilaian `scoreAttempt()`, tutup otomatis saat waktu habis. |
 | `profile.service.ts` | Baca & validasi/perbarui profil; sinkron nama ke akun. |
 | `certification-stage.service.ts` | `getStageAccess()` / `assertStageOpen()` — cek tahap timeline dibuka (jadwal + override). |
-| `peserta-account-provisioning.service.ts` | Buat/ambil akun peserta & token aktivasi, kirim email aktivasi. |
+| `peserta-account-provisioning.service.ts` | Buat/ambil akun peserta & token aktivasi, kirim email aktivasi, kirim ulang tautan aktivasi (`resendPesertaActivation`). |
 | `certification-period.service.ts` | Buat periode & aturan transisi status. |
 | `certification-timeline.service.ts` | Validasi & simpan 8 tahapan timeline. |
 | `google-oauth.service.ts` | OAuth Google untuk Drive; simpan/muat refresh token. |

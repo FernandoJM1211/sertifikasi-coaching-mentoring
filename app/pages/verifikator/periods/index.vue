@@ -2,11 +2,11 @@
   <div class="mx-auto w-full max-w-5xl space-y-8 pb-8">
     <!-- Header -->
     <div class="space-y-2">
-      <h1 class="text-3xl font-semibold tracking-tight text-slate-900">
+      <h1 class="text-3xl font-semibold tracking-tight text-blue-500">
         Periode Sertifikasi
       </h1>
 
-      <p class="text-sm leading-6 text-slate-500">
+      <p class="text-sm leading-6 text-slate-600">
         Pilih periode sertifikasi yang ingin dipantau.
       </p>
     </div>
@@ -27,7 +27,7 @@
         <h2 class="text-base font-semibold text-slate-900">
           Daftar Periode
         </h2>
-        <p class="mt-1 text-sm text-slate-500">
+        <p class="mt-1 text-sm text-slate-600">
           Lihat timeline dan lakukan verifikasi peserta pada setiap periode.
         </p>
       </div>
@@ -59,7 +59,7 @@
         name="i-lucide-loader-circle"
         class="size-6 animate-spin text-primary"
       />
-      <span class="ml-3 text-sm text-slate-500">
+      <span class="ml-3 text-sm text-slate-600">
         Memuat daftar periode...
       </span>
     </div>
@@ -98,7 +98,7 @@ class="grid grid-cols-1 items-start gap-5 md:grid-cols-2"
   {{ period.period_name }}
 </h3>
 
-              <p class="text-sm text-slate-500">
+              <p class="text-sm text-slate-600">
                 Jadwal:
                 <span class="font-medium text-slate-700">
                   {{ formatDateTimeId(period.stage_start_at) }} – {{ formatDateTimeId(period.stage_end_at) }}
@@ -158,7 +158,7 @@ class="grid grid-cols-1 items-start gap-5 md:grid-cols-2"
           Belum ada periode sertifikasi
         </h3>
 
-        <p class="mt-2 max-w-md text-sm leading-6 text-slate-500">
+        <p class="mt-2 max-w-md text-sm leading-6 text-slate-600">
           Periode sertifikasi yang tersedia akan ditampilkan di halaman ini.
         </p>
       </div>

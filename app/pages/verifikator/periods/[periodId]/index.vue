@@ -3,10 +3,10 @@
     <!-- Header: judul kiri; Kembali + status periode kanan -->
     <div class="flex items-start justify-between gap-4">
       <div class="min-w-0">
-        <h1 class="text-xl font-semibold text-slate-900 sm:text-2xl">
+        <h1 class="text-xl font-semibold text-blue-500 sm:text-2xl">
           {{ period ? period.period_name : 'Dashboard Periode Sertifikasi' }}
         </h1>
-        <p class="mt-1 text-sm text-slate-500">
+        <p class="mt-1 text-sm text-slate-600">
           ID Periode:
           <span class="font-medium text-slate-700">{{ periodId }}</span>
         </p>
@@ -33,7 +33,7 @@
     </div>
     <div v-if="loading && !period" class="flex items-center justify-center py-12">
       <UIcon name="i-lucide-loader-circle" class="size-6 animate-spin text-primary" />
-      <span class="ml-3 text-sm text-slate-500">Memuat dashboard periode...</span>
+      <span class="ml-3 text-sm text-slate-600">Memuat dashboard periode...</span>
     </div>
     <UAlert
       v-else-if="errorMessage"
@@ -68,7 +68,7 @@
             <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div>
                 <h2 class="font-semibold text-slate-900">Daftar Pengajuan Sertifikasi</h2>
-                <p class="mt-1 text-sm text-slate-500">Pengajuan pada periode {{ periodId }}.</p>
+                <p class="mt-1 text-sm text-slate-600">Pengajuan pada periode {{ periodId }}.</p>
               </div>
               <UButton
                 color="neutral"
@@ -99,13 +99,13 @@
             </div>
           </div>
         </template>
-        <div v-if="loading && applications.length === 0" class="py-8 text-center text-sm text-slate-500">
+        <div v-if="loading && applications.length === 0" class="py-8 text-center text-sm text-slate-600">
           Memuat pengajuan...
         </div>
         <div v-else-if="filteredApplications.length === 0" class="py-8 text-center">
-          <UIcon name="i-lucide-inbox" class="mx-auto size-9 text-slate-400" />
+          <UIcon name="i-lucide-inbox" class="mx-auto size-9 text-slate-500" />
           <p class="mt-3 font-medium text-slate-700">Tidak ada pengajuan yang sesuai</p>
-          <p class="mt-1 text-sm text-slate-500">Coba ubah filter status atau kata pencarian.</p>
+          <p class="mt-1 text-sm text-slate-600">Coba ubah filter status atau kata pencarian.</p>
         </div>
         <div v-else class="overflow-x-auto">
           <table class="w-full min-w-[800px] text-left text-sm">

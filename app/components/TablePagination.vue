@@ -27,7 +27,7 @@ const rangeEnd = computed(() => Math.min(page.value * pageSize.value, props.tota
 </script>
 
 <template>
-  <div class="flex w-full flex-col gap-3 text-sm text-slate-500 md:flex-row md:items-center md:justify-between">
+  <div class="flex w-full flex-col gap-3 text-sm text-slate-600 md:flex-row md:items-center md:justify-between">
     <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
       <p>
         Menampilkan {{ rangeStart }}–{{ rangeEnd }} dari {{ total }} {{ label }}
