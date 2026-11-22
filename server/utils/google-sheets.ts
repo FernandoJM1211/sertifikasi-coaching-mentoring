@@ -66,37 +66,106 @@ function quoteSheetName(sheetName: string): string {
   return `'${sheetName.replace(/'/g, "''")}'`
 }
 
+/* ------------------------------------------------------------------ */
+/* Kuota Google Sheets API                                             */
+/* ------------------------------------------------------------------ */
+/*
+ * Google membatasi ±60 permintaan baca per menit per akun (service account). Repository membaca
+ * satu sheet utuh setiap dipanggil, sehingga satu aksi (mis. simpan draft self assessment) bisa
+ * membaca sheet yang sama berkali-kali. Untuk menghemat kuota:
+ * 1. Cache baca singkat (READ_CACHE_TTL_MS) per sheet + penggabungan pembacaan bersamaan.
+ *    Cache sheet DIHAPUS setiap ada penulisan ke sheet tersebut dari server ini, sehingga data
+ *    yang baru ditulis selalu terbaca. (Antar-instance server, data bisa tertinggal maks. TTL.)
+ * 2. Coba ulang otomatis bila Google membalas 429 (kuota habis) / 5xx sementara.
+ */
+
+const READ_CACHE_TTL_MS = 3_000
+const RETRY_DELAYS_MS = [1_000, 2_000, 4_000]
+
+type CacheEntry = { expiresAt: number, promise: Promise<string[][]> }
+const readCache = new Map<string, CacheEntry>()
+
+function errorStatus(error: unknown): number {
+  const value = error as { code?: unknown, status?: unknown, response?: { status?: unknown } } | null
+  return Number(value?.response?.status ?? value?.code ?? value?.status)
+}
+
+function isRetryableError(error: unknown, onlyQuota: boolean): boolean {
+  const status = errorStatus(error)
+  if (status === 429) return true
+  return !onlyQuota && (status === 500 || status === 502 || status === 503)
+}
+
+async function withRetry<T>(operation: () => Promise<T>, options: { onlyQuota?: boolean } = {}): Promise<T> {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await operation()
+    } catch (error) {
+      const delay = RETRY_DELAYS_MS[attempt]
+      if (delay === undefined || !isRetryableError(error, Boolean(options.onlyQuota))) throw error
+      // Jitter kecil agar permintaan yang gagal bersamaan tidak mencoba ulang serentak.
+      await new Promise((resolve) => setTimeout(resolve, delay + Math.floor(Math.random() * 300)))
+    }
+  }
+}
+
+/** Salinan baris agar pemanggil tidak mengubah isi cache. */
+const cloneRows = (rows: string[][]) => rows.map((row) => [...row])
+
 function createSheetStore(spreadsheetEnvName: string) {
+  const cacheKey = (sheetName: string) => `${spreadsheetEnvName}:${sheetName}`
+  const invalidate = (sheetName: string) => readCache.delete(cacheKey(sheetName))
+
   return {
     async getValues(sheetName: string): Promise<string[][]> {
-      const response = await getSheetsClient().spreadsheets.values.get({
-        spreadsheetId: getSpreadsheetId(spreadsheetEnvName),
-        range: quoteSheetName(sheetName),
+      const key = cacheKey(sheetName)
+      const cached = readCache.get(key)
+
+      if (cached && cached.expiresAt > Date.now()) {
+        return cloneRows(await cached.promise)
+      }
+
+      const promise = withRetry(async () => {
+        const response = await getSheetsClient().spreadsheets.values.get({
+          spreadsheetId: getSpreadsheetId(spreadsheetEnvName),
+          range: quoteSheetName(sheetName),
+        })
+
+        return (response.data.values ?? []) as string[][]
       })
 
-      return (response.data.values ?? []) as string[][]
+      const entry: CacheEntry = { expiresAt: Date.now() + READ_CACHE_TTL_MS, promise }
+      readCache.set(key, entry)
+
+      try {
+        return cloneRows(await promise)
+      } catch (error) {
+        // Pembacaan gagal tidak disimpan di cache.
+        if (readCache.get(key) === entry) readCache.delete(key)
+        throw error
+      }
     },
 
     async appendRow(sheetName: string, values: string[]): Promise<void> {
-      await getSheetsClient().spreadsheets.values.append({
+      await write(sheetName, () => getSheetsClient().spreadsheets.values.append({
         spreadsheetId: getSpreadsheetId(spreadsheetEnvName),
         range: quoteSheetName(sheetName),
         valueInputOption: 'RAW',
         insertDataOption: 'INSERT_ROWS',
         requestBody: { values: [values] },
-      })
+      }))
     },
 
     async appendRows(sheetName: string, rows: string[][]): Promise<void> {
       if (rows.length === 0) return
 
-      await getSheetsClient().spreadsheets.values.append({
+      await write(sheetName, () => getSheetsClient().spreadsheets.values.append({
         spreadsheetId: getSpreadsheetId(spreadsheetEnvName),
         range: quoteSheetName(sheetName),
         valueInputOption: 'RAW',
         insertDataOption: 'INSERT_ROWS',
         requestBody: { values: rows },
-      })
+      }))
     },
 
     /** Memperbarui banyak baris sekaligus dalam satu request. */
@@ -106,7 +175,7 @@ function createSheetStore(spreadsheetEnvName: string) {
     ): Promise<void> {
       if (updates.length === 0) return
 
-      await getSheetsClient().spreadsheets.values.batchUpdate({
+      await write(sheetName, () => getSheetsClient().spreadsheets.values.batchUpdate({
         spreadsheetId: getSpreadsheetId(spreadsheetEnvName),
         requestBody: {
           valueInputOption: 'RAW',
@@ -115,7 +184,7 @@ function createSheetStore(spreadsheetEnvName: string) {
             values: [update.values],
           })),
         },
-      })
+      }))
     },
 
     async updateRow(
@@ -123,13 +192,27 @@ function createSheetStore(spreadsheetEnvName: string) {
       rowNumber: number,
       values: string[],
     ): Promise<void> {
-      await getSheetsClient().spreadsheets.values.update({
+      await write(sheetName, () => getSheetsClient().spreadsheets.values.update({
         spreadsheetId: getSpreadsheetId(spreadsheetEnvName),
         range: `${quoteSheetName(sheetName)}!A${rowNumber}`,
         valueInputOption: 'RAW',
         requestBody: { values: [values] },
-      })
+      }))
     },
+  }
+
+  /**
+   * Penulisan: cache sheet dihapus sebelum & sesudah menulis. Coba ulang HANYA untuk 429
+   * (permintaan ditolak sebelum diproses) — pada 5xx penulisan mungkin sudah tersimpan,
+   * sehingga mengulang `append` bisa membuat baris ganda.
+   */
+  async function write(sheetName: string, operation: () => Promise<unknown>): Promise<void> {
+    invalidate(sheetName)
+    try {
+      await withRetry(operation, { onlyQuota: true })
+    } finally {
+      invalidate(sheetName)
+    }
   }
 }
 

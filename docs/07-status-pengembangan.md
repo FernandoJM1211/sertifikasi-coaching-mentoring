@@ -105,6 +105,7 @@ Legenda: ✅ selesai · 🚧 sedang dikerjakan · ❌ belum ada
 | 13 | ~~Halaman verifikasi Verifikator & Super Admin masih punya modal preview sendiri~~ | Selesai 22 Nov 2026 — memakai `<DocumentPreviewModal>` | — |
 | 14 | Peserta mengganti dokumen setelah diterima; Verifikator tidak mendapat penanda | Verifikator bisa tidak sadar dokumen berubah | Tampilkan "diganti peserta pada …" di halaman verifikasi, atau masukkan ke verifikasi CMSP-01 |
 | 15 | Autosave evaluasi menulis ke sheet (debounce 1,5 detik per peserta) | Banyak peserta serentak bisa mendekati kuota tulis Google Sheets (±300/menit per proyek) | Pantau saat evaluasi massal; bila perlu perbesar debounce |
+| 17 | Kuota baca Google Sheets ±60 permintaan/menit per service account; repository membaca satu sheet utuh setiap dipanggil (terjadi 22 Nov 2026: 429 `RESOURCE_EXHAUSTED` saat simpan draft) | Aksi berat (simpan draft, unggah beruntun) bisa gagal "server error" | Sudah dimitigasi di `google-sheets.ts` (cache baca 3 detik + coba ulang 429). Bila masih terjadi saat banyak pengguna: ajukan kenaikan kuota di Google Cloud Console (Sheets API → Quotas), atau gabungkan pembacaan dengan `values.batchGet` |
 | 16 | `replaceChildRows` (baris anak CMSP-01/02) sebelum 16 Nov 2026 salah membaca nomor ID, sehingga ID baris anak baru bisa ganda | Data lama mungkin punya ID ganda di `cmsp01_trainings`/`cmsp01_practices`/`cmsp01_documents`/`cmsp02_evidences` | Sudah diperbaiki; cek ID ganda pada data lama bila diperlukan |
 
 ## Rencana Berikutnya

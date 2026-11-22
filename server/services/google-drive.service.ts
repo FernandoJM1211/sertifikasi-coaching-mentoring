@@ -125,6 +125,41 @@ export async function renameGoogleDriveFile(storageFileId: string, fileName: str
 }
 
 /**
+ * Mengubah berkas Word (.doc/.docx) di Drive menjadi PDF untuk preview:
+ * salin sementara sebagai Google Docs → ekspor PDF → hapus salinan. Berkas asli tidak berubah.
+ * Scope `drive.file` cukup karena berkas asli dibuat oleh aplikasi ini.
+ */
+export async function convertGoogleDriveFileToPdf(storageFileId: string): Promise<Buffer> {
+  const drive = await getGoogleDriveClient()
+
+  const copy = await drive.files.copy({
+    fileId: storageFileId,
+    requestBody: {
+      name: `TMP_PREVIEW_${Date.now()}`,
+      mimeType: 'application/vnd.google-apps.document',
+      parents: [getGoogleDriveFolderId()],
+    },
+    fields: 'id',
+  }).catch(handleDriveError)
+
+  const copyId = copy.data.id
+  if (!copyId) throw new Error('Gagal membuat salinan sementara untuk konversi.')
+
+  try {
+    const exported = await drive.files.export(
+      { fileId: copyId, mimeType: 'application/pdf' },
+      { responseType: 'arraybuffer' },
+    ).catch(handleDriveError)
+
+    return Buffer.from(exported.data as ArrayBuffer)
+  } finally {
+    // Salinan sementara selalu dihapus; kegagalan hapus hanya dicatat.
+    await drive.files.delete({ fileId: copyId })
+      .catch((error) => console.error('Gagal menghapus salinan preview sementara di Drive:', error))
+  }
+}
+
+/**
  * Mengunduh isi berkas dari Google Drive melalui backend,
  * sehingga berkas tidak perlu dibagikan secara publik.
  */

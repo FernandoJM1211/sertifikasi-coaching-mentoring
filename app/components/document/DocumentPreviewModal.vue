@@ -55,7 +55,10 @@ async function loadDocument() {
   loading.value = true
 
   try {
-    const blob = await $fetch<Blob>(props.url, {
+    // `preview=pdf`: berkas Word dikonversi server menjadi PDF (butuh beberapa detik);
+    // jenis lain dikirim apa adanya. Tombol Unduh tetap memakai berkas asli (`url`).
+    const separator = props.url.includes('?') ? '&' : '?'
+    const blob = await $fetch<Blob>(`${props.url}${separator}preview=pdf`, {
       responseType: 'blob',
       credentials: 'include',
     })
@@ -96,6 +99,9 @@ watch(
 
 onBeforeUnmount(releaseObjectUrl)
 
+/** Nama berkas Word → pesan memuat menyebut konversi (lebih lama dari PDF). */
+const isWordFile = computed(() => /\.docx?$/i.test(props.title ?? ''))
+
 /** PDF/gambar dapat dibuka di tab baru agar lebih lega (memakai berkas yang sudah dimuat). */
 const canOpenInNewTab = computed(() => Boolean(objectUrl.value) && (isPdf.value || isImage.value))
 
@@ -125,6 +131,18 @@ function openInNewTab() {
           </p>
           <p v-if="description" class="truncate text-xs text-slate-600">{{ description }}</p>
         </div>
+        <!-- Unduh berkas ASLI (mis. .docx), bukan hasil konversi preview. -->
+        <UButton
+          v-if="url && !loading"
+          :href="url"
+          :download="title || 'dokumen'"
+          color="neutral"
+          variant="outline"
+          size="sm"
+          icon="i-lucide-download"
+        >
+          <span class="hidden sm:inline">Unduh</span>
+        </UButton>
         <UButton
           v-if="canOpenInNewTab"
           color="neutral"
@@ -152,7 +170,7 @@ function openInNewTab() {
         class="flex h-[calc(96vh-5rem)] items-center justify-center gap-3 text-sm text-slate-600"
       >
         <UIcon name="i-lucide-loader-circle" class="size-5 animate-spin" />
-        Memuat dokumen...
+        {{ isWordFile ? 'Menyiapkan pratinjau dokumen Word (beberapa detik)...' : 'Memuat dokumen...' }}
       </div>
 
       <div

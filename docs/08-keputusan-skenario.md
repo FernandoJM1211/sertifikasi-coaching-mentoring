@@ -26,6 +26,7 @@ dibahas ulang dari nol.
 | K-08 | [Penilaian Asesor Kepublikan (CMSP-03)](#k-08--penilaian-asesor-kepublikan-cmsp-03) | 18 Nov 2026 |
 | K-09 | [Halaman konfirmasi pendaftaran & email hasil verifikasi](#k-09--halaman-konfirmasi-pendaftaran--email-hasil-verifikasi) | 22 Nov 2026 |
 | K-10 | [Mendaftar ulang pada periode yang sama](#k-10--mendaftar-ulang-pada-periode-yang-sama) | 22 Nov 2026 |
+| K-11 | [Preview berkas Word & link evidence](#k-11--preview-berkas-word--link-evidence) | 22 Nov 2026 |
 
 ---
 
@@ -234,3 +235,25 @@ menemukannya, hubungi admin melalui kontak di bagian bawah halaman."* Admin lalu
 **Kirim Ulang Tautan Aktivasi** (K-03).
 
 **Penerapan.** `createApplication()` di `server/services/application.service.ts`.
+
+---
+
+## K-11 — Preview berkas Word & link evidence
+
+**Konteks.** Evidence berupa Word (.doc/.docx) sebelumnya hanya bisa diunduh. Sistem akan dipakai di
+Vercel (prototipe, ±30–50 peserta), sehingga solusinya tidak boleh memberatkan kuota.
+
+**Keputusan.**
+
+- Dipilih **konversi lewat Google Drive → PDF** (opsi A): salinan sementara sebagai Google Docs →
+  ekspor PDF → salinan dihapus. Mendukung .doc & .docx, tanpa library baru, berkas asli tidak berubah.
+  Ditolak: library di browser (hanya .docx, tata letak meleset) dan viewer online (berkas harus publik).
+- Konversi ±5–9 detik saat pertama dibuka, lalu di-cache 10 menit di server. Hasil > 4,3 MB tidak
+  ditampilkan (batas respons Vercel ±4,5 MB) — pengguna diminta mengunduh.
+- Batas waktu fungsi Vercel dinaikkan ke 60 detik (`nuxt.config.ts`) karena default Hobby 10 detik.
+- Modal preview punya tombol **Unduh** (berkas asli) dan **Buka di Tab Baru**.
+- Link evidence: video YouTube & file Google Drive ditampilkan di modal (ukuran sama dengan preview
+  PDF); link lain (folder Drive, website) langsung dibuka di **tab baru**. Hanya `http`/`https` diterima.
+
+**Penerapan.** `convertGoogleDriveFileToPdf()` (`google-drive.service.ts`), `sendStoredFile()`
+(`?preview=pdf`), `DocumentPreviewModal.vue`, `LinkPreviewModal.vue`, `nuxt.config.ts`.

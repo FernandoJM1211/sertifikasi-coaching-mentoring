@@ -23,6 +23,16 @@ export default defineNuxtConfig({
     },
   },
 
+  nitro: {
+    vercel: {
+      functions: {
+        // Batas waktu fungsi di Vercel (Hobby tanpa Fluid Compute default 10 detik).
+        // Konversi preview Word → PDF lewat Google Drive bisa ±9 detik saat pertama kali.
+        maxDuration: 60,
+      },
+    },
+  },
+
   routeRules: {
     '/**': {
       headers: {

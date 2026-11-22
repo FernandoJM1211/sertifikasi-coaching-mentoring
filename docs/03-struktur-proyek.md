@@ -17,7 +17,7 @@ Peta seluruh file dan fungsinya. **Perbarui dokumen ini setiap menambah/menghapu
 
 | File | Fungsi |
 | --- | --- |
-| `nuxt.config.ts` | Konfigurasi Nuxt: modul `@nuxt/ui`, CSS global, light mode, header keamanan (`routeRules`). |
+| `nuxt.config.ts` | Konfigurasi Nuxt: modul `@nuxt/ui`, CSS global, light mode, header keamanan (`routeRules`), batas waktu fungsi Vercel `maxDuration: 60` detik (untuk konversi preview Word). |
 | `package.json` | Dependency dan perintah `npm run ...`. |
 | `tsconfig.json` | Merujuk tsconfig yang dibuat otomatis oleh Nuxt di `.nuxt/`. |
 | `.env.example` | Contoh environment variable (lihat [02-tech-stack.md](02-tech-stack.md)). `.env` asli tidak di-commit. |
@@ -65,7 +65,7 @@ Untuk role baru (mis. asesor), buat layout tipis serupa yang memakai `LayoutDash
 | `layout/DashboardShell.vue` | `<LayoutDashboardShell>` | Kerangka dashboard: sidebar, menu profil (Profil, Ganti Kata Sandi, Keluar), header, area konten. Brand: "Sertifikasi CMSP" / "Lembaga Administrasi Negara". Header: judul = label menu aktif (fallback `headerTitle`), sub judul = `panelLabel` (nama panel role), tanggal hari ini, notifikasi. Props: `panelLabel`, `headerTitle`, `navigation`, `basePath`. |
 | `layout/AppFooter.vue` | `<LayoutAppFooter>` | Footer aplikasi. `variant="full"` (default) di layout publik `default`/`guest`: satu pita horizontal (unit, alamat, email, WhatsApp); `variant="compact"` kartu di bawah konten dashboard dengan tombol "Butuh Bantuan?" (modal pilihan email/WhatsApp). Data kontak ada di konstanta `contact` dalam file ini. |
 | `account/AccountProfile.vue` | `<AccountProfile>` | Halaman profil (semua role). Peserta: data diri dari sheet `persons`, bisa diedit (NIP & email terkunci). Pegawai: nama & email. Prop `changePasswordPath`. |
-| `document/DocumentPreviewModal.vue` | `<DocumentPreviewModal>` | Modal preview PDF/gambar hampir layar penuh (header tipis) + tombol **Buka di Tab Baru**. Dipakai semua preview dokumen, termasuk detail pengajuan Verifikator & Super Admin. Props: `v-model:open`, `url` atau `file`, `title`, `description`. |
+| `document/DocumentPreviewModal.vue` | `<DocumentPreviewModal>` | Modal preview PDF/gambar/**Word** hampir layar penuh (header tipis) + tombol **Unduh** (berkas asli) & **Buka di Tab Baru**. Memuat `url?preview=pdf`: berkas Word dikonversi server menjadi PDF lewat Google Drive (±5–9 detik pertama kali, lalu di-cache 10 menit; hasil > 4,3 MB tidak ditampilkan). Dipakai semua preview dokumen, termasuk detail pengajuan Verifikator & Super Admin. Props: `v-model:open`, `url` atau `file`, `title`, `description`. |
 | `account/ChangePasswordForm.vue` | `<AccountChangePasswordForm>` | Form ganti kata sandi; setelah berhasil semua sesi dicabut dan diarahkan ke login. Prop `profilePath`. |
 | `guest/GuestRegistrationForm.vue` | `<GuestRegistrationForm>` | Form pendaftaran publik: data diri + 4 dokumen PDF, kirim ke `/api/applications/register`. |
 | `certification/Cmsp01Form.vue` | diimpor di halaman | Form CMSP-01. Data awal dari server (props `initial`); jika belum pernah disimpan, data diri disalin dari Profil. 6 dokumen (4 pendaftaran + KTP + Surat Tugas) bisa dilihat & diganti. Expose `progress`, `declarationAccepted`, `payload`. |
@@ -77,7 +77,7 @@ Untuk role baru (mis. asesor), buat layout tipis serupa yang memakai `LayoutDash
 
 `Cmsp01Form`/`Cmsp02Form` punya prop `reviewMode` (dipakai halaman verifikasi): menyembunyikan panduan pengisian, progress, badge kelengkapan, contoh bukti, dan deskripsi evidence yang kosong.
 | `certification/Cmsp02UnitNavigator.vue` | `<CertificationCmsp02UnitNavigator>` | Kotak nomor unit melayang di kanan CMSP-02; muncul saat scroll, hilang 5 detik setelah berhenti. |
-| `document/LinkPreviewModal.vue` | `<DocumentLinkPreviewModal>` | Modal embed link evidence (video YouTube / file Google Drive). |
+| `document/LinkPreviewModal.vue` | `<DocumentLinkPreviewModal>` | Modal embed link evidence (video YouTube / file Google Drive); ukuran & header sama dengan `DocumentPreviewModal`. Link lain (folder Drive, website) tidak di-embed, langsung dibuka di tab baru. |
 | `timeline/ProgressBar.vue` | `<TimelineProgressBar>` | Progres bar timeline (Selesai / Sedang Berlangsung / Belum Dimulai). Prop `stages`. |
 | `timeline/CurrentStage.vue` | `<TimelineCurrentStage>` | Kartu "Tahapan Saat Ini" (nama, tanggal mulai & selesai) + panel tombol dinamis dari prop `tasks`. |
 | `timeline/StaffHome.vue` | `<TimelineStaffHome>` | Beranda staf: semua periode aktif dari `/api/home/periods` + progres bar; props `tasksFor(periodId, stage)`, `showCurrentStage`, `emptyDescription`. |
@@ -184,7 +184,7 @@ Alur: **`api/` → `services/` → `repositories/` → Google Sheets/Drive.**
 | `rate-limit.ts` | `assertRateLimit()` / `resetRateLimit()` — pembatas percobaan in-memory. |
 | `password.ts` | `hashPassword()`, `verifyPassword()`, `validateNewPassword()` (12–128 karakter). |
 | `auth-token.ts` | `generateAuthToken()` (token acak) dan `hashAuthToken()` (SHA-256). |
-| `google-sheets.ts` | Klien Sheets: `getSheetValues/appendSheetValues/updateSheetRow` (data) dan versi `...Auth...` (autentikasi). |
+| `google-sheets.ts` | Klien Sheets: `getSheetValues/appendSheetValues/updateSheetRow` (data) dan versi `...Auth...` (autentikasi). Hemat kuota: cache baca 3 detik per sheet (dihapus saat sheet ditulis) + gabung pembacaan bersamaan; coba ulang otomatis saat 429 (baca juga saat 5xx). |
 | `email.ts` | Email via Gmail: `sendAccountActivationEmail()`, `sendApplicationAcceptedEmail()` (akun sudah aktif), `sendApplicationAcceptedNoticeEmail()` (email pengajuan ≠ email akun), `sendApplicationRejectedEmail()`. Kapan dipakai: docs/08 K-09. |
 | `account-response.ts` | `toPublicAccount()` — data akun tanpa `password_hash`. |
 | `pdf-file.ts` | `assertValidPdfFile()` (MIME, ukuran, signature), `sanitizeFileNamePart()`, `multipartPartToFile()`. |
@@ -293,7 +293,7 @@ Alur: **`api/` → `services/` → `repositories/` → Google Sheets/Drive.**
 | `certification-period.service.ts` | Buat periode & aturan transisi status. |
 | `certification-timeline.service.ts` | Validasi & simpan 8 tahapan timeline. |
 | `google-oauth.service.ts` | OAuth Google untuk Drive; simpan/muat refresh token. |
-| `google-drive.service.ts` | Unggah & unduh berkas Drive. |
+| `google-drive.service.ts` | Unggah & unduh berkas Drive; `convertGoogleDriveFileToPdf()` (salinan sementara Google Docs → ekspor PDF → hapus salinan) untuk preview Word. |
 
 ### `server/repositories/` — Akses Data
 

@@ -218,7 +218,8 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <UContainer class="py-6">
+  <!-- Tanpa padding atas: jarak atas sudah dari DashboardShell (sama dengan halaman lain). -->
+  <UContainer class="pb-6">
     <div v-if="loading" class="space-y-4">
       <USkeleton class="h-16 w-full" />
       <USkeleton class="h-12 w-full" />
@@ -255,11 +256,18 @@ onBeforeUnmount(() => {
     <template v-else>
       <div class="mb-6 flex flex-wrap items-start justify-between gap-4">
         <div class="min-w-0">
-          <p class="text-sm font-medium text-primary">Pengajuan Sertifikasi</p>
-          <h1 class="mt-1 text-2xl font-semibold text-blue-500">
-            {{ data.certification.period_name || 'Formulir Self Assessment' }}
+          <h1 class="text-2xl font-semibold text-blue-500">
+            Self Assessment
           </h1>
-          <p class="mt-2 text-sm text-slate-600">
+          <!-- Nama periode sebagai sub judul (bukan heading utama). -->
+          <p
+            v-if="data.certification.period_name"
+            class="mt-1.5 flex items-center gap-1.5 text-sm font-medium text-slate-800"
+          >
+            <UIcon name="i-lucide-calendar-days" class="size-4 shrink-0 text-primary" />
+            {{ data.certification.period_name }}
+          </p>
+          <p class="mt-1 text-sm text-slate-600">
             Lengkapi kedua formulir berikut, lalu kirim bersamaan untuk diverifikasi.
           </p>
         </div>
