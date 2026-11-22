@@ -155,7 +155,7 @@ function getPeriodStatusColor(status?: string) {
 
     <UCard v-else class="bg-white/90 shadow-sm">
       <div class="flex flex-col items-center py-12 text-center">
-        <div class="flex size-14 items-center justify-center rounded-full bg-primary/10">
+        <div class="flex size-14 items-center justify-center rounded-full bg-blue-100">
           <UIcon name="i-lucide-calendar-x" class="size-7 text-primary" />
         </div>
         <h3 class="mt-4 text-base font-semibold text-slate-900">

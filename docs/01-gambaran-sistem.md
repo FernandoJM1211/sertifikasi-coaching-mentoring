@@ -188,7 +188,7 @@ DRAFT ──► ACTIVE ──► CLOSED ──► COMPLETED
   (di halaman Perencanaan Evaluasi) karena Super Admin yang menetapkan kelulusan.
 - Pencegahan kecurangan (deteksi pindah tab, layar penuh, blokir salin) **ditunda** — belum dibutuhkan (keputusan Nov 2026).
 
-**G. Penilaian oleh asesor (berurutan)** 🚧
+**G. Penilaian oleh asesor (berurutan)** ✅
 1. **Asesor Teknis — CMSP-02** ✅ (menu Penilaian CMSP-02 di portal `/asesor-teknis`)
    - Hanya menilai peserta yang ditugaskan kepadanya; melihat evidence CMSP-02 (tanpa data pribadi CMSP-01).
    - Untuk **setiap unit kompetensi** (10 unit) memilih **K** (Kompeten) atau **BK** (Belum Kompeten).
@@ -198,9 +198,15 @@ DRAFT ──► ACTIVE ──► CLOSED ──► COMPLETED
    - Dapat **disimpan sebagai draf**; simpan & kirim hanya saat tahap `ASSESSOR_ASSESSMENT` dibuka.
      Setelah dikirim terkunci; **Super Admin** dapat melihat semua penilaian, **ikut mengisi/mengirim** (tercatat atas nama Asesor Teknis yang ditugaskan), dan **membuka kunci**.
    - Asesor Teknis tidak dapat diganti bila penilaian peserta tersebut sudah dimulai.
-2. **Asesor Kepublikan — CMSP-03** (setelah Asesor Teknis selesai)
+2. **Asesor Kepublikan — CMSP-03** ✅ (menu Penilaian CMSP-03 di portal `/asesor-kepublikan`)
    - Mengisi form penilaian CMSP-03 secara langsung; tidak ada isian/bukti dari peserta.
-   - Daftar indikator CMSP-03 akan diberikan pemilik proyek.
+   - 3 unit (Orientasi Publik; Pola Pikir Bertumbuh & Kreativitas; Budaya Kerja Transformasional),
+     masing-masing berisi elemen kompetensi + indikator penilaian (`shared/utils/cmsp03-units.ts`).
+   - Mekanisme sama dengan Asesor Teknis: **K/BK per unit**, satu catatan umum, rekomendasi
+     dapat/tidak dapat dilanjutkan, draf/kirim, Super Admin dapat mengisi & membuka kunci.
+   - Baru dapat diisi setelah Asesor Teknis **mengirim** penilaian dengan rekomendasi
+     "dapat dilanjutkan" (sebelumnya berstatus "Menunggu Asesor Teknis").
+   - Asesor Kepublikan tidak dapat diganti bila penilaian CMSP-03 peserta tersebut sudah dimulai.
 
 **H. Verifikasi penilaian & penetapan kelulusan** ❌
 - Hasil penilaian kedua asesor diverifikasi, lalu peserta ditetapkan **Lulus** atau **Tidak Lulus**
@@ -251,9 +257,12 @@ Nama dan jumlah status final ditentukan saat merancang tiap fitur.
 | Akses Super Admin | Bisa mengakses sebagian fitur Verifikator dan Asesor |
 | Bentuk evaluasi | Soal pilihan ganda dari bank soal yang disusun Super Admin dan dipasangkan ke periode |
 | Penilaian Asesor Teknis | Berdasarkan isian & bukti CMSP-02; K/BK per indikator + catatan |
-| Penilaian Asesor Kepublikan | Form CMSP-03, tanpa input peserta; indikator menyusul |
+| Penilaian Asesor Kepublikan | Form CMSP-03, tanpa input peserta; K/BK per unit (3 unit) + catatan + rekomendasi, seperti Asesor Teknis |
 | Urutan & jumlah asesor | Berurutan: 1 Asesor Teknis (CMSP-02) lalu 1 Asesor Kepublikan (CMSP-03) per peserta |
 | Remedial | Satu kali; peserta mengirim bukti dukung (link Drive) atas tugas yang disampaikan lisan |
+| Identitas pendaftar | NIP = identitas orang, email = akun; satu NIP = satu akun. NIP lama + email baru tetap masuk dengan akun lama. Rincian: [08 K-01](08-keputusan-skenario.md#k-01--identitas-pendaftar-nip-vs-email) |
+
+Rincian skenario lain beserta alasannya dicatat di [08-keputusan-skenario.md](08-keputusan-skenario.md).
 
 ## Pertanyaan Terbuka
 

@@ -50,6 +50,12 @@ Jika halaman punya **card ringkasan** per status, warna badge di tabel **harus s
 terkait (abu = `neutral`, kuning = `warning`, ungu = `secondary`, hijau = `success`, merah = `error`,
 biru = `info`/`primary`).
 
+**Warna solid, bukan transparan.** Latar & garis tepi `UBadge` dan `UAlert` (varian `subtle`, `soft`,
+`outline`) sudah dibuat **solid** di `app/app.config.ts` (campuran warna tema dengan putih), agar tidak
+tercampur dengan latar halaman yang bergradasi. Untuk elemen buatan sendiri di atas latar berwarna,
+pakai warna solid (mis. `bg-amber-50`, `border-amber-200`), **jangan** opacity seperti `bg-warning/10`
+atau `bg-primary/5`.
+
 Selalu tampilkan **label Bahasa Indonesia**, bukan nilai mentah database
 (mis. `pending_verification` → "Menunggu Verifikasi"). Untuk role dan status akun pakai
 `getRoleLabel()` dan `getAccountStatusLabel()` dari `shared/utils/roles.ts`.

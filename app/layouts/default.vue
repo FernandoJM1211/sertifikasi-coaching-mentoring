@@ -2,7 +2,7 @@
   <div class="flex min-h-screen flex-col bg-mesh">
     <!-- Header (sticky) -->
     <header
-      class="sticky top-0 z-50 border-b border-slate-200/70 bg-white/80 backdrop-blur-xl"
+      class="sticky top-0 z-50 border-b border-slate-200 bg-white/80 backdrop-blur-xl"
     >
       <div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
         <NuxtLink to="/" class="flex items-center gap-3">
@@ -37,7 +37,8 @@
     </header>
 
     <!-- Content -->
-    <main class="flex-1">
+    <!-- flex kolom agar halaman (mis. beranda) dapat mengisi sisa tinggi layar tanpa scroll. -->
+    <main class="flex flex-1 flex-col">
       <slot />
     </main>
 

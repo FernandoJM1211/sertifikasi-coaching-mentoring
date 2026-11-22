@@ -92,6 +92,15 @@
         description="Pengajuan ini sudah diputuskan. Data dan dokumen dapat dilihat, tetapi keputusan tidak dapat diubah."
       />
 
+      <!-- Kasus NIP lama + email baru (docs/08-keputusan-skenario.md) -->
+      <UAlert
+        v-if="identity.emailMismatch"
+        color="warning"
+        variant="subtle"
+        icon="i-lucide-mail-warning"
+        title="Email pengajuan berbeda dari email akun terdaftar"
+        :description="`NIP ini sudah memiliki akun dengan email ${identity.accountEmail}. Bila diterima, peserta tetap masuk dengan akun tersebut; email akun tidak diganti dan tidak dibuat akun baru.`"
+      />
       <!-- ========================= -->
 
       <!-- DATA PESERTA -->
@@ -370,7 +379,7 @@
 
             :key="document.application_document_id"
 
-            class="flex min-h-[190px] items-center gap-5 rounded-xl border border-dashed border-slate-300 p-5 transition hover:border-primary/40 hover:bg-slate-50/50"
+            class="flex min-h-[190px] items-center gap-5 rounded-xl border border-dashed border-slate-300 p-5 transition hover:border-blue-300 hover:bg-slate-50"
 
           >
 
@@ -378,7 +387,7 @@
 
             <div
 
-              class="flex size-14 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary"
+              class="flex size-14 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-primary"
 
             >
 
@@ -626,75 +635,13 @@
 
 </UCard>
 
-      <!-- ========================= -->
-
-      <!-- PREVIEW DOCUMENT MODAL -->
-
-      <!-- ========================= -->
-
-      <UModal
-
+      <!-- PREVIEW DOCUMENT MODAL (komponen bersama) -->
+      <DocumentPreviewModal
         v-model:open="previewOpen"
-
-        :title="
-
-          selectedDocument?.file?.original_file_name ??
-
-          'Preview Dokumen'
-
-        "
-
-        :description="
-
-          selectedDocument
-
-            ? getDocumentLabel(selectedDocument.document_type)
-
-            : ''
-
-        "
-
-        :ui="{
-
-          content: 'max-w-5xl',
-
-        }"
-
-      >
-
-        <template #body>
-
-          <div
-
-            v-if="selectedDocument?.file"
-
-            class="h-[70vh] w-full overflow-hidden rounded-lg border border-slate-200 bg-slate-100"
-
-          >
-
-            <iframe
-              :src="documentPreviewUrl"
-              class="h-full w-full"
-              title="Preview Dokumen"
-            />
-
-          </div>
-
-          <div
-
-            v-else
-
-            class="flex h-64 items-center justify-center text-sm text-slate-600"
-
-          >
-
-            Dokumen tidak dapat ditampilkan.
-
-          </div>
-
-        </template>
-
-      </UModal>
+        :url="selectedDocument?.file ? documentPreviewUrl : ''"
+        :title="selectedDocument?.file?.original_file_name ?? 'Preview Dokumen'"
+        :description="selectedDocument ? getDocumentLabel(selectedDocument.document_type) : ''"
+      />
 
       <!-- ========================= -->
       <!-- DECISION CONFIRMATION MODAL -->
@@ -857,6 +804,7 @@ type ApplicationDetailResponse = {
     application: Application
 
     documents: ApplicationDocument[]
+    identity?: { emailMismatch: boolean, accountEmail: string }
 
   }
 
@@ -873,6 +821,7 @@ const route = useRoute()
 const toast = useToast()
 
 const application = ref<Application | null>(null)
+const identity = ref({ emailMismatch: false, accountEmail: '' })
 
 const documents = ref<ApplicationDocument[]>([])
 
@@ -1204,6 +1153,7 @@ async function fetchApplicationDetail() {
     documents.value =
 
       response.data.documents
+    identity.value = response.data.identity ?? { emailMismatch: false, accountEmail: '' }
 
   } catch (error: any) {
 

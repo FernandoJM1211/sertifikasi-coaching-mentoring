@@ -201,7 +201,7 @@ async function confirmDecision() {
 
     <template v-else>
       <!-- Ringkasan peserta -->
-      <UCard class="border border-primary/30 bg-white/90 shadow-sm">
+      <UCard class="border border-blue-200 bg-white/90 shadow-sm">
         <dl class="grid gap-x-6 gap-y-5 text-center text-sm sm:grid-cols-2 lg:grid-cols-3">
           <div>
             <dt class="text-slate-600">Nama Peserta</dt>
@@ -251,7 +251,7 @@ async function confirmDecision() {
           <li
             v-for="review in data.reviews"
             :key="review.review_id"
-            class="rounded-xl border border-slate-200 bg-slate-50/70 p-4"
+            class="rounded-xl border border-slate-200 bg-slate-50 p-4"
           >
             <div class="flex flex-wrap items-center justify-between gap-2">
               <UBadge
@@ -287,7 +287,7 @@ async function confirmDecision() {
           type="button"
           class="rounded-xl border p-4 text-left transition"
           :class="activeTab === tab.id
-            ? 'border-primary bg-primary/5 ring-1 ring-primary/20'
+            ? 'border-primary bg-blue-50 ring-1 ring-blue-200'
             : 'border-slate-200 bg-white hover:border-slate-300'"
           @click="activeTab = tab.id"
         >
@@ -323,7 +323,7 @@ async function confirmDecision() {
           readonly
           review-mode
         />
-        <UCard v-if="data.canReview" class="border border-primary/30 bg-white/90 shadow-sm">
+        <UCard v-if="data.canReview" class="border border-blue-200 bg-white/90 shadow-sm">
           <UFormField
             label="Catatan Verifikator untuk CMSP-01"
             description="Isi jika ada bagian CMSP-01 yang perlu diperbaiki peserta."
@@ -349,7 +349,7 @@ async function confirmDecision() {
           readonly
           review-mode
         />
-        <UCard v-if="data.canReview" class="border border-primary/30 bg-white/90 shadow-sm">
+        <UCard v-if="data.canReview" class="border border-blue-200 bg-white/90 shadow-sm">
           <UFormField
             label="Catatan Verifikator untuk CMSP-02"
             description="Isi jika ada bagian CMSP-02 yang perlu diperbaiki peserta."
@@ -367,7 +367,7 @@ async function confirmDecision() {
       </div>
 
       <!-- Keputusan verifikator (berlaku untuk kedua form) -->
-      <UCard v-if="data.canReview" class="border border-primary/30 bg-white/90 shadow-sm">
+      <UCard v-if="data.canReview" class="border border-blue-200 bg-white/90 shadow-sm">
         <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div class="min-w-0">
             <h2 class="font-semibold text-slate-900">Keputusan Verifikasi</h2>

@@ -131,7 +131,7 @@ async function handleLogin() {
         </div>
       </div>
 
-      <UCard class="ring-1 ring-slate-200/70 shadow-xl shadow-slate-200/40">
+      <UCard class="ring-1 ring-slate-200 shadow-xl shadow-slate-200/40">
         <form class="space-y-5" @submit.prevent="handleLogin">
           <div class="space-y-1.5">
             <label

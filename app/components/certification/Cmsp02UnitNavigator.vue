@@ -117,7 +117,7 @@ onBeforeUnmount(() => {
       ref="navRef"
       :style="position"
       aria-label="Navigasi unit kompetensi"
-      class="fixed z-30 -translate-y-1/2 rounded-2xl border border-primary/20 bg-white/90 p-2 shadow-lg backdrop-blur"
+      class="fixed z-30 -translate-y-1/2 rounded-2xl border border-blue-100 bg-white/90 p-2 shadow-lg backdrop-blur"
       @mouseenter="handleMouseEnter"
       @mouseleave="handleMouseLeave"
       @focusin="handleMouseEnter"
@@ -134,7 +134,7 @@ onBeforeUnmount(() => {
             class="relative flex size-8 items-center justify-center rounded-lg border text-xs font-semibold transition hover:scale-105 focus-visible:outline-2 focus-visible:outline-primary"
             :class="activeNumber === unit.number
               ? 'border-primary bg-primary text-white'
-              : 'border-primary/30 bg-primary/10 text-primary hover:bg-primary/20'"
+              : 'border-blue-200 bg-blue-100 text-primary hover:bg-blue-200'"
             :title="`Unit ${unit.number} · ${unit.code} — ${unit.title}`"
             :aria-label="`Ke Unit ${unit.number} (${unit.code})${unit.complete ? ', lengkap' : ''}`"
             @click="goToUnit(unit.number)"

@@ -28,7 +28,7 @@ const helpOptions = [
     icon: 'i-lucide-mail',
     href: `mailto:${contact.email}?subject=${encodeURIComponent('Bantuan Sistem Sertifikasi CMSP')}`,
     external: false,
-    tone: 'border-slate-200 hover:border-blue-300 hover:bg-blue-50/50',
+    tone: 'border-slate-200 hover:border-blue-300 hover:bg-blue-50',
     iconTone: 'bg-blue-50 text-blue-600',
   },
   {
@@ -37,7 +37,7 @@ const helpOptions = [
     icon: 'i-lucide-message-circle',
     href: contact.whatsappUrl,
     external: true,
-    tone: 'border-slate-200 hover:border-emerald-300 hover:bg-emerald-50/50',
+    tone: 'border-slate-200 hover:border-emerald-300 hover:bg-emerald-50',
     iconTone: 'bg-emerald-50 text-emerald-600',
   },
 ]

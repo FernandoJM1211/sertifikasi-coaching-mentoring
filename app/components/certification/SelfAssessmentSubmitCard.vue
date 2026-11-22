@@ -22,7 +22,7 @@ const canSubmit = computed(() =>
 
 <template>
   <div class="flex justify-center">
-    <UCard class="w-full max-w-3xl border border-primary/30 bg-white/90 shadow-sm" :ui="{ body: 'p-4 sm:p-5' }">
+    <UCard class="w-full max-w-3xl border border-blue-200 bg-white/90 shadow-sm" :ui="{ body: 'p-4 sm:p-5' }">
       <div class="flex flex-col items-center gap-3 text-center">
         <p class="text-sm leading-6 text-slate-600">
           Pastikan tidak ada kesalahan, karena data tidak dapat diubah lagi setelah submit.

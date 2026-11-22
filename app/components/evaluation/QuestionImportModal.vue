@@ -141,7 +141,7 @@ async function submitImport() {
     <template #body>
       <div class="space-y-5">
         <!-- Langkah 1: template -->
-        <div class="flex flex-col gap-3 rounded-xl border border-blue-100 bg-blue-50/70 p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div class="flex flex-col gap-3 rounded-xl border border-blue-100 bg-blue-50 p-4 sm:flex-row sm:items-center sm:justify-between">
           <div class="flex gap-3">
             <UIcon name="i-lucide-file-spreadsheet" class="mt-0.5 size-5 shrink-0 text-blue-600" />
             <div class="text-sm text-slate-700">

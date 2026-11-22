@@ -424,7 +424,7 @@ watch([activeFilter, searchQuery], resetTablePage)
             :key="card.key"
             type="button"
             class="rounded-xl border p-3 text-left transition hover:shadow-sm sm:p-3.5"
-            :class="[card.tone, activeFilter === card.key && card.key !== 'ALL' ? 'ring-2 ring-primary/40' : '']"
+            :class="[card.tone, activeFilter === card.key && card.key !== 'ALL' ? 'ring-2 ring-blue-300' : '']"
             @click="activeFilter = card.key"
           >
             <div class="flex items-center justify-between gap-2">
@@ -458,7 +458,7 @@ watch([activeFilter, searchQuery], resetTablePage)
                 Muat Ulang
               </UButton>
             </div>
-            <div class="flex flex-col gap-3 rounded-lg border border-blue-100 bg-blue-50/50 p-3 sm:flex-row">
+            <div class="flex flex-col gap-3 rounded-lg border border-blue-100 bg-blue-50 p-3 sm:flex-row">
               <UInput v-model="searchQuery" icon="i-lucide-search" placeholder="Cari nama, NIP, atau instansi..." class="w-full" />
               <USelect v-model="activeFilter" :items="FILTERS" value-key="value" label-key="label" class="w-full sm:w-60" />
             </div>

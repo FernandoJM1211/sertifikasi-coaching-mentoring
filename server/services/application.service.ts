@@ -18,6 +18,14 @@ import {
   findCertificationTimelinesByPeriodId,
 } from '../repositories/certification-timeline.repository'
 
+import { findUsersByPersonId } from '../repositories/user.repository'
+
+/** `budi.santoso@gmail.com` → `bu***@gmail.com` (untuk informasi publik). */
+function maskEmail(email: string): string {
+  const [local = '', domain = ''] = email.split('@')
+  return `${local.slice(0, 2)}***@${domain}`
+}
+
 type ApplicationPayload = {
   fullName?: string
   nip?: string
@@ -243,8 +251,11 @@ export async function createApplication(payload: ApplicationPayload) {
   if (acceptedApplication) {
     throw createError({
       statusCode: 409,
+      // Tidak menyebut status akun (aktif/belum) — docs/08 K-10.
       statusMessage:
-        'Pengajuan dengan NIP ini sudah diterima pada periode sertifikasi yang sama.',
+        'Pendaftaran dengan NIP ini sudah diterima pada periode ini, sehingga tidak perlu mendaftar ulang. ' +
+        'Informasi akun telah dikirim ke email yang terdaftar; periksa juga folder Spam/Promosi. ' +
+        'Jika tidak menemukannya, hubungi admin melalui kontak di bagian bawah halaman.',
     })
   }
 
@@ -254,6 +265,14 @@ export async function createApplication(payload: ApplicationPayload) {
     findPersonByEmail(email),
   ])
 
+  /*
+   * Aturan identitas (lihat docs/08-keputusan-skenario.md):
+   * - NIP = identitas orang (satu NIP = satu person = satu akun); email = akun login.
+   * - NIP & email cocok satu person      → pakai person lama.
+   * - NIP lama + email baru              → tetap diterima, ditautkan lewat NIP; email akun TIDAK diganti.
+   * - Email sudah dipakai person lain    → ditolak.
+   * - NIP milik A & email milik B        → ditolak.
+   */
   if (
     personByNip &&
     personByEmail &&
@@ -262,29 +281,35 @@ export async function createApplication(payload: ApplicationPayload) {
     throw createError({
       statusCode: 409,
       statusMessage:
-        'NIP dan email terhubung ke profil yang berbeda. Pendaftaran memerlukan pemeriksaan identitas manual.',
+        'NIP dan email terdaftar atas dua peserta yang berbeda. Periksa kembali NIP dan email Anda, atau hubungi admin.',
     })
   }
+
+  if (!personByNip && personByEmail) {
+    throw createError({
+      statusCode: 409,
+      statusMessage:
+        'Email sudah terdaftar untuk peserta lain. Gunakan email lain.',
+    })
+  }
+
+  // NIP sudah terdaftar dengan email berbeda: pengajuan tetap masuk & ditautkan ke person lama.
+  let notice = ''
 
   if (personByNip && personByNip.email.trim().toLowerCase() !== email) {
-    throw createError({
-      statusCode: 409,
-      statusMessage:
-        'NIP sudah terdaftar dengan email berbeda. Silakan lakukan pemeriksaan identitas sebelum melanjutkan.',
-    })
+    const accounts = await findUsersByPersonId(personByNip.person_id)
+    const accountEmail = accounts[0]?.username_email.trim().toLowerCase() ?? ''
+
+    if (accountEmail) {
+      notice =
+        `NIP Anda sudah terdaftar dengan email lain (${maskEmail(accountEmail)}). ` +
+        'Setelah pendaftaran diterima, masuk menggunakan akun tersebut. ' +
+        'Bila email itu sudah tidak dapat diakses, hubungi admin.'
+    }
   }
 
-  if (personByEmail && personByEmail.nip.trim() !== nip) {
-    throw createError({
-      statusCode: 409,
-      statusMessage:
-        'Email sudah terdaftar dengan NIP berbeda. Silakan lakukan pemeriksaan identitas sebelum melanjutkan.',
-    })
-  }
-
-  // Gunakan profil yang cocok; buat profil baru hanya jika NIP dan email
-  // belum ditemukan pada profil mana pun.
-  let person = personByNip ?? personByEmail
+  // Gunakan profil yang cocok; buat profil baru hanya jika NIP belum terdaftar.
+  let person = personByNip
   let personCreated = false
 
   if (!person) {
@@ -323,13 +348,10 @@ export async function createApplication(payload: ApplicationPayload) {
   return {
     success: true,
     message: 'Pendaftaran berhasil diproses.',
+    // Endpoint publik: jangan kirim data person yang tersimpan (nama/email pemilik NIP).
+    notice,
     data: {
-      application,
-      person: {
-        personId: person.person_id,
-        fullName: person.full_name,
-        nip: person.nip,
-      },
+      application_id: application.application_id,
       personCreated,
       period: {
         periodId: activePeriod.period_id,

@@ -440,6 +440,32 @@ Header siap tempel:
 technical_assessment_id	application_id	period_id	assessor_id	unit_results	note	recommendation	status	submitted_at	created_at	updated_at	reopened_by	reopened_at
 ```
 
+### `public_assessments` — ID `PAS-000001` (penilaian CMSP-03 Asesor Kepublikan; satu baris per pengajuan)
+
+Format sama dengan `technical_assessments`; hanya kolom A dan kode unit yang berbeda.
+
+| # | Kolom | Isi |
+| --- | --- | --- |
+| A | `public_assessment_id` | ID |
+| B | `application_id` | Relasi |
+| C | `period_id` | Relasi |
+| D | `assessor_id` | `user_id` Asesor Kepublikan yang ditugaskan |
+| E | `unit_results` | Hasil per unit CMSP-03: `KEP.1=K;KEP.2=BK;KEP.3=K` (kode di `shared/utils/cmsp03-units.ts`) |
+| F | `note` | Catatan umum (maks. 3000; wajib bila `NOT_CONTINUE`) |
+| G | `recommendation` | `CONTINUE` / `NOT_CONTINUE` |
+| H | `status` | `DRAFT` / `SUBMITTED` (terkunci) |
+| I | `submitted_at` | — |
+| J | `created_at` | — |
+| K | `updated_at` | — |
+| L | `reopened_by` | `user_id` Super Admin yang terakhir membuka kunci |
+| M | `reopened_at` | — |
+
+Header siap tempel:
+
+```text
+public_assessment_id	application_id	period_id	assessor_id	unit_results	note	recommendation	status	submitted_at	created_at	updated_at	reopened_by	reopened_at
+```
+
 Berkas KTP, Surat Tugas, evidence, dan dokumen pengganti dicatat di sheet `files`
 (`uploaded_by` = `user_id` peserta). Tipe yang diterima dideteksi dari isi file:
 dokumen pendaftaran PDF; KTP/Surat Tugas PDF/JPG/PNG; evidence PDF/DOC/DOCX; maks. 4 MB (di bawah batas 4,5 MB per request Vercel).

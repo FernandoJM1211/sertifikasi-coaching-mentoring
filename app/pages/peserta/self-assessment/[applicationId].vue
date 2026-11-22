@@ -293,7 +293,7 @@ onBeforeUnmount(() => {
           type="button"
           class="rounded-xl border p-4 text-left transition"
           :class="activeTab === tab.id
-            ? 'border-primary bg-primary/5 ring-1 ring-primary/20'
+            ? 'border-primary bg-blue-50 ring-1 ring-blue-200'
             : 'border-slate-200 bg-white hover:border-slate-300'"
           @click="activeTab = tab.id"
         >
@@ -391,7 +391,7 @@ onBeforeUnmount(() => {
         description="CMSP-01 dan CMSP-02 akan dikirim bersamaan untuk diverifikasi."
       >
         <template #body>
-          <div class="flex items-start gap-3 rounded-xl border border-blue-100 bg-blue-50/70 p-4">
+          <div class="flex items-start gap-3 rounded-xl border border-blue-100 bg-blue-50 p-4">
             <UIcon name="i-lucide-info" class="mt-0.5 size-5 shrink-0 text-blue-600" />
             <p class="text-sm leading-6 text-slate-600">
               Setelah dikirim, formulir tidak dapat diubah lagi kecuali Verifikator

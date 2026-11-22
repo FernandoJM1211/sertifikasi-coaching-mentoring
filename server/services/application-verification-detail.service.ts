@@ -10,6 +10,8 @@ import {
   findFileById,
 } from '../repositories/file.repository'
 
+import { findUsersByPersonId } from '../repositories/user.repository'
+
 export async function getApplicationVerificationDetail(
   applicationId: string,
 ) {
@@ -44,8 +46,23 @@ export async function getApplicationVerificationDetail(
     })
   }
 
+  // Penanda kasus "NIP lama + email baru": peserta sudah punya akun dengan email lain.
+  // Bila diterima, akun lama tetap dipakai dan emailnya tidak diganti.
+  const accounts = application.person_id
+    ? await findUsersByPersonId(application.person_id)
+    : []
+  const accountEmail =
+    accounts[0]?.username_email.trim().toLowerCase() ?? ''
+  const emailMismatch =
+    Boolean(accountEmail) &&
+    accountEmail !== application.email_snapshot.trim().toLowerCase()
+
   return {
     application,
     documents,
+    identity: {
+      emailMismatch,
+      accountEmail: emailMismatch ? accountEmail : '',
+    },
   }
 }

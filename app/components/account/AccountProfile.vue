@@ -204,7 +204,7 @@ async function saveProfile() {
     </div>
 
     <!-- Error -->
-    <UCard v-else-if="error || !account" class="ring-1 ring-slate-200/70 shadow-sm">
+    <UCard v-else-if="error || !account" class="ring-1 ring-slate-200 shadow-sm">
       <div class="flex items-start gap-3">
         <UIcon name="i-lucide-circle-alert" class="mt-0.5 size-5 text-red-500" />
         <div>
@@ -223,7 +223,7 @@ async function saveProfile() {
 
     <template v-else>
       <!-- Ringkasan -->
-      <UCard class="ring-1 ring-slate-200/70 shadow-sm">
+      <UCard class="ring-1 ring-slate-200 shadow-sm">
         <div class="flex flex-col gap-5 sm:flex-row sm:items-center">
           <UAvatar
             :text="userInitial"
@@ -253,7 +253,7 @@ async function saveProfile() {
       </UCard>
 
       <!-- Data Diri -->
-      <UCard class="ring-1 ring-slate-200/70 shadow-sm">
+      <UCard class="ring-1 ring-slate-200 shadow-sm">
         <template #header>
           <div class="flex items-start gap-3">
             <div class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-blue-50">
@@ -393,7 +393,7 @@ async function saveProfile() {
       </UCard>
 
       <!-- Keamanan Akun -->
-      <UCard class="ring-1 ring-slate-200/70 shadow-sm">
+      <UCard class="ring-1 ring-slate-200 shadow-sm">
         <div class="flex flex-col gap-4 sm:flex-row sm:items-center">
           <div class="flex size-11 shrink-0 items-center justify-center rounded-xl bg-emerald-50">
             <UIcon name="i-lucide-lock-keyhole" class="size-5 text-emerald-600" />

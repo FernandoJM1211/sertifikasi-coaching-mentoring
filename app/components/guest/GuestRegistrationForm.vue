@@ -23,6 +23,15 @@ type CertificationInfo = {
 }
 
 const submitted = ref(false)
+/** Informasi dari server, mis. NIP sudah terdaftar dengan email lain (akun lama tetap dipakai). */
+const submissionNotice = ref('')
+
+/** Isi halaman konfirmasi sama untuk semua pendaftar agar status akun seseorang tidak terbaca publik. */
+const nextSteps = computed(() => [
+  'Data dan dokumen Anda diperiksa oleh Verifikator.',
+  `Hasil verifikasi diberitahukan melalui email ke ${form.email || 'alamat email yang Anda daftarkan'}.`,
+  'Jika diterima, email tersebut berisi petunjuk masuk ke sistem: tautan aktivasi untuk akun baru, atau ajakan masuk dengan akun yang sudah Anda miliki.',
+])
 const submitting = ref(false)
 
 const activePeriod = reactive({
@@ -367,11 +376,12 @@ async function submitRegistration() {
       Object.entries(files).map(([key, field]) => [key, field.token]),
     )
 
-    await $fetch('/api/applications/register', {
+    const response = await $fetch<{ notice?: string }>('/api/applications/register', {
       method: 'POST',
       body: { ...form, documents },
     })
 
+    submissionNotice.value = response.notice || ''
     submitted.value = true
   } catch (error: any) {
     console.error('Gagal mengirim pendaftaran:', error)
@@ -412,6 +422,7 @@ function resetForm() {
   })
 
   submitted.value = false
+  submissionNotice.value = ''
   errorModalOpen.value = false
 }
 </script>
@@ -459,6 +470,13 @@ function resetForm() {
               </div>
 
               <div>
+                <p class="text-xs text-slate-600">Email</p>
+                <p class="break-all text-sm font-medium text-slate-900">
+                  {{ form.email }}
+                </p>
+              </div>
+
+              <div>
                 <p class="text-xs text-slate-600">Nama Sertifikasi</p>
                 <p class="text-sm font-medium text-slate-900">
                   {{ activePeriod.certificationName }}
@@ -481,9 +499,38 @@ function resetForm() {
             </div>
           </div>
 
-          <p class="mt-6 text-xs leading-5 text-slate-600">
-            Mohon menunggu informasi selanjutnya dari penyelenggara sertifikasi.
-          </p>
+          <!-- Kasus NIP lama + email baru (docs/08 K-01) -->
+          <UAlert
+            v-if="submissionNotice"
+            color="warning"
+            variant="subtle"
+            icon="i-lucide-info"
+            title="NIP Anda sudah terdaftar"
+            :description="submissionNotice"
+            class="mt-5 w-full max-w-md text-left"
+          />
+
+          <!-- Langkah selanjutnya: sengaja sama untuk semua pendaftar (docs/08 K-09) -->
+          <div class="mt-5 w-full max-w-md rounded-xl border border-blue-100 bg-blue-50 p-5 text-left">
+            <p class="text-sm font-semibold text-slate-900">Langkah Selanjutnya</p>
+            <ol class="mt-3 space-y-3 text-sm leading-6 text-slate-700">
+              <li v-for="(step, index) in nextSteps" :key="step" class="flex gap-3">
+                <span class="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-white">
+                  {{ index + 1 }}
+                </span>
+                <span>{{ step }}</span>
+              </li>
+            </ol>
+          </div>
+
+          <div class="mt-4 flex w-full max-w-md gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-left text-sm leading-6 text-amber-900">
+            <UIcon name="i-lucide-mail-search" class="mt-0.5 size-5 shrink-0" />
+            <p>
+              Email dari sistem terkadang masuk ke folder <strong>Spam</strong> atau <strong>Promosi</strong>.
+              Periksa folder tersebut dan tandai email kami sebagai <strong>Bukan Spam</strong> agar informasi berikutnya
+              masuk ke kotak masuk.
+            </p>
+          </div>
 
           <UButton
             class="mt-8"
@@ -743,7 +790,7 @@ function resetForm() {
               >
                 <div class="flex min-w-0 items-center gap-3">
                   <div
-                    class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary"
+                    class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-primary"
                   >
                     <UIcon
                       :name="
@@ -856,7 +903,7 @@ function resetForm() {
               </p>
             </div>
 
-            <div class="rounded-xl border border-primary/25 bg-primary/5 p-5">
+            <div class="rounded-xl border border-blue-200 bg-blue-50 p-5">
               <p class="text-sm leading-6 text-primary">
                 Setelah pendaftaran dikirim, data dan dokumen tidak dapat diubah
                 melalui halaman ini dan akan masuk ke tahap verifikasi administrasi.
@@ -908,7 +955,7 @@ function resetForm() {
             </div>
           </div>
 
-          <div class="rounded-xl border border-red-200 bg-red-50/70 p-4">
+          <div class="rounded-xl border border-red-200 bg-red-50 p-4">
             <p class="whitespace-pre-line text-sm leading-6 text-red-800">
               {{ errorModalMessage }}
             </p>

@@ -24,7 +24,7 @@ const savedClass = computed(() => (props.saving ? 'text-slate-600' : 'text-warni
 <template>
   <div class="pointer-events-none sticky bottom-4 z-20 flex justify-center">
     <UCard
-      class="pointer-events-auto w-full max-w-lg border border-primary/30 bg-white/95 shadow-lg backdrop-blur"
+      class="pointer-events-auto w-full max-w-lg border border-blue-200 bg-white/95 shadow-lg backdrop-blur"
       :ui="{ body: 'p-3 sm:p-4' }"
     >
       <div class="flex items-center gap-4">

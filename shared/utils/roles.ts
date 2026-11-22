@@ -44,6 +44,7 @@ export const ROLE_HOME_PATHS: Partial<Record<UserRole, string>> = {
   SUPER_ADMIN: '/super-admin',
   VERIFIKATOR: '/verifikator',
   TECHNICAL_ASSESSOR: '/asesor-teknis',
+  PUBLIC_ASSESSOR: '/asesor-kepublikan',
   PESERTA: '/peserta',
 }
 

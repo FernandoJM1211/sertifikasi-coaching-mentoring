@@ -148,7 +148,7 @@ export async function processRegistration(payload: RegistrationPayload) {
     position: payload.position,
   })
 
-  const applicationId = applicationResult.data.application.application_id
+  const applicationId = applicationResult.data.application_id
 
   for (const [index, item] of tokens.entries()) {
     const file = files[index]!
@@ -170,6 +170,8 @@ export async function processRegistration(payload: RegistrationPayload) {
   return {
     success: true,
     message: 'Pendaftaran dan dokumen berhasil diproses.',
-    data: applicationResult.data,
+    /** Informasi tambahan untuk pendaftar, mis. NIP sudah terdaftar dengan email lain. */
+    notice: applicationResult.notice,
+    data: { application_id: applicationId },
   }
 }

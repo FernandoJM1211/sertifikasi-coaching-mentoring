@@ -293,7 +293,7 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', onBeforeUnload)
       </Cmsp02Form>
 
       <!-- Keputusan akhir -->
-      <UCard class="border border-primary/30">
+      <UCard class="border border-blue-200">
         <template #header>
           <div class="flex flex-wrap items-start justify-between gap-3">
             <div>

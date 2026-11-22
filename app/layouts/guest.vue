@@ -5,7 +5,7 @@
   >
     <!-- Header (sticky) — seragam dengan navbar landing page -->
     <header
-      class="sticky top-0 z-50 w-full border-b border-slate-200/70 bg-white/80 backdrop-blur-xl"
+      class="sticky top-0 z-50 w-full border-b border-slate-200 bg-white/80 backdrop-blur-xl"
     >
       <div class="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-4 px-6">
         <NuxtLink to="/" class="flex min-w-0 items-center gap-3">

@@ -10,6 +10,7 @@ const PROTECTED_ROUTES: { prefix: string, roles: UserRole[] }[] = [
   { prefix: '/super-admin', roles: ['SUPER_ADMIN'] },
   { prefix: '/verifikator', roles: ['VERIFIKATOR', 'SUPER_ADMIN'] },
   { prefix: '/asesor-teknis', roles: ['TECHNICAL_ASSESSOR'] },
+  { prefix: '/asesor-kepublikan', roles: ['PUBLIC_ASSESSOR'] },
   { prefix: '/peserta', roles: ['PESERTA'] },
 ]
 

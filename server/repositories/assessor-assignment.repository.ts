@@ -151,6 +151,16 @@ export async function findAssignmentsByTechnicalAssessor(userId: string) {
     .filter((item) => item.assignment_id && item.technical_assessor_id === userId)
 }
 
+/** Penugasan milik seorang Asesor Kepublikan (lintas periode). */
+export async function findAssignmentsByPublicAssessor(userId: string) {
+  const rows = await getSheetValues(ASSIGNMENT_SHEET)
+
+  return rows
+    .slice(1)
+    .map((row) => rowToRecord(ASSIGNMENT_COLUMNS, row))
+    .filter((item) => item.assignment_id && item.public_assessor_id === userId)
+}
+
 export type AssignmentChange = {
   application_id: string
   assessor_role: AssessorRole

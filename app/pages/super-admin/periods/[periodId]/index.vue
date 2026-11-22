@@ -92,7 +92,7 @@
               </UButton>
             </div>
 
-            <div class="flex flex-col gap-3 rounded-lg border border-blue-100 bg-blue-50/50 p-3 sm:flex-row">
+            <div class="flex flex-col gap-3 rounded-lg border border-blue-100 bg-blue-50 p-3 sm:flex-row">
               <UInput
                 v-model="searchQuery"
                 icon="i-lucide-search"

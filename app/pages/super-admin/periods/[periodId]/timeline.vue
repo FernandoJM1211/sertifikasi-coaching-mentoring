@@ -40,7 +40,7 @@
     <!-- Informasi periode -->
     <template v-else-if="period">
       <UCard :ui="{ body: 'p-0 sm:p-0' }">
-        <div class="rounded-lg border border-blue-200 bg-blue-50/70 p-5">
+        <div class="rounded-lg border border-blue-200 bg-blue-50 p-5">
           <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div class="min-w-0">
               <p class="text-sm font-medium text-primary">
@@ -252,10 +252,10 @@
           <div
             class="rounded-xl border p-4 text-sm leading-6"
             :class="overrideConfirmMode === 'CLOSED'
-              ? 'border-red-200 bg-red-50/70 text-red-800'
+              ? 'border-red-200 bg-red-50 text-red-800'
               : overrideConfirmMode === 'OPEN'
-                ? 'border-emerald-200 bg-emerald-50/70 text-emerald-800'
-                : 'border-blue-200 bg-blue-50/70 text-blue-800'"
+                ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
+                : 'border-blue-200 bg-blue-50 text-blue-800'"
           >
             {{ overrideConfirmMessage }}
           </div>
@@ -494,8 +494,8 @@ const notificationHeaderClass = computed(() => {
 
 const notificationBodyClass = computed(() => {
   return notificationType.value === 'success'
-    ? 'border-emerald-200 bg-emerald-50/70 text-emerald-800'
-    : 'border-red-200 bg-red-50/70 text-red-800'
+    ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
+    : 'border-red-200 bg-red-50 text-red-800'
 })
 
 const notificationIcon = computed(() => {

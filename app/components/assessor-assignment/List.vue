@@ -477,7 +477,7 @@ watch([activeFilter, searchQuery], resetTablePage)
             :key="card.key"
             type="button"
             class="rounded-xl border p-3 text-left transition hover:shadow-sm sm:p-3.5"
-            :class="[card.tone, activeFilter === card.key && card.key !== 'ALL' ? 'ring-2 ring-primary/40' : '']"
+            :class="[card.tone, activeFilter === card.key && card.key !== 'ALL' ? 'ring-2 ring-blue-300' : '']"
             @click="activeFilter = card.key"
           >
             <div class="flex items-center justify-between gap-2">
@@ -512,7 +512,7 @@ watch([activeFilter, searchQuery], resetTablePage)
                 Muat Ulang
               </UButton>
             </div>
-            <div class="flex flex-col gap-3 rounded-lg border border-blue-100 bg-blue-50/50 p-3 sm:flex-row">
+            <div class="flex flex-col gap-3 rounded-lg border border-blue-100 bg-blue-50 p-3 sm:flex-row">
               <UInput
                 v-model="searchQuery"
                 icon="i-lucide-search"
@@ -531,7 +531,7 @@ watch([activeFilter, searchQuery], resetTablePage)
             <!-- Aksi untuk peserta terpilih -->
             <div
               v-if="selectedIds.length > 0"
-              class="flex flex-col gap-3 rounded-lg border border-primary/30 bg-primary/5 p-3 sm:flex-row sm:items-center sm:justify-between"
+              class="flex flex-col gap-3 rounded-lg border border-blue-200 bg-blue-50 p-3 sm:flex-row sm:items-center sm:justify-between"
             >
               <p class="text-sm font-medium text-slate-700">
                 {{ selectedIds.length }} peserta dipilih
@@ -592,7 +592,7 @@ watch([activeFilter, searchQuery], resetTablePage)
                 v-for="item in pagedItems"
                 :key="item.application_id"
                 class="border-b border-slate-200 last:border-0"
-                :class="selectedSet.has(item.application_id) ? 'bg-primary/5' : ''"
+                :class="selectedSet.has(item.application_id) ? 'bg-blue-50' : ''"
               >
                 <td class="px-4 py-4">
                   <UCheckbox

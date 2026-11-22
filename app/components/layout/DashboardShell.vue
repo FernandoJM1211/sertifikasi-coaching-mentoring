@@ -128,8 +128,8 @@ async function handleLogout() {
       <div class="relative shrink-0 border-t border-slate-300 p-4">
         <button
           type="button"
-          class="flex w-full items-center gap-3 rounded-xl border border-slate-300 bg-slate-50 p-2.5 text-left shadow-sm transition hover:border-blue-300 hover:bg-blue-50/60 focus-visible:outline-2 focus-visible:outline-primary"
-          :class="{ 'border-blue-300 bg-blue-50/60': isProfileMenuOpen }"
+          class="flex w-full items-center gap-3 rounded-xl border border-slate-300 bg-slate-50 p-2.5 text-left shadow-sm transition hover:border-blue-300 hover:bg-blue-50 focus-visible:outline-2 focus-visible:outline-primary"
+          :class="{ 'border-blue-300 bg-blue-50': isProfileMenuOpen }"
           :aria-expanded="isProfileMenuOpen"
           aria-label="Buka menu profil"
           @click="isProfileMenuOpen = !isProfileMenuOpen"

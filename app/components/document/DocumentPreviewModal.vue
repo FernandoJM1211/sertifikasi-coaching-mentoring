@@ -95,19 +95,61 @@ watch(
 )
 
 onBeforeUnmount(releaseObjectUrl)
+
+/** PDF/gambar dapat dibuka di tab baru agar lebih lega (memakai berkas yang sudah dimuat). */
+const canOpenInNewTab = computed(() => Boolean(objectUrl.value) && (isPdf.value || isImage.value))
+
+function openInNewTab() {
+  // Tanpa 'noopener': URL blob hanya dapat dibuka dari konteks asal yang sama.
+  if (objectUrl.value) window.open(objectUrl.value, '_blank')
+}
 </script>
 
 <template>
+  <!-- Hampir layar penuh dengan header tipis agar area dokumen maksimal. -->
   <UModal
     v-model:open="open"
     :title="title || 'Preview Dokumen'"
     :description="description"
-    :ui="{ content: 'max-w-5xl' }"
+    :ui="{
+      content: 'w-[96vw] max-w-7xl sm:max-h-[96vh]',
+      header: 'min-h-0 px-4 py-2.5 sm:px-5',
+      body: 'p-2 sm:p-3',
+    }"
   >
+    <template #header>
+      <div class="flex w-full items-center gap-3">
+        <div class="min-w-0 flex-1">
+          <p class="truncate text-sm font-semibold text-slate-900" :title="title || 'Preview Dokumen'">
+            {{ title || 'Preview Dokumen' }}
+          </p>
+          <p v-if="description" class="truncate text-xs text-slate-600">{{ description }}</p>
+        </div>
+        <UButton
+          v-if="canOpenInNewTab"
+          color="neutral"
+          variant="outline"
+          size="sm"
+          icon="i-lucide-external-link"
+          @click="openInNewTab"
+        >
+          <span class="hidden sm:inline">Buka di Tab Baru</span>
+        </UButton>
+        <UButton
+          color="neutral"
+          variant="ghost"
+          size="sm"
+          icon="i-lucide-x"
+          aria-label="Tutup preview"
+          @click="open = false"
+        />
+      </div>
+    </template>
+
     <template #body>
       <div
         v-if="loading"
-        class="flex h-[70vh] items-center justify-center gap-3 text-sm text-slate-600"
+        class="flex h-[calc(96vh-5rem)] items-center justify-center gap-3 text-sm text-slate-600"
       >
         <UIcon name="i-lucide-loader-circle" class="size-5 animate-spin" />
         Memuat dokumen...
@@ -133,7 +175,7 @@ onBeforeUnmount(releaseObjectUrl)
 
       <div
         v-else-if="objectUrl && isPdf"
-        class="h-[70vh] w-full overflow-hidden rounded-lg border border-slate-200 bg-slate-100"
+        class="h-[calc(96vh-5rem)] w-full overflow-hidden rounded-lg border border-slate-200 bg-slate-100"
       >
         <iframe
           :src="objectUrl"
@@ -144,9 +186,9 @@ onBeforeUnmount(releaseObjectUrl)
 
       <div
         v-else-if="objectUrl && isImage"
-        class="flex max-h-[70vh] w-full items-center justify-center overflow-auto rounded-lg border border-slate-200 bg-slate-100 p-2"
+        class="flex h-[calc(96vh-5rem)] w-full items-center justify-center overflow-auto rounded-lg border border-slate-200 bg-slate-100 p-2"
       >
-        <img :src="objectUrl" :alt="title || 'Preview Dokumen'" class="max-h-[66vh] max-w-full object-contain">
+        <img :src="objectUrl" :alt="title || 'Preview Dokumen'" class="max-h-full max-w-full object-contain">
       </div>
 
       <div

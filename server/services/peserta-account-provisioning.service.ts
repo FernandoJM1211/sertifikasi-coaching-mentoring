@@ -9,6 +9,7 @@ import {
   findUserByEmail,
   findUserById,
   findUsersByPersonId,
+  updateUserFullName,
 } from '../repositories/user.repository'
 import {
   createAccountActivationToken,
@@ -16,7 +17,11 @@ import {
 } from '../repositories/account-activation-token.repository'
 import { generateAuthToken, hashAuthToken } from '../utils/auth-token'
 import { hashPassword } from '../utils/password'
-import { sendAccountActivationEmail } from '../utils/email'
+import {
+  sendAccountActivationEmail,
+  sendApplicationAcceptedEmail,
+  sendApplicationAcceptedNoticeEmail,
+} from '../utils/email'
 
 const ACTIVATION_TOKEN_DURATION_MS = 24 * 60 * 60 * 1000
 
@@ -35,9 +40,12 @@ type AcceptedApplicationData = {
 export type PreparedPesertaAccount =
   | {
       accountStatus: 'ACTIVE'
+      /** Email login akun (bisa berbeda dari email pengajuan — kasus 3). */
+      loginEmail: string
     }
   | {
       accountStatus: 'PENDING_ACTIVATION'
+      loginEmail: string
       activationEmail: {
         recipientEmail: string
         activationUrl: string
@@ -81,15 +89,6 @@ export async function preparePesertaAccount(
     )
   }
 
-  const accountByEmail = await findUserByEmail(email)
-
-  if (
-    accountByEmail &&
-    accountByEmail.person_id.trim().toUpperCase() !== personId
-  ) {
-    conflict('Email pengajuan sudah digunakan oleh akun lain.')
-  }
-
   const existingAccount = accounts[0]
 
   if (existingAccount && existingAccount.role !== 'PESERTA') {
@@ -98,19 +97,28 @@ export async function preparePesertaAccount(
     )
   }
 
-  if (
-    existingAccount &&
-    existingAccount.username_email.trim().toLowerCase() !== email
-  ) {
-    conflict(
-      'Email pengajuan berbeda dari email akun peserta yang sudah ada. Perlu penyelarasan email secara manual.',
-    )
+  /*
+   * Satu NIP = satu akun (docs/08-keputusan-skenario.md).
+   * - Sudah punya akun: akun lama tetap dipakai; email akun & email person TIDAK diganti
+   *   walau email pengajuan berbeda (email pengajuan hanya tersimpan di pengajuan).
+   * - Belum punya akun: akun dibuat dengan email pengajuan, asalkan belum dipakai akun lain.
+   */
+  const accountEmail = existingAccount
+    ? existingAccount.username_email.trim().toLowerCase()
+    : email
+
+  if (!existingAccount) {
+    const accountByEmail = await findUserByEmail(email)
+
+    if (accountByEmail) {
+      conflict('Email pengajuan sudah digunakan oleh akun lain.')
+    }
   }
 
   // Perbarui data induk hanya setelah pemeriksaan identitas dan email.
   await updatePerson(personId, {
     full_name: application.full_name_snapshot.trim(),
-    email,
+    email: accountEmail,
     phone_number: application.phone_snapshot.trim(),
     institution_name: application.institution_name.trim(),
     region: application.region.trim(),
@@ -118,9 +126,16 @@ export async function preparePesertaAccount(
     position_name: application.position.trim(),
   })
 
+  // Nama akun disamakan dengan nama terbaru di pengajuan yang diterima (seperti Edit Profil).
+  const latestName = application.full_name_snapshot.trim()
+
+  if (existingAccount && latestName && existingAccount.full_name !== latestName) {
+    await updateUserFullName(existingAccount.user_id, latestName)
+  }
+
   // Akun aktif dipertahankan tanpa mengubah password atau statusnya.
   if (existingAccount?.account_status === 'ACTIVE') {
-    return { accountStatus: 'ACTIVE' }
+    return { accountStatus: 'ACTIVE', loginEmail: accountEmail }
   }
 
   if (
@@ -153,8 +168,10 @@ export async function preparePesertaAccount(
   // Email belum dikirim di tahap ini.
   return {
     accountStatus: 'PENDING_ACTIVATION',
+    loginEmail: accountEmail,
     activationEmail: {
-      recipientEmail: email,
+      // Ke email akun (akun lama: email lama), bukan email pengajuan.
+      recipientEmail: accountEmail,
       activationUrl: await issueActivationUrl(userId),
     },
   }
@@ -225,13 +242,32 @@ export async function resendPesertaActivation(userId: string): Promise<{ recipie
 
 export async function sendPesertaActivationEmail(
   prepared: PreparedPesertaAccount,
+  context: { applicationEmail: string, periodName?: string },
 ): Promise<void> {
-  if (prepared.accountStatus !== 'PENDING_ACTIVATION') {
-    return
+  /*
+   * Email saat pendaftaran diterima (docs/08 K-09):
+   * - Akun belum aktif → tautan aktivasi ke email AKUN (gagal kirim = error, agar dapat diulang).
+   * - Akun sudah aktif → "pendaftaran diterima, masuk dengan akun Anda" ke email akun.
+   * - Email pengajuan ≠ email akun (kasus 3) → pemberitahuan singkat tanpa tautan ke email pengajuan.
+   * Email informatif yang gagal hanya dicatat di log agar keputusan tetap tersimpan.
+   */
+  if (prepared.accountStatus === 'PENDING_ACTIVATION') {
+    await sendAccountActivationEmail(
+      prepared.activationEmail.recipientEmail,
+      prepared.activationEmail.activationUrl,
+      { periodName: context.periodName },
+    )
+  } else {
+    await sendApplicationAcceptedEmail(prepared.loginEmail, {
+      loginEmail: prepared.loginEmail,
+      periodName: context.periodName,
+    }).catch((error) => console.error('Gagal mengirim email pendaftaran diterima:', error))
   }
 
-  await sendAccountActivationEmail(
-    prepared.activationEmail.recipientEmail,
-    prepared.activationEmail.activationUrl,
-  )
+  const applicationEmail = context.applicationEmail.trim().toLowerCase()
+
+  if (applicationEmail && applicationEmail !== prepared.loginEmail) {
+    await sendApplicationAcceptedNoticeEmail(applicationEmail, { periodName: context.periodName })
+      .catch((error) => console.error('Gagal mengirim pemberitahuan ke email pengajuan:', error))
+  }
 }

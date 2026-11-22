@@ -35,7 +35,7 @@ Peta seluruh file dan fungsinya. **Perbarui dokumen ini setiap menambah/menghapu
 | `app/app.vue` | Root aplikasi: `<UApp>` → layout → halaman. |
 | `app/app.config.ts` | Tema Nuxt UI: warna `primary` = blue, `neutral` = slate. |
 | `app/assets/css/main.css` | Import Tailwind dan Nuxt UI. |
-| `app/middleware/auth.global.ts` | Redirect berdasarkan login & role untuk `/super-admin`, `/verifikator`, `/asesor-teknis`, `/peserta`. Hanya UX — keamanan ada di API. |
+| `app/middleware/auth.global.ts` | Redirect berdasarkan login & role untuk `/super-admin`, `/verifikator`, `/asesor-teknis`, `/asesor-kepublikan`, `/peserta`. Hanya UX — keamanan ada di API. |
 | `app/composables/useTablePagination.ts` | `useTablePagination(filtered)` paginasi sisi klien semua tabel (`page`, `pageSize`, `items`, `reset`); `TABLE_PAGE_SIZES` = 5/10/20/50. |
 | `app/components/TablePagination.vue` | `<TablePagination>` footer paginasi seragam: ringkasan baris, pilihan per halaman, Sebelumnya/Berikutnya. |
 | `app/composables/useSelfAssessmentFiles.ts` | `useSelfAssessmentFiles()` unggah & URL preview berkas self assessment; `formatFileInfo()`. |
@@ -53,6 +53,7 @@ Peta seluruh file dan fungsinya. **Perbarui dokumen ini setiap menambah/menghapu
 | `super-admin.vue` | `/super-admin/**` | `DashboardShell` dengan menu Super Admin. |
 | `verifikator.vue` | `/verifikator/**` | `DashboardShell` dengan menu Verifikator. |
 | `asesor-teknis.vue` | `/asesor-teknis/**` | `DashboardShell` dengan menu Asesor Teknis. |
+| `asesor-kepublikan.vue` | `/asesor-kepublikan/**` | `DashboardShell` dengan menu Asesor Kepublikan. |
 | `peserta.vue` | `/peserta/**` | `DashboardShell` dengan menu Peserta. |
 
 Untuk role baru (mis. asesor), buat layout tipis serupa yang memakai `LayoutDashboardShell`.
@@ -64,7 +65,7 @@ Untuk role baru (mis. asesor), buat layout tipis serupa yang memakai `LayoutDash
 | `layout/DashboardShell.vue` | `<LayoutDashboardShell>` | Kerangka dashboard: sidebar, menu profil (Profil, Ganti Kata Sandi, Keluar), header, area konten. Brand: "Sertifikasi CMSP" / "Lembaga Administrasi Negara". Header: judul = label menu aktif (fallback `headerTitle`), sub judul = `panelLabel` (nama panel role), tanggal hari ini, notifikasi. Props: `panelLabel`, `headerTitle`, `navigation`, `basePath`. |
 | `layout/AppFooter.vue` | `<LayoutAppFooter>` | Footer aplikasi. `variant="full"` (default) di layout publik `default`/`guest`: satu pita horizontal (unit, alamat, email, WhatsApp); `variant="compact"` kartu di bawah konten dashboard dengan tombol "Butuh Bantuan?" (modal pilihan email/WhatsApp). Data kontak ada di konstanta `contact` dalam file ini. |
 | `account/AccountProfile.vue` | `<AccountProfile>` | Halaman profil (semua role). Peserta: data diri dari sheet `persons`, bisa diedit (NIP & email terkunci). Pegawai: nama & email. Prop `changePasswordPath`. |
-| `document/DocumentPreviewModal.vue` | `<DocumentPreviewModal>` | Modal preview PDF via iframe dari endpoint backend. Props: `v-model:open`, `url`, `title`, `description`. |
+| `document/DocumentPreviewModal.vue` | `<DocumentPreviewModal>` | Modal preview PDF/gambar hampir layar penuh (header tipis) + tombol **Buka di Tab Baru**. Dipakai semua preview dokumen, termasuk detail pengajuan Verifikator & Super Admin. Props: `v-model:open`, `url` atau `file`, `title`, `description`. |
 | `account/ChangePasswordForm.vue` | `<AccountChangePasswordForm>` | Form ganti kata sandi; setelah berhasil semua sesi dicabut dan diarahkan ke login. Prop `profilePath`. |
 | `guest/GuestRegistrationForm.vue` | `<GuestRegistrationForm>` | Form pendaftaran publik: data diri + 4 dokumen PDF, kirim ke `/api/applications/register`. |
 | `certification/Cmsp01Form.vue` | diimpor di halaman | Form CMSP-01. Data awal dari server (props `initial`); jika belum pernah disimpan, data diri disalin dari Profil. 6 dokumen (4 pendaftaran + KTP + Surat Tugas) bisa dilihat & diganti. Expose `progress`, `declarationAccepted`, `payload`. |
@@ -83,6 +84,8 @@ Untuk role baru (mis. asesor), buat layout tipis serupa yang memakai `LayoutDash
 | `period/PeriodPicker.vue` | `<PeriodPicker>` | Kartu pilihan periode sebelum halaman per periode (Verifikasi SA, Penugasan Asesor). Props `title`, `description`, `note`, `actionLabel`, `actionIcon`, `basePath`, `endpoint` (opsional, sumber daftar periode), `stageCode` (opsional; kartu menampilkan "Jadwal" tahap fitur tersebut, mis. `EVALUATION`). |
 | `technical-assessment/List.vue` | `<TechnicalAssessmentList>` | Daftar penilaian CMSP-02 per periode (ringkasan, filter, tabel). Props `periodId`, `basePath`, `backPath`, `showAssessor`. |
 | `technical-assessment/Detail.vue` | `<TechnicalAssessmentDetail>` | Penilaian satu peserta: evidence CMSP-02 + K/BK per unit, catatan, rekomendasi, simpan draf/kirim; buka kunci (Super Admin). Props `applicationId`, `backPath`. |
+| `public-assessment/List.vue` | `<PublicAssessmentList>` | Daftar penilaian CMSP-03 per periode (status tambahan "Menunggu Asesor Teknis"). Props sama dengan `TechnicalAssessmentList`. |
+| `public-assessment/Detail.vue` | `<PublicAssessmentDetail>` | Penilaian CMSP-03 satu peserta: unit + elemen + indikator, K/BK per unit, catatan, rekomendasi, simpan draf/kirim; buka kunci (Super Admin). Props `applicationId`, `backPath`. |
 | `evaluation/QuestionImportModal.vue` | `<EvaluationQuestionImportModal>` | Modal import soal Excel di Bank Soal: unduh template, pilih .xlsx (dibaca di browser), pratinjau per baris, lewati duplikat, kirim ke `/api/evaluation/questions/import`. Props `existingTexts`, `v-model:open`; emit `imported`. |
 | `assessor-assignment/List.vue` | `<AssessorAssignmentList>` | Asesor periode (kelola), ringkasan, tabel dengan pilih banyak/semua, modal penugasan massal. Props `periodId`, `backPath`. |
 | `verification/SelfAssessmentList.vue` | `<VerificationSelfAssessmentList>` | Daftar self assessment dalam satu periode (Verifikator & Super Admin). Props `periodId`, `basePath`, `backPath`. |
@@ -124,6 +127,10 @@ Untuk role baru (mis. asesor), buat layout tipis serupa yang memakai `LayoutDash
 | `/asesor-teknis/assessments/:periodId` | `.../[periodId]/index.vue` | Daftar peserta yang ditugaskan + status penilaian. |
 | `/asesor-teknis/assessments/:periodId/:applicationId` | `.../[periodId]/[applicationId].vue` | Form penilaian CMSP-02. |
 | `/asesor-teknis/profile`, `/asesor-teknis/change-password` | `asesor-teknis/*.vue` | Profil & ubah kata sandi. |
+| `/super-admin/public-assessments` (+ `/:periodId`, `/:periodId/:applicationId`) | `public-assessments/**` | Pantau/isi/buka kunci penilaian CMSP-03 Asesor Kepublikan. |
+| `/asesor-kepublikan` | `asesor-kepublikan/index.vue` | Beranda Asesor Kepublikan: timeline periode aktif yang ditugaskan + tombol Nilai CMSP-03. |
+| `/asesor-kepublikan/assessments` (+ `/:periodId`, `/:periodId/:applicationId`) | `asesor-kepublikan/assessments/**` | Pilih periode → daftar peserta yang ditugaskan → form penilaian CMSP-03. |
+| `/asesor-kepublikan/profile`, `/asesor-kepublikan/change-password` | `asesor-kepublikan/*.vue` | Profil & ubah kata sandi. |
 | `/super-admin/evaluations/attempts/:attemptId` | `evaluations/attempts/[attemptId].vue` | Detail hasil evaluasi peserta: waktu, nilai, jawaban per soal vs kunci (benar/salah/tidak dijawab). |
 | `/super-admin/accounts/:id` | `accounts/[id].vue` | Detail satu akun. |
 | `/super-admin/profile` | `profile.vue` | Profil sendiri. |
@@ -178,10 +185,10 @@ Alur: **`api/` → `services/` → `repositories/` → Google Sheets/Drive.**
 | `password.ts` | `hashPassword()`, `verifyPassword()`, `validateNewPassword()` (12–128 karakter). |
 | `auth-token.ts` | `generateAuthToken()` (token acak) dan `hashAuthToken()` (SHA-256). |
 | `google-sheets.ts` | Klien Sheets: `getSheetValues/appendSheetValues/updateSheetRow` (data) dan versi `...Auth...` (autentikasi). |
-| `email.ts` | `sendAccountActivationEmail()` via Gmail. |
+| `email.ts` | Email via Gmail: `sendAccountActivationEmail()`, `sendApplicationAcceptedEmail()` (akun sudah aktif), `sendApplicationAcceptedNoticeEmail()` (email pengajuan ≠ email akun), `sendApplicationRejectedEmail()`. Kapan dipakai: docs/08 K-09. |
 | `account-response.ts` | `toPublicAccount()` — data akun tanpa `password_hash`. |
 | `pdf-file.ts` | `assertValidPdfFile()` (MIME, ukuran, signature), `sanitizeFileNamePart()`, `multipartPartToFile()`. |
-| `technical-assessment-input.ts` | Validasi body penilaian Asesor Teknis: `parseTechnicalAssessmentInput()`. |
+| `technical-assessment-input.ts` | Validasi body penilaian asesor: `parseTechnicalAssessmentInput()` (CMSP-02) dan `parsePublicAssessmentInput()` (CMSP-03). |
 | `evaluation-input.ts` | Validasi body evaluasi: `parseQuestionInput()`, `parsePackageInput()`, `parsePeriodEvaluationInput()`, `parseStatusInput()`, `parseAnswersInput()`. |
 | `upload-file.ts` | `assertValidUpload()` (deteksi tipe dari isi file: PDF/PNG/JPG/DOC/DOCX), `setFileResponseHeaders()` (inline hanya PDF/gambar). |
 
@@ -225,6 +232,10 @@ Alur: **`api/` → `services/` → `repositories/` → Google Sheets/Drive.**
 | `GET/PUT /api/technical-assessments/:applicationId` | `.../[applicationId]/index.{get,put}.ts` | GET: Asesor yang ditugaskan, Super Admin · PUT: Asesor yang ditugaskan, Super Admin | Detail (evidence CMSP-02 + penilaian) / simpan draf atau kirim (`submit`). |
 | `POST /api/technical-assessments/:applicationId/reopen` | `.../[applicationId]/reopen.post.ts` | Super Admin | Buka kunci penilaian terkirim. |
 | `GET /api/technical-assessments/:applicationId/files/:fileId` | `.../files/[fileId].get.ts` | Asesor yang ditugaskan, Super Admin | Preview berkas evidence CMSP-02 saja. |
+| `GET /api/public-assessments/periods` | `public-assessments/periods.get.ts` | Asesor Kepublikan | Periode yang memiliki peserta yang ditugaskan. |
+| `GET /api/public-assessments/by-period/:periodId` | `.../by-period/[periodId].get.ts` | Asesor Kepublikan (miliknya), Super Admin | Daftar penilaian CMSP-03 periode. |
+| `GET/PUT /api/public-assessments/:applicationId` | `.../[applicationId]/index.{get,put}.ts` | Asesor Kepublikan yang ditugaskan, Super Admin | Detail / simpan draf atau kirim (`submit`); ditolak bila Asesor Teknis belum mengirim "dapat dilanjutkan". |
+| `POST /api/public-assessments/:applicationId/reopen` | `.../[applicationId]/reopen.post.ts` | Super Admin | Buka kunci penilaian CMSP-03 terkirim. |
 | `GET /api/admin/accounts` | `admin/accounts/index.get.ts` | Super Admin | Daftar akun. |
 | `POST /api/admin/accounts` | `admin/accounts/index.post.ts` | Super Admin | Buat akun pegawai. |
 | `GET /api/admin/accounts/:id` | `admin/accounts/[id].get.ts` | Super Admin | Detail akun. |
@@ -232,7 +243,7 @@ Alur: **`api/` → `services/` → `repositories/` → Google Sheets/Drive.**
 | `POST /api/admin/accounts/:id/resend-activation` | `admin/accounts/[id]/resend-activation.post.ts` | Super Admin | Kirim ulang tautan aktivasi ke akun peserta berstatus menunggu aktivasi (token lama dicabut). |
 | `PATCH /api/admin/accounts/:id/status` | `admin/accounts/[id]/status.patch.ts` | Super Admin | `ACTIVE` / `DISABLED`. |
 | `GET /api/peserta/dashboard` | `peserta/dashboard.get.ts` | Peserta | Pengajuan milik peserta + periode + timeline + `progress` (status self assessment & evaluasi, apakah masih dapat dikerjakan). |
-| `GET /api/home/periods` | `home/periods.get.ts` | Super Admin, Verifikator, Asesor Teknis | Periode aktif (Asesor: yang memiliki peserta ditugaskan) + timeline untuk beranda. |
+| `GET /api/home/periods` | `home/periods.get.ts` | Super Admin, Verifikator, Asesor Teknis, Asesor Kepublikan | Periode aktif (Asesor: yang memiliki peserta ditugaskan) + timeline untuk beranda. |
 | `GET /api/peserta/applications/:applicationId/self-assessment` | `peserta/applications/[applicationId]/self-assessment/index.get.ts` | Peserta (pemilik) | Data CMSP-01 & 02, status, izin edit, catatan perbaikan, profil (hanya untuk isian awal). |
 | `PUT /api/peserta/applications/:applicationId/self-assessment` | `.../self-assessment/index.put.ts` | Peserta (pemilik) | Simpan draft CMSP-01 & 02 sekaligus. |
 | `POST /api/peserta/applications/:applicationId/self-assessment/submit` | `.../self-assessment/submit.post.ts` | Peserta (pemilik) | Submit keduanya (server mengecek kelengkapan). |
@@ -272,6 +283,7 @@ Alur: **`api/` → `services/` → `repositories/` → Google Sheets/Drive.**
 | `self-assessment.service.ts` | Baca/simpan draft/submit CMSP-01 & 02, hak edit (status + jadwal tahap), validasi payload, cek kepemilikan berkas, unggah & preview berkas. `loadSelfAssessmentContent()` dipakai ulang oleh verifikasi. |
 | `assessor-assignment.service.ts` | Daftar & simpan penugasan asesor (tahap `SELF_ASSESSMENT_VERIFICATION`, SA `VERIFIED`, asesor aktif sesuai role; Asesor Teknis tidak dapat diganti bila penilaiannya sudah dimulai). |
 | `technical-assessment.service.ts` | Penilaian CMSP-02 Asesor Teknis: daftar periode/peserta yang ditugaskan, detail, simpan draf/kirim (tahap `ASSESSOR_ASSESSMENT`), buka kunci (Super Admin), berkas evidence. |
+| `public-assessment.service.ts` | Penilaian CMSP-03 Asesor Kepublikan: daftar periode/peserta, detail, simpan draf/kirim (tahap `ASSESSOR_ASSESSMENT` + syarat hasil Asesor Teknis), buka kunci (Super Admin). |
 | `self-assessment-verification.service.ts` | Daftar, detail, dan keputusan verifikasi self assessment (dijaga tahap `SELF_ASSESSMENT_VERIFICATION`). |
 | `evaluation-admin.service.ts` | Bank soal, paket soal, perencanaan evaluasi periode & daftar nilai (Super Admin); aturan penguncian. |
 | `evaluation-attempt.service.ts` | Pengerjaan peserta: kelayakan, mulai (acak soal/opsi), autosave, submit, penilaian `scoreAttempt()`, tutup otomatis saat waktu habis. |
@@ -304,6 +316,7 @@ Satu file per sheet. Detail kolom di [04-database.md](04-database.md).
 | `self-assessment.repository.ts` | `cmsp01_*`, `cmsp02_*`, `self_assessment_reviews` | Data |
 | `assessor-assignment.repository.ts` | `period_assessors`, `assessor_assignments` (tulis massal), `assessor_assignment_logs` | Data |
 | `technical-assessment.repository.ts` | `technical_assessments` (upsert per pengajuan; format `unit_results`) | Data |
+| `public-assessment.repository.ts` | `public_assessments` (upsert per pengajuan; format `unit_results` sama dengan teknis) | Data |
 | `evaluation.repository.ts` | `evaluation_questions`, `evaluation_packages`, `period_evaluations`, `evaluation_snapshot_questions`, `evaluation_attempts` (helper tabel generik `createTable` + `createMany`) | Data |
 
 ## `shared/`
@@ -315,6 +328,8 @@ Satu file per sheet. Detail kolom di [04-database.md](04-database.md).
 | `shared/utils/cmsp02-units.ts` | 10 unit kompetensi CMSP-02 (kode, elemen, contoh evidence). |
 | `shared/utils/evidence-link.ts` | `parseEvidenceLink()`: kenali link YouTube / file Drive (embed) vs folder Drive / website lain (tab baru). |
 | `shared/utils/technical-assessment.ts` | Tahap `ASSESSOR_ASSESSMENT`, hasil `K`/`BK`, rekomendasi `CONTINUE`/`NOT_CONTINUE`, label status, batas catatan. |
+| `shared/utils/cmsp03-units.ts` | 3 unit kompetensi CMSP-03 (kode internal `KEP.n`, elemen, indikator penilaian). |
+| `shared/utils/public-assessment.ts` | Status daftar CMSP-03 (`WAITING`, `STOPPED`, + status teknis) + label, syarat hasil Asesor Teknis (`TechnicalGate`). |
 | `shared/utils/evaluation.ts` | Huruf opsi `A`–`E`, 2–5 opsi, pilihan durasi 30/45/60/90, batas panjang teks evaluasi. |
 | `shared/utils/evaluation-import.ts` | Import soal Excel: nama kolom template, batas (200 soal, 2 MB), `parseQuestionImportSheet` (baris → soal + galat), kunci duplikat. |
 | `shared/utils/documents.ts` | Jenis dokumen pendaftaran + label/ikon, `MAX_PDF_SIZE_BYTES`. |

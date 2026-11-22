@@ -19,7 +19,7 @@ function formatDateTime(value?: string) {
 </script>
 
 <template>
-  <div class="rounded-xl border border-amber-200 bg-amber-50/70 p-4 sm:p-5">
+  <div class="rounded-xl border border-amber-200 bg-amber-50 p-4 sm:p-5">
     <div class="flex items-start gap-3">
       <UIcon name="i-lucide-message-square-warning" class="mt-0.5 size-5 shrink-0 text-amber-500" />
       <div class="min-w-0 flex-1">

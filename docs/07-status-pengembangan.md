@@ -1,6 +1,6 @@
 # 07 — Status Pengembangan
 
-Terakhir diperbarui: 15 November 2026. **Perbarui setiap fitur selesai/dimulai.**
+Terakhir diperbarui: 18 November 2026. **Perbarui setiap fitur selesai/dimulai.**
 
 Legenda: ✅ selesai · 🚧 sedang dikerjakan · ❌ belum ada
 
@@ -52,14 +52,18 @@ Legenda: ✅ selesai · 🚧 sedang dikerjakan · ❌ belum ada
 | Aktivasi akun peserta | ✅ | |
 | Kirim ulang tautan aktivasi | ✅ | Manajemen Akun → Pengaturan Akun (peserta berstatus menunggu aktivasi) |
 | Kirim ulang email aktivasi | ❌ | Bisa dengan memproses ulang keputusan "Diterima" |
-| Email pemberitahuan penolakan | ❌ | |
+| Email pemberitahuan penolakan | ✅ | Umum, tanpa catatan Verifikator (K-09) |
+| Email "pendaftaran diterima" untuk peserta yang sudah punya akun aktif | ✅ | + pemberitahuan ke email pengajuan bila berbeda dari email akun (K-09) |
+| Halaman konfirmasi pendaftaran: langkah selanjutnya & pengingat folder spam | ✅ | K-09 |
+| Aturan identitas NIP/email saat mendaftar ulang | ✅ | NIP lama + email baru tetap masuk, memakai akun lama (lihat [08 K-01](08-keputusan-skenario.md#k-01--identitas-pendaftar-nip-vs-email)) |
+| Ubah email akun peserta (Super Admin) | ❌ | Dibutuhkan bila peserta tidak dapat mengakses email lama (K-01) |
 | Verifikasi per dokumen | ❌ | Kolom `application_documents.status` belum dipakai |
 
 ### Peserta
 
 | Fitur | Status | Catatan |
 | --- | --- | --- |
-| Beranda peserta (timeline periode aktif + tombol dinamis per tahap) | ✅ | Beranda serupa untuk Verifikator & Asesor Teknis; Asesor Kepublikan menyusul |
+| Beranda peserta (timeline periode aktif + tombol dinamis per tahap) | ✅ | Beranda serupa untuk Verifikator, Asesor Teknis, & Asesor Kepublikan |
 | Self assessment CMSP-01 | ✅ | Tersimpan di server (draft & submit). Isian awal dari Profil hanya sebelum draft pertama. Dokumen bisa diganti (hanya berlaku untuk CMSP-01) |
 | Self assessment CMSP-02 | ✅ | Evidence file/link per unit, tersimpan di server |
 | Simpan draft & submit gabungan | ✅ | Satu tombol menyimpan keduanya; submit hanya jika keduanya 100% + pernyataan disetujui; terkunci setelah submit |
@@ -76,8 +80,8 @@ Legenda: ✅ selesai · 🚧 sedang dikerjakan · ❌ belum ada
 | Assign peserta ke Asesor Teknis & Kepublikan | Verifikator, Super Admin | ✅ |
 | Mengerjakan evaluasi pilihan ganda | Peserta | ✅ (anti-kecurangan ditunda) |
 | Penilaian CMSP-02 (K/BK per unit + catatan + rekomendasi lanjut/tidak) | Asesor Teknis (Super Admin: lihat, isi, & buka kunci) | ✅ |
-| Penilaian form CMSP-03 (indikator menyusul) | Asesor Kepublikan | ❌ |
-| Layout & halaman asesor (`/asesor-teknis`, `/asesor-kepublikan` atau satu `/asesor`) | Asesor | ❌ |
+| Penilaian CMSP-03 (K/BK per unit + catatan + rekomendasi; setelah Asesor Teknis "dapat dilanjutkan") | Asesor Kepublikan (Super Admin: lihat, isi, & buka kunci) | ✅ |
+| Layout & halaman asesor (`/asesor-teknis`, `/asesor-kepublikan`) | Asesor | ✅ |
 | Verifikasi penilaian & penetapan kelulusan | Verifikator / Super Admin | ❌ |
 | Informasi kelulusan & sertifikat | Peserta | ❌ |
 | Halaman remedial: kirim link bukti dukung (1x) | Peserta | ❌ |
@@ -98,7 +102,7 @@ Legenda: ✅ selesai · 🚧 sedang dikerjakan · ❌ belum ada
 | 10 | Setiap navigasi memanggil `/api/auth/me` (3 baca sheet) | Kuota Sheets & kecepatan | Cache sesi singkat di server jika mulai lambat |
 | 11 | ~~Dashboard Super Admin menandai Manajemen Akun "Segera hadir"~~ | Selesai — dashboard diganti Beranda | — |
 | 12 | Tidak ada tombol "Hubungkan Google Drive" di UI, dan tidak ada indikator saat token kedaluwarsa (terjadi 15 Nov 2026: `invalid_grant`) | Unggah & preview dokumen gagal tanpa disadari admin | Tambah tombol hubungkan ulang + status koneksi di dashboard Super Admin; publish OAuth app (lihat docs/02) |
-| 13 | Halaman verifikasi Verifikator & Super Admin masih punya modal preview sendiri | Duplikasi | Ganti dengan `<DocumentPreviewModal>` |
+| 13 | ~~Halaman verifikasi Verifikator & Super Admin masih punya modal preview sendiri~~ | Selesai 22 Nov 2026 — memakai `<DocumentPreviewModal>` | — |
 | 14 | Peserta mengganti dokumen setelah diterima; Verifikator tidak mendapat penanda | Verifikator bisa tidak sadar dokumen berubah | Tampilkan "diganti peserta pada …" di halaman verifikasi, atau masukkan ke verifikasi CMSP-01 |
 | 15 | Autosave evaluasi menulis ke sheet (debounce 1,5 detik per peserta) | Banyak peserta serentak bisa mendekati kuota tulis Google Sheets (±300/menit per proyek) | Pantau saat evaluasi massal; bila perlu perbesar debounce |
 | 16 | `replaceChildRows` (baris anak CMSP-01/02) sebelum 16 Nov 2026 salah membaca nomor ID, sehingga ID baris anak baru bisa ganda | Data lama mungkin punya ID ganda di `cmsp01_trainings`/`cmsp01_practices`/`cmsp01_documents`/`cmsp02_evidences` | Sudah diperbaiki; cek ID ganda pada data lama bila diperlukan |
@@ -113,6 +117,5 @@ Urutan mengikuti alur probis di [01-gambaran-sistem.md](01-gambaran-sistem.md):
 3. ~~**Assign asesor**~~ ✅ — menu Penugasan Asesor.
 4. ~~**Bank soal & evaluasi**~~ ✅ (pencegahan kecurangan ditunda, belum dibutuhkan)
    (deteksi pindah tab/keluar layar penuh, blokir salin & klik kanan).
-5. **Role asesor** — ~~portal & penilaian CMSP-02 Asesor Teknis~~ ✅; berikutnya portal Asesor
-   Kepublikan & form CMSP-03 (menunggu daftar indikator).
+5. ~~**Role asesor**~~ ✅ — penilaian CMSP-02 Asesor Teknis dan CMSP-03 Asesor Kepublikan.
 6. **Penetapan kelulusan**, lalu **pengumuman, sertifikat, dan remedial (1x, link bukti)**.

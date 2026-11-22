@@ -42,6 +42,11 @@ const navigation = [
     to: '/super-admin/technical-assessments',
   },
   {
+    label: 'Penilaian Asesor Kepublikan',
+    icon: 'i-lucide-landmark',
+    to: '/super-admin/public-assessments',
+  },
+  {
     label: 'Manajemen Akun',
     icon: 'i-lucide-users',
     to: '/super-admin/accounts',

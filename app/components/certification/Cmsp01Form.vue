@@ -498,7 +498,7 @@ defineExpose({
         </p>
       </div>
 
-      <UCard class="border border-primary/30 bg-white/90 shadow-sm">
+      <UCard class="border border-blue-200 bg-white/90 shadow-sm">
         <div class="space-y-5">
           <div>
             <p class="text-sm font-medium text-primary">
@@ -547,7 +547,7 @@ defineExpose({
         </p>
       </div>
 
-      <UCard class="border border-primary/30 bg-white/90 shadow-sm">
+      <UCard class="border border-blue-200 bg-white/90 shadow-sm">
 
         <div v-if="!reviewMode" class="mb-5 flex items-center justify-between gap-3">
           <p class="text-sm font-semibold text-primary">
@@ -746,7 +746,7 @@ defineExpose({
   </div>
 
   <!-- Card -->
-  <UCard class="border border-primary/30 bg-white/90 shadow-sm">
+  <UCard class="border border-blue-200 bg-white/90 shadow-sm">
     <div v-if="!reviewMode" class="mb-5 flex items-center justify-between gap-3">
       <p class="text-sm font-semibold text-primary">
         Riwayat Pelatihan
@@ -768,7 +768,7 @@ defineExpose({
       <div
   v-for="(training, index) in trainingHistories"
   :key="itemKey(training)"
-  class="rounded-xl border border-slate-200 bg-slate-50/70 p-5 transition hover:border-primary/30"
+  class="rounded-xl border border-slate-200 bg-slate-50 p-5 transition hover:border-blue-200"
 >
 
         <!-- Item Header -->
@@ -898,7 +898,7 @@ defineExpose({
   </div>
 
   <!-- Card -->
-  <UCard class="border border-primary/30 bg-white/90 shadow-sm">
+  <UCard class="border border-blue-200 bg-white/90 shadow-sm">
     <div v-if="!reviewMode" class="mb-5 flex items-center justify-between gap-3">
       <p class="text-sm font-semibold text-primary">
         Pengalaman Praktik
@@ -920,7 +920,7 @@ defineExpose({
       <div
   v-for="(practice, index) in practiceExperiences"
   :key="itemKey(practice)"
-  class="rounded-xl border border-slate-200 bg-slate-50/70 p-5 transition hover:border-primary/30"
+  class="rounded-xl border border-slate-200 bg-slate-50 p-5 transition hover:border-blue-200"
 >
 
         <!-- Item Header -->
@@ -1038,7 +1038,7 @@ defineExpose({
     </p>
   </div>
 
-  <UCard class="border border-primary/30 bg-white/90 shadow-sm">
+  <UCard class="border border-blue-200 bg-white/90 shadow-sm">
     <div v-if="!reviewMode" class="mb-5 flex items-center justify-between gap-3">
       <p class="text-sm font-semibold text-primary">
         Dokumen Persyaratan
@@ -1062,7 +1062,7 @@ defineExpose({
         class="flex flex-col gap-4 rounded-xl border border-dashed border-slate-300 bg-white p-4 sm:flex-row sm:items-center sm:justify-between"
       >
         <div class="flex min-w-0 items-center gap-3">
-          <div class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+          <div class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-primary">
             <UIcon :name="getApplicationDocumentIcon(document.documentType)" class="size-5" />
           </div>
 
@@ -1141,7 +1141,7 @@ defineExpose({
   </div>
 
   <!-- Card -->
-  <UCard class="border border-primary/30 bg-white/90 shadow-sm">
+  <UCard class="border border-blue-200 bg-white/90 shadow-sm">
 
     <div v-if="applicantProgress < 100" class="text-sm leading-6 text-slate-600">
       Lengkapi seluruh data dan dokumen yang dipersyaratkan pada CMSP.01
@@ -1208,7 +1208,7 @@ defineExpose({
 
       <!-- Checkbox Persetujuan -->
       <div
-        class="rounded-xl border border-primary/50 bg-primary/5 p-4"
+        class="rounded-xl border border-blue-300 bg-blue-50 p-4"
       >
         <UCheckbox
           v-model="declarationAccepted"

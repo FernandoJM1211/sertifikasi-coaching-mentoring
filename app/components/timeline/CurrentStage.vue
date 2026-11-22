@@ -18,7 +18,7 @@ const nextStage = computed(() => getNextStage(props.stages))
 
 const BOX: Record<TimelineTask['tone'], string> = {
   pending: 'border-amber-300 bg-amber-50',
-  action: 'border-primary/25 bg-primary/5',
+  action: 'border-blue-200 bg-blue-50',
   done: 'border-emerald-200 bg-emerald-50',
   info: 'border-sky-200 bg-sky-50',
 }

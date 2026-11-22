@@ -47,7 +47,7 @@
         </div>
 
         <!-- Pencarian dan filter role -->
-        <div class="mt-5 flex flex-col gap-3 rounded-xl border border-blue-100 bg-blue-50/50 p-3 sm:flex-row sm:items-center">
+        <div class="mt-5 flex flex-col gap-3 rounded-xl border border-blue-100 bg-blue-50 p-3 sm:flex-row sm:items-center">
           <div class="w-full min-w-0 sm:flex-1">
             <UInput
               v-model="searchQuery"
@@ -143,7 +143,7 @@
             <tr
               v-for="account in paginatedAccounts"
               :key="account.id"
-              class="transition hover:bg-slate-50/70"
+              class="transition hover:bg-slate-50"
             >
               <td class="break-words px-5 py-5 sm:px-8">
                 <p class="font-semibold text-slate-800">
@@ -261,7 +261,7 @@
 
           <button
             type="button"
-            class="flex w-full items-center gap-3 rounded-xl border border-slate-200 p-4 text-left transition hover:border-blue-300 hover:bg-blue-50/50"
+            class="flex w-full items-center gap-3 rounded-xl border border-slate-200 p-4 text-left transition hover:border-blue-300 hover:bg-blue-50"
             @click="goToAccountProfile(selectedAccount.id)"
           >
             <div class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
@@ -281,7 +281,7 @@
           <!-- Akun Super Admin dilindungi -->
           <div
             v-if="selectedAccount.role === 'SUPER_ADMIN'"
-            class="flex gap-3 rounded-xl border border-blue-100 bg-blue-50/70 p-4 text-sm text-slate-700"
+            class="flex gap-3 rounded-xl border border-blue-100 bg-blue-50 p-4 text-sm text-slate-700"
           >
             <UIcon name="i-lucide-shield-check" class="mt-0.5 size-5 shrink-0 text-blue-600" />
             <p>
@@ -294,7 +294,7 @@
           <button
             v-else
             type="button"
-            class="flex w-full items-center gap-3 rounded-xl border border-slate-200 p-4 text-left transition hover:border-amber-300 hover:bg-amber-50/50"
+            class="flex w-full items-center gap-3 rounded-xl border border-slate-200 p-4 text-left transition hover:border-amber-300 hover:bg-amber-50"
             @click="openResetPassword"
           >
             <div class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-amber-50 text-amber-600">
@@ -315,7 +315,7 @@
           <button
             v-if="selectedAccount.status === 'PENDING_ACTIVATION' && selectedAccount.role === 'PESERTA'"
             type="button"
-            class="flex w-full items-center gap-3 rounded-xl border border-slate-200 p-4 text-left transition hover:border-sky-300 hover:bg-sky-50/50 disabled:cursor-not-allowed disabled:opacity-60"
+            class="flex w-full items-center gap-3 rounded-xl border border-slate-200 p-4 text-left transition hover:border-sky-300 hover:bg-sky-50 disabled:cursor-not-allowed disabled:opacity-60"
             :disabled="isResendingActivation"
             @click="resendActivation"
           >
@@ -341,7 +341,7 @@
 <button
   v-if="selectedAccount.status === 'ACTIVE' && selectedAccount.role !== 'SUPER_ADMIN'"
   type="button"
-  class="flex w-full items-center gap-3 rounded-xl border border-slate-200 p-4 text-left transition hover:border-red-300 hover:bg-red-50/50"
+  class="flex w-full items-center gap-3 rounded-xl border border-slate-200 p-4 text-left transition hover:border-red-300 hover:bg-red-50"
   @click="confirmAccountStatusChange('DISABLED')"
 >
   <div class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-red-50 text-red-600">
@@ -363,7 +363,7 @@
 <button
   v-else-if="selectedAccount.status === 'DISABLED' && selectedAccount.role !== 'SUPER_ADMIN'"
   type="button"
-  class="flex w-full items-center gap-3 rounded-xl border border-slate-200 p-4 text-left transition hover:border-emerald-300 hover:bg-emerald-50/50"
+  class="flex w-full items-center gap-3 rounded-xl border border-slate-200 p-4 text-left transition hover:border-emerald-300 hover:bg-emerald-50"
   @click="confirmAccountStatusChange('ACTIVE')"
 >
   <div class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">

@@ -1,4 +1,7 @@
-import { findAssignmentsByTechnicalAssessor } from '../repositories/assessor-assignment.repository'
+import {
+  findAssignmentsByPublicAssessor,
+  findAssignmentsByTechnicalAssessor,
+} from '../repositories/assessor-assignment.repository'
 import { findAllCertificationPeriods } from '../repositories/certification-period.repository'
 import { findAllCertificationTimelines } from '../repositories/certification-timeline.repository'
 import type { AuthenticatedUser } from './auth.service'
@@ -6,13 +9,17 @@ import type { AuthenticatedUser } from './auth.service'
 /**
  * Beranda staf (Super Admin, Verifikator, Asesor): periode AKTIF beserta timeline-nya.
  * - Super Admin & Verifikator: semua periode aktif.
- * - Asesor Teknis: hanya periode aktif yang memiliki peserta yang ditugaskan kepadanya.
+ * - Asesor Teknis / Kepublikan: hanya periode aktif yang memiliki peserta yang ditugaskan kepadanya.
  */
 export async function listHomePeriods(user: AuthenticatedUser) {
   const [periods, timelines, assignments] = await Promise.all([
     findAllCertificationPeriods(),
     findAllCertificationTimelines(),
-    user.role === 'TECHNICAL_ASSESSOR' ? findAssignmentsByTechnicalAssessor(user.user_id) : Promise.resolve(null),
+    user.role === 'TECHNICAL_ASSESSOR'
+      ? findAssignmentsByTechnicalAssessor(user.user_id)
+      : user.role === 'PUBLIC_ASSESSOR'
+        ? findAssignmentsByPublicAssessor(user.user_id)
+        : Promise.resolve(null),
   ])
 
   const assignedPeriodIds = assignments ? new Set(assignments.map((item) => item.period_id)) : null

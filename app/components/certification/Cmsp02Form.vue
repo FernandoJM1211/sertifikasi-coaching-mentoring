@@ -377,7 +377,7 @@ defineExpose({
 
           <!-- Ditampilkan juga pada mode tinjau sebagai acuan Verifikator/Asesor. -->
           <div
-  class="rounded-xl border border-primary/25 bg-primary/5 p-5"
+  class="rounded-xl border border-blue-200 bg-blue-50 p-5"
 >
   <p class="text-sm font-semibold text-primary">
     Contoh bukti yang relevan

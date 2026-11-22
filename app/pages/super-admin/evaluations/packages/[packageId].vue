@@ -283,7 +283,7 @@ async function confirmToggleStatus() {
                 </p>
               </div>
             </div>
-            <div class="flex flex-col gap-3 rounded-lg border border-blue-100 bg-blue-50/50 p-3 sm:flex-row">
+            <div class="flex flex-col gap-3 rounded-lg border border-blue-100 bg-blue-50 p-3 sm:flex-row">
               <UInput v-model="searchQuery" icon="i-lucide-search" placeholder="Cari teks soal..." class="w-full" />
               <USelect v-model="topicFilter" :items="topicItems" value-key="value" label-key="label" class="w-full sm:w-56" />
               <USelect v-model="selectionFilter" :items="SELECTION_FILTERS" value-key="value" label-key="label" class="w-full sm:w-44" />
@@ -329,7 +329,7 @@ async function confirmToggleStatus() {
                 v-for="item in pagedQuestions"
                 :key="item.question_id"
                 class="border-b border-slate-200 last:border-0"
-                :class="selectedSet.has(item.question_id) ? 'bg-primary/5' : ''"
+                :class="selectedSet.has(item.question_id) ? 'bg-blue-50' : ''"
               >
                 <td class="px-4 py-3 text-center">
                   <UCheckbox

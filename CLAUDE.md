@@ -28,9 +28,11 @@ Bahasa UI, pesan error, dan komentar kode: **Bahasa Indonesia**.
 | [docs/05-panduan-ui.md](docs/05-panduan-ui.md) | Style guide halaman (warna, layout, komponen) |
 | [docs/06-konvensi-kode.md](docs/06-konvensi-kode.md) | Pola kode backend/frontend + checklist keamanan |
 | [docs/07-status-pengembangan.md](docs/07-status-pengembangan.md) | Fitur yang sudah/belum ada, known issues |
+| [docs/08-keputusan-skenario.md](docs/08-keputusan-skenario.md) | Log skenario yang dibahas + keputusan yang disepakati (mis. aturan NIP/email pendaftaran) |
 
 **Baca dokumen yang relevan sebelum mengerjakan fitur.** Setelah menambah fitur, sheet,
-atau file baru, **perbarui dokumen terkait** (terutama 03, 04, dan 07).
+atau file baru, **perbarui dokumen terkait** (terutama 03, 04, dan 07). Setiap skenario yang
+didiskusikan lalu disepakati dengan pemilik proyek **dicatat di 08** (entri baru, jangan hapus yang lama).
 
 ## Aturan Wajib
 

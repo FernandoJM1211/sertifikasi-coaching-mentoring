@@ -18,6 +18,14 @@ import {
   sendPesertaActivationEmail,
 } from './peserta-account-provisioning.service'
 
+import { findCertificationPeriodById } from '../repositories/certification-period.repository'
+import { sendApplicationRejectedEmail } from '../utils/email'
+
+async function getPeriodName(periodId: string): Promise<string> {
+  const period = await findCertificationPeriodById(periodId).catch(() => null)
+  return period?.period_name ?? ''
+}
+
 export type CreateApplicationVerificationServiceInput = {
   applicationId: string
   verifiedBy: string
@@ -173,11 +181,20 @@ export async function createApplicationVerificationService(
     )
 
     // Email hanya dikirim setelah status accepted berhasil disimpan.
-    // Jika pengiriman gagal, pemanggilan ulang dapat menyiapkan
+    // Jika pengiriman aktivasi gagal, pemanggilan ulang dapat menyiapkan
     // token baru dan mencoba mengirim kembali.
     if (preparedAccount) {
-      await sendPesertaActivationEmail(preparedAccount)
+      await sendPesertaActivationEmail(preparedAccount, {
+        applicationEmail: application.email_snapshot,
+        periodName: await getPeriodName(application.period_id),
+      })
     }
+  } else if (application.application_status !== 'rejected') {
+    // Pemberitahuan penolakan (umum, tanpa catatan Verifikator) ke email pengajuan.
+    // Hanya saat keputusan pertama kali disimpan; gagal kirim tidak membatalkan keputusan.
+    await sendApplicationRejectedEmail(application.email_snapshot, {
+      periodName: await getPeriodName(application.period_id),
+    }).catch((error) => console.error('Gagal mengirim email penolakan:', error))
   }
 
   return verification

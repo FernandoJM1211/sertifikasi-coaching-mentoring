@@ -274,7 +274,7 @@ onBeforeUnmount(() => {
         </div>
         <div
           class="flex items-center gap-2 rounded-lg px-3 py-1.5 font-mono text-lg font-semibold tabular-nums"
-          :class="remainingMs <= 5 * 60_000 ? 'bg-red-50 text-red-600' : 'bg-primary/10 text-primary'"
+          :class="remainingMs <= 5 * 60_000 ? 'bg-red-50 text-red-600' : 'bg-blue-100 text-primary'"
           role="timer"
           :aria-label="`Sisa waktu ${timerLabel}`"
         >
@@ -300,8 +300,8 @@ onBeforeUnmount(() => {
               :aria-checked="answers[currentIndex] === option.key"
               class="flex w-full items-start gap-3 rounded-xl border p-3.5 text-left transition"
               :class="answers[currentIndex] === option.key
-                ? 'border-primary bg-primary/5 ring-1 ring-primary'
-                : 'border-slate-200 bg-white hover:border-primary/40 hover:bg-slate-50'"
+                ? 'border-primary bg-blue-50 ring-1 ring-primary'
+                : 'border-slate-200 bg-white hover:border-blue-300 hover:bg-slate-50'"
               @click="choose(option.key)"
             >
               <span
@@ -338,8 +338,8 @@ onBeforeUnmount(() => {
               type="button"
               class="flex aspect-square items-center justify-center rounded-lg border text-sm font-medium transition"
               :class="[
-                answers[index] ? 'border-primary bg-primary text-white' : 'border-slate-200 bg-white text-slate-600 hover:border-primary/40',
-                index === currentIndex ? 'ring-2 ring-primary/40 ring-offset-1' : '',
+                answers[index] ? 'border-primary bg-primary text-white' : 'border-slate-200 bg-white text-slate-600 hover:border-blue-300',
+                index === currentIndex ? 'ring-2 ring-blue-300 ring-offset-1' : '',
               ]"
               :aria-label="`Soal ${question.number}${answers[index] ? ', sudah dijawab' : ''}`"
               @click="goTo(index)"
