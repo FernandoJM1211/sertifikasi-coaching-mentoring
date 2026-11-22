@@ -34,6 +34,8 @@ type ListResponse = {
   stage: { open: boolean, message: string }
   /** Tahap Verifikasi SA dibuka dan penilaian asesor belum dimulai. */
   canEdit: boolean
+  /** Penugasan dibuka lewat dispensasi (tahap Verifikasi SA dibuka manual saat penilaian berjalan). */
+  dispensation: boolean
   assessmentStarted: boolean
   summary: { total: number, assigned: number, unassigned: number, notVerified: number }
   assessors: { technical: RoleAssessors, public: RoleAssessors }
@@ -122,6 +124,16 @@ const roleSections = computed(() => [
 const hasPeriodAssessors = computed(() =>
   Boolean(data.value?.assessors.technical.period.length || data.value?.assessors.public.period.length),
 )
+
+/** Role asesor periode yang masih kosong, untuk pengingat di bawah judul "Asesor Periode Ini". */
+const missingAssessorText = computed(() => {
+  if (!data.value) return ''
+  const missing = [
+    data.value.assessors.technical.period.length ? '' : 'Asesor Teknis',
+    data.value.assessors.public.period.length ? '' : 'Asesor Kepublikan',
+  ].filter(Boolean)
+  return missing.join(' dan ')
+})
 
 /* ---------------- Filter & pencarian ---------------- */
 
@@ -408,18 +420,33 @@ watch([activeFilter, searchQuery], resetTablePage)
         :description="`${data.stage.message} Data tetap dapat dilihat, namun asesor periode dan penugasan peserta hanya dapat diatur pada saat tahap tersebut dibuka.`"
       />
 
+      <!-- Dibuka manual: tahap Verifikasi SA di-override OPEN saat penilaian asesor berjalan (docs/08 K-14). -->
+      <UAlert
+        v-else-if="data.dispensation"
+        color="warning"
+        variant="subtle"
+        icon="i-lucide-lock-open"
+        title="Penugasan dibuka manual"
+        description="Tahap Verifikasi Self Assessment dibuka manual oleh Super Admin, sehingga asesor periode dan penugasan peserta dapat diatur walau tahap penilaian asesor sedang berjalan. Asesor peserta yang penilaiannya sudah dimulai tetap tidak dapat diganti. Kembalikan tahap ke Normal di halaman Timeline untuk mengunci kembali."
+      />
+
       <UAlert
         v-else-if="data.assessmentStarted"
         color="warning"
         variant="subtle"
         icon="i-lucide-lock"
         title="Penugasan dikunci"
-        description="Tahap penilaian asesor sudah dibuka, sehingga asesor periode dan penugasan peserta tidak dapat diubah."
+        description="Tahap penilaian asesor sudah dibuka, sehingga asesor periode dan penugasan peserta tidak dapat diubah. Untuk dispensasi, Super Admin dapat membuka tahap Verifikasi Self Assessment secara manual di halaman Timeline."
       />
 
       <!-- 1. Asesor periode -->
       <section class="space-y-3">
         <h2 class="text-lg font-semibold text-slate-900">Asesor Periode Ini</h2>
+        <!-- Hilang bila Asesor Teknis & Kepublikan periode ini sudah ada. -->
+        <p v-if="missingAssessorText" class="flex items-start gap-2 text-sm text-amber-700">
+          <UIcon name="i-lucide-triangle-alert" class="mt-0.5 size-4 shrink-0" />
+          Tambahkan {{ missingAssessorText }} pada periode ini terlebih dahulu untuk mulai menugaskan peserta.
+        </p>
 
         <div class="grid gap-4 lg:grid-cols-2">
           <UCard
@@ -652,9 +679,6 @@ watch([activeFilter, searchQuery], resetTablePage)
 
         <template #footer>
           <div class="space-y-3">
-            <p v-if="!hasPeriodAssessors" class="text-sm text-amber-600">
-              Tambahkan asesor periode terlebih dahulu untuk mulai menugaskan.
-            </p>
             <TablePagination v-model:page="tablePage" v-model:page-size="tablePageSize" :total="filteredItems.length" label="peserta" />
           </div>
         </template>

@@ -27,6 +27,9 @@ dibahas ulang dari nol.
 | K-09 | [Halaman konfirmasi pendaftaran & email hasil verifikasi](#k-09--halaman-konfirmasi-pendaftaran--email-hasil-verifikasi) | 22 Nov 2026 |
 | K-10 | [Mendaftar ulang pada periode yang sama](#k-10--mendaftar-ulang-pada-periode-yang-sama) | 22 Nov 2026 |
 | K-11 | [Preview berkas Word & link evidence](#k-11--preview-berkas-word--link-evidence) | 22 Nov 2026 |
+| K-12 | [Sumber identitas peserta di halaman staf](#k-12--sumber-identitas-peserta-di-halaman-staf) | 22 Nov 2026 |
+| K-13 | [Badge "Perlu Perbaikan" per form](#k-13--badge-perlu-perbaikan-per-form) | 22 Nov 2026 |
+| K-14 | [Dispensasi penugasan asesor](#k-14--dispensasi-penugasan-asesor) | 22 Nov 2026 |
 
 ---
 
@@ -257,3 +260,68 @@ Vercel (prototipe, ±30–50 peserta), sehingga solusinya tidak boleh memberatka
 
 **Penerapan.** `convertGoogleDriveFileToPdf()` (`google-drive.service.ts`), `sendStoredFile()`
 (`?preview=pdf`), `DocumentPreviewModal.vue`, `LinkPreviewModal.vue`, `nuxt.config.ts`.
+
+---
+
+## K-12 — Sumber identitas peserta di halaman staf
+
+**Konteks.** Apakah nama/NIP/instansi di tabel & halaman staf sebaiknya memakai data **profil**
+(terkini, mis. sudah bertambah gelar) atau data **pengajuan/periode**?
+
+**Keputusan.**
+
+- Tetap memakai **data pada periode tersebut** (isian CMSP-01, atau data pengajuan bila CMSP-01
+  belum ada), karena itulah data yang sah saat pengajuan/sertifikasi peserta. Data profil **tidak**
+  dipakai di halaman staf (hanya di Profil & sidebar peserta).
+
+| Halaman | Sumber |
+| --- | --- |
+| Daftar & detail pengajuan (verifikasi pendaftaran) | Data pengajuan |
+| Verifikasi SA, Penugasan Asesor, Perencanaan Evaluasi, Penilaian Asesor Teknis & Kepublikan | Isian CMSP-01 → data pengajuan |
+
+- Kartu ringkasan di detail **Verifikasi Self Assessment** tidak lagi menampilkan Nama/NIP/Instansi
+  (sama persis dengan isian CMSP-01 di bawahnya); yang tersisa **Periode, Dikirim, Perbaikan**.
+
+**Penerapan.** `app/components/verification/SelfAssessmentDetail.vue`.
+
+---
+
+## K-13 — Badge "Perlu Perbaikan" per form
+
+**Konteks.** Verifikator meminta perbaikan dengan catatan hanya untuk CMSP-01, tetapi badge di
+CMSP-02 juga tertulis "Perlu Perbaikan" (status perbaikan satu untuk keseluruhan self assessment),
+sehingga peserta bisa mengira CMSP-02 juga harus diperbaiki.
+
+**Keputusan.**
+
+- Selama status **Perlu Perbaikan**, badge di setiap form mengikuti catatan form itu:
+  form yang mendapat catatan → **Perlu Perbaikan**; form tanpa catatan → **Tidak Ada Catatan** (abu-abu).
+  Dipilih "Tidak Ada Catatan", bukan "Sudah Sesuai", karena keputusan verifikasi belum final.
+- Bila Verifikator tidak memberi catatan di form mana pun, kedua form tetap "Perlu Perbaikan".
+- Badge hanya petunjuk: form tanpa catatan **tetap dapat diedit**, dan kirim ulang tetap bersamaan.
+
+**Penerapan.** `formBadgeStatus()` di `app/pages/peserta/self-assessment/[applicationId].vue`;
+status tampilan `REVISION_NO_NOTE` di `SelfAssessmentStatusBadge.vue` (tidak disimpan di database).
+
+---
+
+## K-14 — Dispensasi penugasan asesor
+
+**Konteks.** Penugasan asesor terkunci begitu tahap Penilaian Asesor dibuka — sesuai aturan, tetapi
+perlu cara untuk dispensasi (mis. peserta terlambat diverifikasi, asesor berhalangan) dan untuk uji coba.
+
+**Keputusan.**
+
+- **Normal (jadwal):** penugasan hanya saat tahap Verifikasi SA dibuka **dan** Penilaian Asesor belum dibuka.
+- **Dispensasi:** bila Super Admin membuka tahap **Verifikasi Self Assessment secara manual**
+  (override OPEN), penugasan dapat dilakukan lagi walau Penilaian Asesor sedang berjalan:
+  menambah/mengganti asesor periode, menugaskan peserta yang belum punya asesor, dan mengganti
+  asesor peserta yang penilaiannya **belum dimulai**.
+- Pengaman tetap berlaku: asesor peserta yang penilaian CMSP-02/CMSP-03-nya sudah dimulai tidak
+  dapat diganti; asesor yang masih memegang peserta tidak dapat dikeluarkan dari periode.
+- Dipilih override (bukan "Super Admin selalu bisa") agar dispensasi disengaja & tercatat
+  (`override_by`/`override_at` di timeline) dan dikunci lagi cukup dengan mengembalikan tahap ke Normal.
+- Halaman Penugasan Asesor menampilkan kotak kuning "Penugasan dibuka manual".
+
+**Penerapan.** `editRule()` di `server/services/assessor-assignment.service.ts`; `StageAccess.manual`
+di `certification-stage.service.ts`; `app/components/assessor-assignment/List.vue`.

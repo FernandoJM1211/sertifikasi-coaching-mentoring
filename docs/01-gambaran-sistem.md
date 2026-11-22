@@ -157,7 +157,9 @@ DRAFT ──► ACTIVE ──► CLOSED ──► COMPLETED
 - **Tidak perlu perbaikan** → Verifikator **meng-assign** peserta ke **satu Asesor Teknis**
   dan **satu Asesor Kepublikan** (menu **Penugasan Asesor**, pilih periode dulu).
   - Hanya untuk peserta dengan self assessment `VERIFIED`, dan hanya saat tahap
-    `SELF_ASSESSMENT_VERIFICATION` dibuka.
+    `SELF_ASSESSMENT_VERIFICATION` dibuka serta tahap Penilaian Asesor belum dibuka.
+    **Dispensasi:** bila Super Admin membuka tahap Verifikasi SA secara manual, penugasan dapat
+    dilakukan lagi walau penilaian berjalan (asesor peserta yang sudah mulai dinilai tetap terkunci) — [08 K-14](08-keputusan-skenario.md#k-14--dispensasi-penugasan-asesor).
   - Asesor dipilih dulu per periode (**Asesor Periode Ini**);
     saat menugaskan, pilihan hanya berisi asesor periode tersebut. Asesor yang masih memegang peserta
     tidak dapat dikeluarkan.

@@ -1,12 +1,17 @@
 <script setup lang="ts">
 import { SELF_ASSESSMENT_STATUS_LABELS } from '~~/shared/utils/self-assessment'
 
-/** Badge status self assessment (dipakai di header CMSP-01 & CMSP-02). */
+/**
+ * Badge status self assessment (dipakai di header CMSP-01 & CMSP-02).
+ * `REVISION_NO_NOTE` (hanya tampilan): status Perlu Perbaikan, tetapi form ini tidak mendapat
+ * catatan dari Verifikator → "Tidak Ada Catatan" (docs/08 K-13).
+ */
 const props = defineProps<{ status: string }>()
 
-const label = computed(
-  () => SELF_ASSESSMENT_STATUS_LABELS[props.status as keyof typeof SELF_ASSESSMENT_STATUS_LABELS] ?? props.status,
-)
+const label = computed(() => {
+  if (props.status === 'REVISION_NO_NOTE') return 'Tidak Ada Catatan'
+  return SELF_ASSESSMENT_STATUS_LABELS[props.status as keyof typeof SELF_ASSESSMENT_STATUS_LABELS] ?? props.status
+})
 
 const color = computed(() => {
   switch (props.status) {

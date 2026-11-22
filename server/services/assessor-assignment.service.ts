@@ -17,7 +17,7 @@ import { findTechnicalAssessmentsByPeriod } from '../repositories/technical-asse
 import { findPublicAssessmentsByPeriod } from '../repositories/public-assessment.repository'
 import { findAllUsers, type User } from '../repositories/user.repository'
 import type { AuthenticatedUser } from './auth.service'
-import { getStageAccess } from './certification-stage.service'
+import { getStageAccess, type StageAccess } from './certification-stage.service'
 
 /**
  * Penugasan asesor oleh Verifikator / Super Admin.
@@ -59,7 +59,22 @@ function isActiveAssessor(user: User | undefined, role: AssessorRole) {
   return Boolean(user && user.role === role && user.account_status === 'ACTIVE')
 }
 
-/** Aksi penugasan hanya saat tahap Verifikasi SA dibuka dan penilaian asesor belum dimulai. */
+/**
+ * Aturan edit penugasan (docs/08 K-14):
+ * - Normal: tahap Verifikasi SA dibuka (jadwal) DAN tahap Penilaian Asesor belum dibuka.
+ * - Dispensasi: tahap Verifikasi SA dibuka MANUAL (override OPEN) → penugasan boleh walau
+ *   Penilaian Asesor sedang berjalan. Pengaman per peserta tetap berlaku: asesor peserta yang
+ *   penilaiannya sudah dimulai tidak dapat diganti (lihat `assignAssessors`), dan asesor yang
+ *   masih memegang peserta tidak dapat dikeluarkan dari periode (`updatePeriodAssessors`).
+ */
+function editRule(access: StageAccess, assessment: StageAccess) {
+  const dispensation = access.open && Boolean(access.manual) && assessment.open
+  return {
+    canEdit: access.open && (!assessment.open || dispensation),
+    dispensation,
+  }
+}
+
 async function assertCanEdit(periodId: string, prefix: string) {
   const [access, assessment] = await Promise.all([
     getStageAccess(periodId, ASSIGNMENT_STAGE),
@@ -70,7 +85,7 @@ async function assertCanEdit(periodId: string, prefix: string) {
     throw createError({ statusCode: 409, statusMessage: `${prefix}: ${access.message}` })
   }
 
-  if (assessment.open) {
+  if (!editRule(access, assessment).canEdit) {
     throw createError({
       statusCode: 409,
       statusMessage: `${prefix}: tahap penilaian asesor sudah dibuka.`,
@@ -171,8 +186,9 @@ export async function listAssessorAssignments(periodId: string) {
       period_status: period.period_status,
     },
     stage,
-    // Semua aksi di halaman ini mengikuti tahap Verifikasi SA; dikunci bila penilaian asesor sudah dibuka.
-    canEdit: stage.open && !assessmentStage.open,
+    // Semua aksi di halaman ini mengikuti tahap Verifikasi SA; dikunci bila penilaian asesor sudah
+    // dibuka, kecuali dispensasi (tahap Verifikasi SA dibuka manual).
+    ...editRule(stage, assessmentStage),
     assessmentStarted: assessmentStage.open,
     summary: {
       total: withStatus.length,

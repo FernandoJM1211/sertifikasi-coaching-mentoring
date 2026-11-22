@@ -64,6 +64,19 @@ const revisionNotes = computed(() => {
   }
 })
 
+/**
+ * Status badge per form. Saat Perlu Perbaikan dan Verifikator memberi catatan hanya pada form lain,
+ * form tanpa catatan ditandai "Tidak Ada Catatan" (tetap dapat diedit; kirim ulang tetap bersamaan).
+ * Bila tidak ada catatan sama sekali, kedua form tetap "Perlu Perbaikan". Lihat docs/08 K-13.
+ */
+function formBadgeStatus(form: 'cmsp01' | 'cmsp02') {
+  const notes = revisionNotes.value
+  const anyNote = Boolean(notes.cmsp01 || notes.cmsp02)
+
+  if (status.value === 'REVISION_REQUESTED' && anyNote && !notes[form]) return 'REVISION_NO_NOTE'
+  return status.value
+}
+
 const currentPayload = computed(() => {
   if (!cmsp01Ref.value || !cmsp02Ref.value) return null
 
@@ -342,7 +355,7 @@ onBeforeUnmount(() => {
           :application-id="applicationId"
           :initial="data"
           :readonly="!isEditable"
-          :status="status"
+          :status="formBadgeStatus('cmsp01')"
         />
       </div>
       <div v-show="activeTab === 'CMSP02'" class="space-y-6">
@@ -358,7 +371,7 @@ onBeforeUnmount(() => {
           :application-id="applicationId"
           :initial="data.cmsp02"
           :readonly="!isEditable"
-          :status="status"
+          :status="formBadgeStatus('cmsp02')"
         />
       </div>
 

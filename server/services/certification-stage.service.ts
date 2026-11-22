@@ -54,6 +54,8 @@ export type StageAccess = {
   message: string
   startAt: string
   endAt: string
+  /** true bila tahap dibuka manual oleh Super Admin (override OPEN), bukan karena jadwal. */
+  manual?: boolean
 }
 
 /**
@@ -95,7 +97,7 @@ export async function getStageAccess(
   const override = (timeline.is_override_open || '').trim().toUpperCase()
 
   if (override === 'OPEN' || override === 'TRUE') {
-    return { open: true, message: '', startAt, endAt }
+    return { open: true, message: '', startAt, endAt, manual: true }
   }
 
   if (override === 'CLOSED') {

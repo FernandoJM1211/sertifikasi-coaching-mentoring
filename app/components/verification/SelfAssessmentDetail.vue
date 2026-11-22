@@ -78,10 +78,6 @@ const tabs = [
   { id: 'CMSP02' as const, number: '02', title: 'Self Assessment Teknis', description: 'Evidence per unit kompetensi' },
 ]
 
-const applicantName = computed(() => data.value?.cmsp01.applicant?.fullName ?? '')
-const applicantNip = computed(() => data.value?.cmsp01.applicant?.nip ?? '')
-const applicantInstitution = computed(() => data.value?.cmsp01.applicant?.institution ?? '')
-
 function formatDateTime(value: string) {
   if (!value) return '-'
   const date = new Date(value)
@@ -200,21 +196,10 @@ async function confirmDecision() {
     </UAlert>
 
     <template v-else>
-      <!-- Ringkasan peserta -->
+      <!-- Ringkasan pengiriman. Identitas peserta tidak diulang di sini: sudah ada di isian CMSP-01
+           (data saat pengajuan, docs/08 K-12). -->
       <UCard class="border border-blue-200 bg-white/90 shadow-sm">
-        <dl class="grid gap-x-6 gap-y-5 text-center text-sm sm:grid-cols-2 lg:grid-cols-3">
-          <div>
-            <dt class="text-slate-600">Nama Peserta</dt>
-            <dd class="mt-1 font-medium text-slate-900">{{ applicantName || '-' }}</dd>
-          </div>
-          <div>
-            <dt class="text-slate-600">NIP</dt>
-            <dd class="mt-1 font-medium text-slate-900">{{ applicantNip || '-' }}</dd>
-          </div>
-          <div>
-            <dt class="text-slate-600">Instansi</dt>
-            <dd class="mt-1 font-medium text-slate-900">{{ applicantInstitution || '-' }}</dd>
-          </div>
+        <dl class="grid gap-x-6 gap-y-5 text-center text-sm sm:grid-cols-3">
           <div>
             <dt class="text-slate-600">Periode</dt>
             <dd class="mt-1 font-medium text-slate-900">{{ data.certification.period_name || '-' }}</dd>

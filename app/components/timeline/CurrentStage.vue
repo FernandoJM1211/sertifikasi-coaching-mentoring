@@ -33,6 +33,7 @@ const ICON: Record<TimelineTask['tone'], { name: string, color: string }> = {
 
 <template>
   <UCard>
+    <!-- Judul: tahap yang sedang berlangsung, atau keterangan bila tidak ada. -->
     <div v-if="activeStage">
       <p class="text-sm font-semibold text-primary">Tahapan Saat Ini</p>
       <h2 class="mt-1 text-xl font-semibold text-slate-900">{{ activeStage.name }}</h2>
@@ -47,34 +48,6 @@ const ICON: Record<TimelineTask['tone'], { name: string, color: string }> = {
           <span class="font-semibold text-slate-900">{{ formatDateTimeId(activeStage.endAt) }}</span>
         </p>
       </div>
-
-      <!-- Tombol dinamis sesuai role & tahap -->
-      <div
-        v-for="(task, index) in tasks ?? []"
-        :key="index"
-        class="mt-5 flex flex-col gap-4 rounded-xl border p-4 sm:flex-row sm:items-center sm:justify-between"
-        :class="BOX[task.tone]"
-      >
-        <div class="flex min-w-0 items-start gap-3">
-          <UIcon :name="ICON[task.tone].name" class="mt-0.5 size-5 shrink-0" :class="ICON[task.tone].color" />
-          <div class="min-w-0">
-            <p v-if="task.title" class="text-sm font-semibold text-slate-900">{{ task.title }}</p>
-            <p class="text-sm leading-6 text-slate-700">{{ task.description }}</p>
-          </div>
-        </div>
-        <UButton
-          v-if="task.to && task.label"
-          :to="task.to"
-          size="lg"
-          class="shrink-0 justify-center"
-          :color="task.tone === 'pending' ? 'warning' : 'primary'"
-          :variant="task.tone === 'done' || task.tone === 'info' ? 'outline' : 'solid'"
-          :icon="task.icon"
-          trailing-icon="i-lucide-arrow-right"
-        >
-          {{ task.label }}
-        </UButton>
-      </div>
     </div>
 
     <div v-else class="py-4 text-center">
@@ -84,6 +57,37 @@ const ICON: Record<TimelineTask['tone'], { name: string, color: string }> = {
         Tahap berikutnya: <span class="font-medium text-slate-700">{{ nextStage.name }}</span>,
         mulai {{ formatDateTimeId(nextStage.startAt) }}.
       </p>
+    </div>
+
+    <!--
+      Tombol dinamis sesuai role & tahap. Tetap ditampilkan walau tidak ada tahap berlangsung
+      menurut jadwal, mis. pekerjaan yang dibuka lewat override Super Admin.
+    -->
+    <div
+      v-for="(task, index) in tasks ?? []"
+      :key="index"
+      class="mt-5 flex flex-col gap-4 rounded-xl border p-4 sm:flex-row sm:items-center sm:justify-between"
+      :class="BOX[task.tone]"
+    >
+      <div class="flex min-w-0 items-start gap-3">
+        <UIcon :name="ICON[task.tone].name" class="mt-0.5 size-5 shrink-0" :class="ICON[task.tone].color" />
+        <div class="min-w-0">
+          <p v-if="task.title" class="text-sm font-semibold text-slate-900">{{ task.title }}</p>
+          <p class="text-sm leading-6 text-slate-700">{{ task.description }}</p>
+        </div>
+      </div>
+      <UButton
+        v-if="task.to && task.label"
+        :to="task.to"
+        size="lg"
+        class="shrink-0 justify-center"
+        :color="task.tone === 'pending' ? 'warning' : 'primary'"
+        :variant="task.tone === 'done' || task.tone === 'info' ? 'outline' : 'solid'"
+        :icon="task.icon"
+        trailing-icon="i-lucide-arrow-right"
+      >
+        {{ task.label }}
+      </UButton>
     </div>
   </UCard>
 </template>

@@ -119,10 +119,16 @@ function evaluationTodo(): TimelineTask | null {
 /**
  * 1. Tunggakan tahap sebelumnya (yang masih dapat dikerjakan) diprioritaskan.
  * 2. Jika tidak ada, tombol/informasi sesuai tahap yang sedang berlangsung.
+ * 3. Tidak ada tahap berlangsung menurut jadwal (mis. jadwal sudah lewat, tetapi tahap dibuka
+ *    manual lewat override Super Admin): tetap tampilkan pekerjaan yang masih dapat dikerjakan.
+ *    Status `editable`/`available` dari server sudah memperhitungkan override.
  */
 const tasks = computed<TimelineTask[]>(() => {
   const stage = getActiveStage(stages.value)
-  if (!stage) return []
+  if (!stage) {
+    const todo = selfAssessmentTodo() ?? evaluationTodo()
+    return todo ? [todo] : []
+  }
 
   if (stage.order > ORDER.SELF_ASSESSMENT) {
     const todo = selfAssessmentTodo()
