@@ -101,7 +101,7 @@ Legenda: ✅ selesai · 🚧 sedang dikerjakan · ❌ belum ada
 | 9 | Alias role lama `VERIFIER`/`PARTICIPANT` di `roles.ts` | — | Hapus setelah sheet `users` diperbarui |
 | 10 | Setiap navigasi memanggil `/api/auth/me` (3 baca sheet) | Kuota Sheets & kecepatan | Cache sesi singkat di server jika mulai lambat |
 | 11 | ~~Dashboard Super Admin menandai Manajemen Akun "Segera hadir"~~ | Selesai — dashboard diganti Beranda | — |
-| 12 | Tidak ada tombol "Hubungkan Google Drive" di UI, dan tidak ada indikator saat token kedaluwarsa (terjadi 15 Nov 2026: `invalid_grant`) | Unggah & preview dokumen gagal tanpa disadari admin | Tambah tombol hubungkan ulang + status koneksi di dashboard Super Admin; publish OAuth app (lihat docs/02) |
+| 12 | Tidak ada tombol "Hubungkan Google Drive" di UI, dan tidak ada indikator saat token kedaluwarsa (terjadi 15 Nov 2026: `invalid_grant`) | Unggah & preview dokumen gagal tanpa disadari admin | Tambah tombol hubungkan ulang + status koneksi di dashboard Super Admin. ~~Publish OAuth app~~ ✅ 23 Nov 2026 (In production + token baru, K-18): token tidak lagi kedaluwarsa 7 hari |
 | 13 | ~~Halaman verifikasi Verifikator & Super Admin masih punya modal preview sendiri~~ | Selesai 22 Nov 2026 — memakai `<DocumentPreviewModal>` | — |
 | 14 | Peserta mengganti dokumen setelah diterima; Verifikator tidak mendapat penanda | Verifikator bisa tidak sadar dokumen berubah | Tampilkan "diganti peserta pada …" di halaman verifikasi, atau masukkan ke verifikasi CMSP-01 |
 | 15 | Autosave tes tertulis menulis ke sheet (debounce 1,5 detik per peserta) | Banyak peserta serentak bisa mendekati kuota tulis Google Sheets (±300/menit per proyek) | Pantau saat tes tertulis massal; bila perlu perbesar debounce |
