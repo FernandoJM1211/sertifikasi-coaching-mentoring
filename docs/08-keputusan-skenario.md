@@ -325,3 +325,19 @@ perlu cara untuk dispensasi (mis. peserta terlambat diverifikasi, asesor berhala
 
 **Penerapan.** `editRule()` di `server/services/assessor-assignment.service.ts`; `StageAccess.manual`
 di `certification-stage.service.ts`; `app/components/assessor-assignment/List.vue`.
+
+## K-15 — Aksesibilitas dasar (hasil PageSpeed Insights)
+
+**Konteks.** PageSpeed Insights (Aksesibilitas) menandai tiga hal di halaman depan: kontras tombol
+"Daftar"/"Daftar Sertifikasi" kurang (putih di atas biru 500 ±3,7 : 1), dokumen tanpa `<title>`, dan
+`<html>` tanpa atribut `lang`.
+
+**Keputusan.**
+
+- `<html lang="id">`, meta description, dan judul tab: halaman berjudul → "Judul · Sertifikasi CMSP",
+  selain itu "Sertifikasi Coaching dan Mentoring Sektor Publik".
+- Penggelapan warna tema (primary/secondary/info/error → shade 600, success/warning → 700) sempat
+  diterapkan lalu **dibatalkan** atas permintaan pemilik proyek karena tampilan badge/tombol jadi kurang
+  menarik. Warna tetap shade 500 bawaan Nuxt UI; temuan kontras tombol "Daftar" diterima sebagai catatan.
+
+**Penerapan.** `nuxt.config.ts` (`app.head`), `app/app.vue` (`titleTemplate`).

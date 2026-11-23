@@ -14,6 +14,16 @@ export default defineNuxtConfig({
 
   app: {
     head: {
+      // Bahasa halaman untuk browser & pembaca layar.
+      htmlAttrs: { lang: 'id' },
+      // Judul tab diatur lewat titleTemplate di app.vue.
+      meta: [
+        {
+          name: 'description',
+          content:
+            'Platform sertifikasi kompetensi Coach dan Mentor Sektor Publik: pendaftaran, verifikasi, assessment, hingga hasil sertifikasi.',
+        },
+      ],
       // Ikon tab browser: logo LAN versi terpotong (tanpa ruang kosong) agar tampak penuh;
       // PNG sebagai cadangan untuk browser yang belum mendukung favicon SVG.
       link: [
