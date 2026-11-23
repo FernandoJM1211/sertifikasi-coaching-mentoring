@@ -156,12 +156,21 @@ async function handleLogin() {
           </div>
 
           <div class="space-y-1.5">
-            <label
-              for="password"
-              class="block text-sm font-medium text-slate-700"
-            >
-              Kata sandi
-            </label>
+            <div class="flex items-center justify-between gap-3">
+              <label
+                for="password"
+                class="block text-sm font-medium text-slate-700"
+              >
+                Kata sandi
+              </label>
+
+              <NuxtLink
+                to="/lupa-kata-sandi"
+                class="text-sm font-medium text-primary hover:underline"
+              >
+                Lupa kata sandi?
+              </NuxtLink>
+            </div>
 
             <UInput
               id="password"

@@ -101,6 +101,8 @@ Untuk role baru (mis. asesor), buat layout tipis serupa yang memakai `LayoutDash
 | `/login` | `login.vue` | Login; redirect ke halaman sesuai role (`ROLE_HOME_PATHS`). |
 | `/pendaftaran` | `pendaftaran.vue` | Membungkus `GuestRegistrationForm`. |
 | `/aktivasi-akun?token=` | `aktivasi-akun.vue` | Peserta membuat kata sandi dari tautan email. |
+| `/lupa-kata-sandi` | `lupa-kata-sandi.vue` | Lupa kata sandi (khusus peserta): minta tautan atur ulang via email. |
+| `/atur-ulang-kata-sandi?token=` | `atur-ulang-kata-sandi.vue` | Buat kata sandi baru dari tautan email (berlaku 1 jam). |
 | `/kebijakan-privasi` | `kebijakan-privasi.vue` | Kebijakan Privasi (publik; ditautkan di footer & Branding Google OAuth). |
 | `/syarat-ketentuan` | `syarat-ketentuan.vue` | Syarat & Ketentuan (publik; ditautkan di footer & Branding Google OAuth). |
 
@@ -209,6 +211,8 @@ Alur: **`api/` → `services/` → `repositories/` → Google Sheets/Drive.**
 | `GET /api/auth/google` | `auth/google.get.ts` | Super Admin | Mulai OAuth untuk menghubungkan Google Drive. |
 | `GET /api/auth/google/callback` | `auth/google/callback.get.ts` | Super Admin | Simpan refresh token Drive. |
 | `POST /api/account-activation` | `account-activation.post.ts` | Publik (token) | Aktivasi akun peserta. |
+| `POST /api/password-reset/request` | `password-reset/request.post.ts` | Publik | Minta tautan atur ulang kata sandi peserta; respons selalu sama; rate limit per IP & per email. |
+| `POST /api/password-reset/confirm` | `password-reset/confirm.post.ts` | Publik (token) | Simpan kata sandi baru, cabut token & semua sesi. |
 | `GET /api/certification-info` | `certification-info/index.get.ts` | Publik | Info periode aktif untuk form pendaftaran. |
 | `POST /api/applications/uploads` | `applications/uploads.post.ts` | Publik (rate limited, hanya saat pendaftaran dibuka) | Unggah satu dokumen pendaftaran (multipart `document` + `file`, maks. 4 MB) → `upload_token`. |
 | `POST /api/applications/register` | `applications/register.post.ts` | Publik (rate limited) | Kirim pendaftaran (JSON): data pemohon + `documents` (token dari endpoint unggah). |
@@ -278,6 +282,7 @@ Alur: **`api/` → `services/` → `repositories/` → Google Sheets/Drive.**
 | --- | --- |
 | `auth.service.ts` | Login, validasi sesi (`getAuthenticatedUser`), ganti kata sandi. |
 | `account-activation.service.ts` | Aktivasi akun peserta dengan token. |
+| `password-reset.service.ts` | Lupa kata sandi peserta: terbitkan token 1 jam + email (akun menunggu aktivasi → kirim ulang aktivasi), simpan kata sandi baru. |
 | `registration.service.ts` | Pendaftaran dua langkah: `uploadRegistrationDocument` (validasi PDF → unggah Drive → catat berkas, token = ID file Drive) lalu `processRegistration` (validasi data & token: berkas guest, belum tertaut, < 24 jam → simpan pengajuan, tautkan dokumen, ganti nama berkas di Drive). |
 | `application.service.ts` | Validasi data pendaftaran, cek tahap Pendaftaran dibuka, cek konflik NIP/email, buat person & application. |
 | `application-verification.service.ts` | Keputusan verifikasi (idempotent): riwayat, ubah status, superseded, siapkan akun, kirim email. |
@@ -310,6 +315,7 @@ Satu file per sheet. Detail kolom di [04-database.md](04-database.md).
 | `user.repository.ts` | `users` | Auth |
 | `session.repository.ts` | `sessions` | Auth |
 | `account-activation-token.repository.ts` | `activation_tokens` | Auth |
+| `password-reset-token.repository.ts` | `password_reset_tokens` | Auth |
 | `person.repository.ts` | `persons` | Data |
 | `certification-type.repository.ts` | `certification_types` | Data |
 | `certification-category.repository.ts` | `certification_categories` | Data |

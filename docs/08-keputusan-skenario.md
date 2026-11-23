@@ -398,3 +398,27 @@ kebijakan privasi, dan syarat & ketentuan pada domain publik — baru tersedia s
 
 **Penerapan.** `app/pages/kebijakan-privasi.vue`, `app/pages/syarat-ketentuan.vue`,
 `app/components/layout/LegalPage.vue`, `AppFooter.vue`; langkah di docs/02 (Troubleshooting).
+
+## K-19 — Lupa Kata Sandi khusus akun peserta
+
+**Konteks.** Ganti kata sandi (setelah login) dan atur ulang oleh Super Admin sudah ada, tetapi
+belum ada jalur mandiri bila pengguna lupa kata sandi sebelum login.
+
+**Keputusan.**
+
+- Fitur Lupa Kata Sandi **hanya untuk Peserta**. Akun petugas (Super Admin, Verifikator, Asesor)
+  dibuat tanpa aktivasi email dan username-nya belum tentu email aktif (mis. `namapetugas@gmail.com`
+  sebagai penanda), sehingga kata sandi petugas tetap diatur ulang oleh Super Admin.
+- Alur: tautan "Lupa kata sandi?" di halaman masuk → isi email → pesan **selalu sama** (tidak
+  membocorkan apakah email terdaftar) → email berisi tautan sekali pakai **berlaku 1 jam** →
+  buat kata sandi baru → token & **semua sesi dicabut**.
+- Peserta yang masih **menunggu aktivasi** dikirimi ulang tautan aktivasi, bukan tautan atur ulang.
+  Akun petugas, akun nonaktif, atau email tidak terdaftar: tidak ada email.
+- Rate limit: 10 permintaan/15 menit per IP dan 3 permintaan/jam per email.
+- Token disimpan sebagai hash di sheet baru `password_reset_tokens` (spreadsheet Auth), terpisah
+  dari `activation_tokens`.
+- Teks modal Atur Ulang Password Super Admin dirapikan (berlaku untuk akun peserta juga).
+
+**Penerapan.** `server/services/password-reset.service.ts`, `server/repositories/password-reset-token.repository.ts`,
+`server/api/password-reset/*`, `sendPasswordResetEmail` di `server/utils/email.ts`,
+`app/pages/lupa-kata-sandi.vue`, `app/pages/atur-ulang-kata-sandi.vue`, tautan di `login.vue`.

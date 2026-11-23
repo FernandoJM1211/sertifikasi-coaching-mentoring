@@ -15,7 +15,7 @@ Legenda: ✅ selesai · 🚧 sedang dikerjakan · ❌ belum ada
 | Redirect sesuai role | ✅ | `ROLE_HOME_PATHS` |
 | Profil saya (semua role) | ✅ | Peserta: data diri dari `persons`, bisa diedit (NIP & email terkunci). Pegawai: nama. |
 | Ganti kata sandi (semua role) | ✅ | Mencabut semua sesi |
-| Lupa kata sandi (reset via email) | ❌ | Saat ini hanya Super Admin yang bisa reset kata sandi akun lain |
+| Lupa kata sandi (reset via email) | ✅ | **Khusus peserta** (K-19): tautan 1 jam ke email akun. Petugas diatur ulang oleh Super Admin; Super Admin yang lupa kata sandi belum punya jalur di aplikasi |
 | Edit profil | ✅ | `PATCH /api/profile` |
 | Notifikasi (ikon lonceng) | ❌ | Tombol sudah ada di header, belum berfungsi |
 

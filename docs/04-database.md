@@ -4,7 +4,7 @@ Database terdiri dari **dua spreadsheet**:
 
 | Spreadsheet | Env | Isi | Kenapa dipisah |
 | --- | --- | --- | --- |
-| **Auth** | `AUTH_SPREADSHEET_ID` | `users`, `sessions`, `activation_tokens` | Berisi hash kata sandi & token; aksesnya dibatasi lebih ketat. |
+| **Auth** | `AUTH_SPREADSHEET_ID` | `users`, `sessions`, `activation_tokens`, `password_reset_tokens` | Berisi hash kata sandi & token; aksesnya dibatasi lebih ketat. |
 | **Data** | `GOOGLE_SPREADSHEET_ID` | Semua data operasional lainnya | Boleh dibuka tim operasional. |
 
 ## Aturan Umum
@@ -35,6 +35,7 @@ persons 1──* applications *──1┘
    │
 users (Auth) *──1 persons      users 1──* sessions
                                users 1──* activation_tokens
+                               users 1──* password_reset_tokens
 ```
 
 ---
@@ -91,6 +92,24 @@ Token aktivasi akun peserta. Repository: `account-activation-token.repository.ts
 | E | `used_at` | Diisi saat dipakai **atau dicabut** (token baru diterbitkan) |
 | F | `created_at` | — |
 | G | `created_by` | Selalu `SYSTEM` |
+
+### `password_reset_tokens`
+Token Lupa Kata Sandi — **khusus akun peserta** (K-19). Repository: `password-reset-token.repository.ts`.
+ID: `RST-000001`. Buat tab ini di spreadsheet **Auth** dengan header persis seperti di bawah.
+
+| # | Kolom | Isi |
+| --- | --- | --- |
+| A | `reset_token_id` | ID token |
+| B | `user_id` | Relasi ke `users` |
+| C | `token_hash` | SHA-256 dari token di tautan email (token asli tidak disimpan) |
+| D | `expires_at` | Kedaluwarsa (1 jam) |
+| E | `used_at` | Diisi saat dipakai **atau dicabut** (permintaan baru / kata sandi sudah diganti) |
+| F | `created_at` | — |
+| G | `request_ip` | IP peminta |
+
+```
+password_reset_tokens  reset_token_id	user_id	token_hash	expires_at	used_at	created_at	request_ip
+```
 
 ---
 

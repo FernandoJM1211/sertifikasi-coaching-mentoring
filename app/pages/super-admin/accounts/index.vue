@@ -419,7 +419,7 @@
         </h2>
 
         <p class="mt-1 text-sm text-slate-600">
-          Buat kata sandi baru untuk akun staf.
+          Buat kata sandi baru untuk akun ini, lalu sampaikan kepada pemilik akun.
         </p>
       </div>
 

@@ -155,6 +155,40 @@ export async function sendAccountActivationEmail(
   })
 }
 
+/** Lupa Kata Sandi (khusus peserta): tautan atur ulang berlaku 1 jam. */
+export async function sendPasswordResetEmail(recipientEmail: string, resetUrl: string): Promise<void> {
+  const { appBaseUrl } = getEmailConfig()
+
+  let parsedResetUrl: URL
+
+  try {
+    parsedResetUrl = new URL(resetUrl)
+  } catch {
+    throw new Error('Tautan atur ulang kata sandi tidak valid.')
+  }
+
+  if (
+    parsedResetUrl.origin !== new URL(appBaseUrl).origin ||
+    !parsedResetUrl.pathname.startsWith('/atur-ulang-kata-sandi')
+  ) {
+    throw new Error('Tautan atur ulang kata sandi tidak sesuai dengan URL aplikasi.')
+  }
+
+  await sendSystemEmail(recipientEmail, {
+    subject: 'Atur Ulang Kata Sandi Akun Sertifikasi CMSP',
+    title: 'Atur Ulang Kata Sandi',
+    paragraphs: [
+      'Kami menerima permintaan untuk mengatur ulang kata sandi akun Sertifikasi CMSP Anda.',
+      'Silakan buat kata sandi baru melalui tombol berikut.',
+    ],
+    button: { label: 'Atur Ulang Kata Sandi', url: resetUrl },
+    footnotes: [
+      'Tautan ini bersifat pribadi, hanya dapat dipakai satu kali, dan berlaku 1 jam.',
+      'Jika Anda tidak meminta atur ulang kata sandi, abaikan email ini. Kata sandi Anda tidak akan berubah.',
+    ],
+  })
+}
+
 /** Sudah punya akun aktif: tidak ada akun baru, masuk dengan akun yang sama. */
 export async function sendApplicationAcceptedEmail(
   recipientEmail: string,
@@ -171,7 +205,7 @@ export async function sendApplicationAcceptedEmail(
     ],
     button: { label: 'Masuk ke Sertifikasi CMSP', url: `${appBaseUrl}/login` },
     footnotes: [
-      'Jika Anda lupa kata sandi atau tidak dapat masuk, hubungi admin melalui menu Butuh Bantuan di aplikasi.',
+      'Jika Anda lupa kata sandi, gunakan tautan "Lupa kata sandi?" di halaman masuk. Jika tetap tidak dapat masuk, hubungi admin melalui menu Butuh Bantuan di aplikasi.',
     ],
   })
 }
