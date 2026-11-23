@@ -1,6 +1,6 @@
 /**
- * Konstanta evaluasi pilihan ganda (dipakai frontend & backend).
- * Lihat docs/01-gambaran-sistem.md bagian Evaluasi.
+ * Konstanta tes tertulis pilihan ganda (dipakai frontend & backend).
+ * Lihat docs/01-gambaran-sistem.md bagian Tes Tertulis.
  */
 
 /** Huruf opsi jawaban; satu soal memiliki 2–5 opsi berurutan mulai dari A. */
@@ -10,7 +10,7 @@ export type EvaluationOptionKey = (typeof EVALUATION_OPTION_KEYS)[number]
 export const EVALUATION_MIN_OPTIONS = 2
 export const EVALUATION_MAX_OPTIONS = 5
 
-/** Pilihan durasi evaluasi (menit). */
+/** Pilihan durasi tes tertulis (menit). */
 export const EVALUATION_DURATION_OPTIONS = [30, 45, 60, 90] as const
 
 export const EVALUATION_LIMITS = {

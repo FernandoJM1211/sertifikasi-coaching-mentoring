@@ -214,7 +214,7 @@ async function submitImport() {
             description="Pertanyaan yang sama persis dengan soal di bank soal atau baris sebelumnya di file."
           />
 
-          <div class="max-h-80 overflow-auto rounded-xl border border-slate-200">
+          <div class="max-h-80 overflow-auto rounded-xl border border-slate-300">
             <table class="w-full table-fixed text-left text-sm">
               <colgroup>
                 <col class="w-16">
@@ -231,7 +231,7 @@ async function submitImport() {
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="row in preview" :key="row.rowNumber" class="border-b border-slate-200 align-top last:border-0">
+                <tr v-for="row in preview" :key="row.rowNumber" class="border-b border-slate-300 align-top last:border-0">
                   <td class="px-3 py-2 text-center text-slate-600">{{ row.rowNumber }}</td>
                   <td class="px-3 py-2">
                     <p class="line-clamp-2 text-slate-800">{{ row.question?.questionText || '—' }}</p>

@@ -195,7 +195,7 @@ async function saveProfile() {
     <!-- Loading -->
     <div
       v-if="status === 'pending' && !data"
-      class="flex items-center justify-center rounded-2xl border border-slate-200 bg-white p-12"
+      class="flex items-center justify-center rounded-2xl border border-slate-300 bg-white p-12"
     >
       <div class="flex items-center gap-3 text-sm text-slate-600">
         <UIcon name="i-lucide-loader-circle" class="size-5 animate-spin" />
@@ -204,7 +204,7 @@ async function saveProfile() {
     </div>
 
     <!-- Error -->
-    <UCard v-else-if="error || !account" class="ring-1 ring-slate-200 shadow-sm">
+    <UCard v-else-if="error || !account" class="ring-1 ring-slate-300 shadow-sm">
       <div class="flex items-start gap-3">
         <UIcon name="i-lucide-circle-alert" class="mt-0.5 size-5 text-red-500" />
         <div>
@@ -223,7 +223,7 @@ async function saveProfile() {
 
     <template v-else>
       <!-- Ringkasan -->
-      <UCard class="ring-1 ring-slate-200 shadow-sm">
+      <UCard class="ring-1 ring-slate-300 shadow-sm">
         <div class="flex flex-col gap-5 sm:flex-row sm:items-center">
           <UAvatar
             :text="userInitial"
@@ -253,7 +253,7 @@ async function saveProfile() {
       </UCard>
 
       <!-- Data Diri -->
-      <UCard class="ring-1 ring-slate-200 shadow-sm">
+      <UCard class="ring-1 ring-slate-300 shadow-sm">
         <template #header>
           <div class="flex items-start gap-3">
             <div class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-blue-50">
@@ -368,7 +368,7 @@ async function saveProfile() {
             </template>
           </div>
 
-          <div class="flex flex-col-reverse gap-3 border-t border-slate-100 pt-5 sm:flex-row sm:justify-end">
+          <div class="flex flex-col-reverse gap-3 border-t border-slate-200 pt-5 sm:flex-row sm:justify-end">
             <UButton
               type="button"
               color="neutral"
@@ -393,7 +393,7 @@ async function saveProfile() {
       </UCard>
 
       <!-- Keamanan Akun -->
-      <UCard class="ring-1 ring-slate-200 shadow-sm">
+      <UCard class="ring-1 ring-slate-300 shadow-sm">
         <div class="flex flex-col gap-4 sm:flex-row sm:items-center">
           <div class="flex size-11 shrink-0 items-center justify-center rounded-xl bg-emerald-50">
             <UIcon name="i-lucide-lock-keyhole" class="size-5 text-emerald-600" />

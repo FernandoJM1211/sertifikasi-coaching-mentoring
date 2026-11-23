@@ -7,9 +7,14 @@ const navigation = [
     exact: true,
   },
   {
-    label: 'Periode Sertifikasi',
+    label: 'Timeline Periode',
     icon: 'i-lucide-calendar-days',
     to: '/verifikator/periods',
+  },
+  {
+    label: 'Verifikasi Peserta',
+    icon: 'i-lucide-users',
+    to: '/verifikator/participant-verifications',
   },
   {
     label: 'Verifikasi Self Assessment',

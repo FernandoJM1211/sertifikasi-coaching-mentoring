@@ -28,7 +28,7 @@ const helpOptions = [
     icon: 'i-lucide-mail',
     href: `mailto:${contact.email}?subject=${encodeURIComponent('Bantuan Sistem Sertifikasi CMSP')}`,
     external: false,
-    tone: 'border-slate-200 hover:border-blue-300 hover:bg-blue-50',
+    tone: 'border-slate-300 hover:border-blue-300 hover:bg-blue-50',
     iconTone: 'bg-blue-50 text-blue-600',
   },
   {
@@ -37,7 +37,7 @@ const helpOptions = [
     icon: 'i-lucide-message-circle',
     href: contact.whatsappUrl,
     external: true,
-    tone: 'border-slate-200 hover:border-emerald-300 hover:bg-emerald-50',
+    tone: 'border-slate-300 hover:border-emerald-300 hover:bg-emerald-50',
     iconTone: 'bg-emerald-50 text-emerald-600',
   },
 ]
@@ -95,10 +95,10 @@ const helpOptions = [
   </footer>
 
   <!-- Footer publik: satu pita horizontal -->
-  <footer v-else class="w-full border-t border-slate-200 bg-white shadow-[0_-1px_3px_rgb(15_23_42/0.04)]">
+  <footer v-else class="w-full border-t border-slate-300 bg-white shadow-[0_-1px_3px_rgb(15_23_42/0.04)]">
     <div class="mx-auto flex w-full max-w-7xl flex-col gap-4 px-6 py-5 lg:flex-row lg:items-center lg:justify-between">
       <div class="flex items-center gap-3">
-        <div class="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-white ring-1 ring-slate-200">
+        <div class="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-white ring-1 ring-slate-300">
           <img src="/logo-lan.png" alt="Logo LAN" class="size-full scale-150 object-contain">
         </div>
         <div class="leading-tight">

@@ -6,14 +6,14 @@ import {
 } from '../utils/google-sheets'
 
 /**
- * Sheet evaluasi pilihan ganda (lihat docs/04-database.md). Urutan kolom HARUS
+ * Sheet tes tertulis pilihan ganda (lihat docs/04-database.md). Urutan kolom HARUS
  * sama dengan header di Google Sheets.
  *
  * - `evaluation_questions` : bank soal.
  * - `evaluation_packages`  : paket soal (daftar ID soal dipisah koma).
- * - `period_evaluations`   : pengaturan evaluasi per periode (satu baris per periode).
- * - `evaluation_snapshot_questions` : salinan soal saat perencanaan evaluasi diterapkan.
- * - `evaluation_attempts`  : pengerjaan evaluasi peserta (satu baris aktif per pengajuan).
+ * - `period_evaluations`   : pengaturan tes tertulis per periode (satu baris per periode).
+ * - `evaluation_snapshot_questions` : salinan soal saat perencanaan tes tertulis diterapkan.
+ * - `evaluation_attempts`  : pengerjaan tes tertulis peserta (satu baris aktif per pengajuan).
  */
 
 type Record_<C extends readonly string[]> = { [K in C[number]]: string }
@@ -135,7 +135,7 @@ export type EvaluationPackage = Record_<typeof PACKAGE_COLUMNS>
 export const evaluationPackages = createTable('evaluation_packages', PACKAGE_COLUMNS, 'EVP')
 
 /* ------------------------------------------------------------------ */
-/* Pengaturan evaluasi per periode                                     */
+/* Pengaturan tes tertulis per periode                                     */
 /* ------------------------------------------------------------------ */
 
 const PERIOD_EVALUATION_COLUMNS = [
@@ -153,7 +153,7 @@ export const periodEvaluations = createTable('period_evaluations', PERIOD_EVALUA
 /* ------------------------------------------------------------------ */
 
 /**
- * Salinan isi soal (teks, opsi, kunci) saat perencanaan evaluasi periode diterapkan.
+ * Salinan isi soal (teks, opsi, kunci) saat perencanaan tes tertulis periode diterapkan.
  * Satu `snapshot_id` = satu kali "Simpan & Terapkan"; urutan baris = urutan soal di paket.
  * Bank soal & paket boleh diubah kapan saja tanpa memengaruhi snapshot/nilai yang sudah ada.
  */
@@ -167,7 +167,7 @@ export type EvaluationSnapshotQuestion = Record_<typeof SNAPSHOT_QUESTION_COLUMN
 export const evaluationSnapshotQuestions = createTable('evaluation_snapshot_questions', SNAPSHOT_QUESTION_COLUMNS, 'ESQ')
 
 /* ------------------------------------------------------------------ */
-/* Pengerjaan evaluasi                                                 */
+/* Pengerjaan tes tertulis                                                 */
 /* ------------------------------------------------------------------ */
 
 /**

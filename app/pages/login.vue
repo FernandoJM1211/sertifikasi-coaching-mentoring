@@ -95,7 +95,7 @@ async function handleLogin() {
   <div class="flex min-h-[65vh] items-center justify-center">
     <div class="w-full max-w-md">
       <div class="mb-7 text-center">
-        <div class="mx-auto mb-5 flex size-16 items-center justify-center overflow-hidden rounded-2xl bg-white shadow-lg shadow-blue-200/60 ring-1 ring-slate-200">
+        <div class="mx-auto mb-5 flex size-16 items-center justify-center overflow-hidden rounded-2xl bg-white shadow-lg shadow-blue-200/60 ring-1 ring-slate-300">
           <img src="/logo-lan.png" alt="Logo LAN" class="size-full scale-150 object-contain">
         </div>
 
@@ -131,7 +131,7 @@ async function handleLogin() {
         </div>
       </div>
 
-      <UCard class="ring-1 ring-slate-200 shadow-xl shadow-slate-200/40">
+      <UCard class="ring-1 ring-slate-300 shadow-xl shadow-slate-200/40">
         <form class="space-y-5" @submit.prevent="handleLogin">
           <div class="space-y-1.5">
             <label
@@ -205,7 +205,7 @@ async function handleLogin() {
 
           <div class="relative py-1">
             <div class="absolute inset-0 flex items-center">
-              <div class="w-full border-t border-slate-200" />
+              <div class="w-full border-t border-slate-300" />
             </div>
 
             <div class="relative flex justify-center">

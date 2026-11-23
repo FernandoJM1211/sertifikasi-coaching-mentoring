@@ -424,7 +424,7 @@ defineExpose({
               <div
                 v-for="(evidence, evidenceIndex) in unitEvidences(unit.number)"
                 :key="evidence.id"
-                class="rounded-xl border border-slate-200 bg-slate-50 p-4"
+                class="rounded-xl border border-slate-300 bg-slate-50 p-4"
               >
                 <div class="flex items-start justify-between gap-4">
                   <p class="text-sm font-medium text-slate-900">

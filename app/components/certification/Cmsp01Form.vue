@@ -768,7 +768,7 @@ defineExpose({
       <div
   v-for="(training, index) in trainingHistories"
   :key="itemKey(training)"
-  class="rounded-xl border border-slate-200 bg-slate-50 p-5 transition hover:border-blue-200"
+  class="rounded-xl border border-slate-300 bg-slate-50 p-5 transition hover:border-blue-200"
 >
 
         <!-- Item Header -->
@@ -920,7 +920,7 @@ defineExpose({
       <div
   v-for="(practice, index) in practiceExperiences"
   :key="itemKey(practice)"
-  class="rounded-xl border border-slate-200 bg-slate-50 p-5 transition hover:border-blue-200"
+  class="rounded-xl border border-slate-300 bg-slate-50 p-5 transition hover:border-blue-200"
 >
 
         <!-- Item Header -->

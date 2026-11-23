@@ -5,11 +5,11 @@
   >
     <!-- Header (sticky) — seragam dengan navbar landing page -->
     <header
-      class="sticky top-0 z-50 w-full border-b border-slate-200 bg-white/80 backdrop-blur-xl"
+      class="sticky top-0 z-50 w-full border-b border-slate-300 bg-white/80 backdrop-blur-xl"
     >
       <div class="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-4 px-6">
         <NuxtLink to="/" class="flex min-w-0 items-center gap-3">
-          <div class="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white ring-1 ring-slate-200">
+          <div class="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white ring-1 ring-slate-300">
             <img src="/logo-lan.png" alt="Logo LAN" class="size-full scale-150 object-contain">
           </div>
 

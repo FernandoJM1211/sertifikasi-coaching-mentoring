@@ -31,7 +31,7 @@ Legenda: ✅ selesai · 🚧 sedang dikerjakan · ❌ belum ada
 | Manajemen akun pegawai | ✅ | Buat, reset kata sandi, aktif/nonaktif |
 | Hubungkan Google Drive | ✅ | Lewat `/api/auth/google` (belum ada tombol di UI) |
 | Kelola master jenis & kategori sertifikasi | ❌ | Diisi manual di sheet |
-| Bank soal, paket soal & perencanaan evaluasi per periode | ✅ | Menu Bank Soal, Paket Soal, Perencanaan Evaluasi (nilai peserta, snapshot soal + Terapkan Ulang, reset progres peserta) |
+| Bank soal, paket soal & perencanaan tes tertulis per periode | ✅ | Menu Bank Soal, Paket Soal, Perencanaan Tes Tertulis (nilai peserta, snapshot soal + Terapkan Ulang, reset progres peserta) |
 | Import soal dari Excel | ✅ | Bank Soal → Import Excel: unduh template, pratinjau per baris (valid/tidak valid/duplikat), maks. 200 soal per import |
 | Penetapan kelulusan | ❌ | |
 | Akses sebagian fitur Verifikator & Asesor | 🚧 | Sudah bisa verifikasi pendaftaran; cakupan lain menunggu keputusan |
@@ -78,7 +78,7 @@ Legenda: ✅ selesai · 🚧 sedang dikerjakan · ❌ belum ada
 | Verifikasi CMSP-01 & 02 + minta perbaikan | Verifikator, Super Admin | ✅ |
 | Perbaikan & submit ulang self assessment | Peserta | ✅ |
 | Assign peserta ke Asesor Teknis & Kepublikan | Verifikator, Super Admin | ✅ |
-| Mengerjakan evaluasi pilihan ganda | Peserta | ✅ (anti-kecurangan ditunda) |
+| Mengerjakan tes tertulis pilihan ganda | Peserta | ✅ (anti-kecurangan ditunda) |
 | Penilaian CMSP-02 (K/BK per unit + catatan + rekomendasi lanjut/tidak) | Asesor Teknis (Super Admin: lihat, isi, & buka kunci) | ✅ |
 | Penilaian CMSP-03 (K/BK per unit + catatan + rekomendasi; setelah Asesor Teknis "dapat dilanjutkan") | Asesor Kepublikan (Super Admin: lihat, isi, & buka kunci) | ✅ |
 | Layout & halaman asesor (`/asesor-teknis`, `/asesor-kepublikan`) | Asesor | ✅ |
@@ -104,7 +104,7 @@ Legenda: ✅ selesai · 🚧 sedang dikerjakan · ❌ belum ada
 | 12 | Tidak ada tombol "Hubungkan Google Drive" di UI, dan tidak ada indikator saat token kedaluwarsa (terjadi 15 Nov 2026: `invalid_grant`) | Unggah & preview dokumen gagal tanpa disadari admin | Tambah tombol hubungkan ulang + status koneksi di dashboard Super Admin; publish OAuth app (lihat docs/02) |
 | 13 | ~~Halaman verifikasi Verifikator & Super Admin masih punya modal preview sendiri~~ | Selesai 22 Nov 2026 — memakai `<DocumentPreviewModal>` | — |
 | 14 | Peserta mengganti dokumen setelah diterima; Verifikator tidak mendapat penanda | Verifikator bisa tidak sadar dokumen berubah | Tampilkan "diganti peserta pada …" di halaman verifikasi, atau masukkan ke verifikasi CMSP-01 |
-| 15 | Autosave evaluasi menulis ke sheet (debounce 1,5 detik per peserta) | Banyak peserta serentak bisa mendekati kuota tulis Google Sheets (±300/menit per proyek) | Pantau saat evaluasi massal; bila perlu perbesar debounce |
+| 15 | Autosave tes tertulis menulis ke sheet (debounce 1,5 detik per peserta) | Banyak peserta serentak bisa mendekati kuota tulis Google Sheets (±300/menit per proyek) | Pantau saat tes tertulis massal; bila perlu perbesar debounce |
 | 17 | Kuota baca Google Sheets ±60 permintaan/menit per service account; repository membaca satu sheet utuh setiap dipanggil (terjadi 22 Nov 2026: 429 `RESOURCE_EXHAUSTED` saat simpan draft) | Aksi berat (simpan draft, unggah beruntun) bisa gagal "server error" | Sudah dimitigasi di `google-sheets.ts` (cache baca 3 detik + coba ulang 429). Bila masih terjadi saat banyak pengguna: ajukan kenaikan kuota di Google Cloud Console (Sheets API → Quotas), atau gabungkan pembacaan dengan `values.batchGet` |
 | 16 | `replaceChildRows` (baris anak CMSP-01/02) sebelum 16 Nov 2026 salah membaca nomor ID, sehingga ID baris anak baru bisa ganda | Data lama mungkin punya ID ganda di `cmsp01_trainings`/`cmsp01_practices`/`cmsp01_documents`/`cmsp02_evidences` | Sudah diperbaiki; cek ID ganda pada data lama bila diperlukan |
 
@@ -116,7 +116,7 @@ Urutan mengikuti alur probis di [01-gambaran-sistem.md](01-gambaran-sistem.md):
    `SELF_ASSESSMENT` (menunggu spesifikasi pemilik proyek).
 2. ~~**Verifikasi self assessment**~~ ✅ — menu Verifikasi Self Assessment.
 3. ~~**Assign asesor**~~ ✅ — menu Penugasan Asesor.
-4. ~~**Bank soal & evaluasi**~~ ✅ (pencegahan kecurangan ditunda, belum dibutuhkan)
+4. ~~**Bank soal & tes tertulis**~~ ✅ (pencegahan kecurangan ditunda, belum dibutuhkan)
    (deteksi pindah tab/keluar layar penuh, blokir salin & klik kanan).
 5. ~~**Role asesor**~~ ✅ — penilaian CMSP-02 Asesor Teknis dan CMSP-03 Asesor Kepublikan.
 6. **Penetapan kelulusan**, lalu **pengumuman, sertifikat, dan remedial (1x, link bukti)**.

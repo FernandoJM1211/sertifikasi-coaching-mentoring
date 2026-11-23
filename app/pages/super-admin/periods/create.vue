@@ -104,7 +104,7 @@
 
         <!-- Tombol aksi -->
         <div
-          class="flex flex-col-reverse justify-end gap-2 border-t border-slate-200 pt-5 sm:flex-row"
+          class="flex flex-col-reverse justify-end gap-2 border-t border-slate-300 pt-5 sm:flex-row"
         >
           <UButton
             to="/super-admin/periods"

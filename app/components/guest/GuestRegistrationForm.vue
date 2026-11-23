@@ -452,7 +452,7 @@ function resetForm() {
           </p>
 
           <div
-            class="mt-6 w-full max-w-md rounded-xl border border-slate-200 bg-slate-50 p-5 text-left"
+            class="mt-6 w-full max-w-md rounded-xl border border-slate-300 bg-slate-50 p-5 text-left"
           >
             <div class="space-y-3">
               <div>

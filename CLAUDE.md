@@ -8,7 +8,7 @@ Isinya ringkas; detail ada di folder [docs/](docs/).
 **CMSP** adalah sistem sertifikasi **Coaching dan Mentoring Sektor Publik**:
 Guest mendaftar pada periode yang dibuka → Verifikator memverifikasi & membuatkan akun Peserta →
 Peserta mengisi CMSP-01 & CMSP-02 (bisa diminta perbaikan) → Verifikator meng-assign ke asesor →
-Peserta mengerjakan evaluasi pilihan ganda (bank soal dari Super Admin) → Asesor Teknis menilai CMSP-02
+Peserta mengerjakan tes tertulis pilihan ganda (bank soal dari Super Admin) → Asesor Teknis menilai CMSP-02
 (K/BK per indikator + catatan) → Asesor Kepublikan menilai form CMSP-03 → kelulusan ditetapkan →
 Lulus: sertifikat; Tidak lulus: remedial satu kali (kirim link bukti).
 Super Admin mengelola periode, timeline, akun, bank soal, dan dapat mengakses sebagian fitur Verifikator/Asesor.

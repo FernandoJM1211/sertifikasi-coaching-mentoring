@@ -193,7 +193,7 @@ function openInNewTab() {
 
       <div
         v-else-if="objectUrl && isPdf"
-        class="h-[calc(96vh-5rem)] w-full overflow-hidden rounded-lg border border-slate-200 bg-slate-100"
+        class="h-[calc(96vh-5rem)] w-full overflow-hidden rounded-lg border border-slate-300 bg-slate-100"
       >
         <iframe
           :src="objectUrl"
@@ -204,7 +204,7 @@ function openInNewTab() {
 
       <div
         v-else-if="objectUrl && isImage"
-        class="flex h-[calc(96vh-5rem)] w-full items-center justify-center overflow-auto rounded-lg border border-slate-200 bg-slate-100 p-2"
+        class="flex h-[calc(96vh-5rem)] w-full items-center justify-center overflow-auto rounded-lg border border-slate-300 bg-slate-100 p-2"
       >
         <img :src="objectUrl" :alt="title || 'Preview Dokumen'" class="max-h-full max-w-full object-contain">
       </div>

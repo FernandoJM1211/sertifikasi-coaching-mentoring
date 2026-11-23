@@ -7,7 +7,7 @@ useHead({ title: 'Beranda' })
 
 const STAGE_INFO: Record<string, string> = {
   SELF_ASSESSMENT: 'Peserta sedang mengisi self assessment. Verifikasi dapat dilakukan pada tahap Verifikasi Self Assessment.',
-  EVALUATION: 'Peserta sedang mengerjakan evaluasi pilihan ganda.',
+  EVALUATION: 'Peserta sedang mengerjakan tes tertulis pilihan ganda.',
   ASSESSOR_ASSESSMENT: 'Asesor sedang menilai peserta.',
   ASSESSMENT_VERIFICATION: 'Hasil penilaian asesor sedang diverifikasi.',
   ANNOUNCEMENT: 'Hasil sertifikasi sedang diumumkan.',
@@ -24,7 +24,7 @@ function tasksFor(periodId: string, stage: TimelineStage): TimelineTask[] {
         description: 'Periksa berkas pendaftar, lalu terima atau tolak pengajuan. Akun peserta dibuat untuk pengajuan yang diterima.',
         label: 'Verifikasi Pendaftar',
         icon: 'i-lucide-user-check',
-        to: `/verifikator/periods/${id}`,
+        to: `/verifikator/participant-verifications/${id}`,
       }]
 
     case 'SELF_ASSESSMENT_VERIFICATION':

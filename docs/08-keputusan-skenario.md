@@ -341,3 +341,42 @@ di `certification-stage.service.ts`; `app/components/assessor-assignment/List.vu
   menarik. Warna tetap shade 500 bawaan Nuxt UI; temuan kontras tombol "Daftar" diterima sebagai catatan.
 
 **Penerapan.** `nuxt.config.ts` (`app.head`), `app/app.vue` (`titleTemplate`).
+
+## K-16 — Verifikasi Peserta menjadi menu tersendiri
+
+**Konteks.** Tombol "Verifikasi Peserta" menumpang di kartu menu Periode Sertifikasi (bersama Atur
+Timeline dan Tutup Periode), berbeda dengan menu lain yang memilih periode lewat kartu.
+
+**Keputusan.**
+
+- Menu sidebar baru **Verifikasi Peserta** (Super Admin & Verifikator): pilih periode lewat kartu
+  (jadwal tahap Verifikasi Peserta), lalu daftar pendaftar — isi halamannya tidak berubah.
+- Menu periode berganti nama: Super Admin **Atur Periode** (Atur Timeline + ubah status),
+  Verifikator **Timeline Periode** (hanya Lihat Timeline, karena tidak dapat mengatur).
+- Urutan sidebar mengikuti alur: Beranda → Atur/Timeline Periode → Verifikasi Peserta → Verifikasi
+  Self Assessment → Penugasan Asesor → …
+- Alamat lama `/periods/<id>` dialihkan otomatis ke `/participant-verifications/<id>`.
+
+**Penerapan.** `app/pages/{super-admin,verifikator}/participant-verifications/`, `periods/index.vue`,
+`periods/[periodId]/index.vue` (redirect), `app/layouts/{super-admin,verifikator}.vue`,
+tautan Kembali di `applications/[applicationId].vue`, beranda Verifikator.
+
+## K-17 — Tahap "Evaluasi" berganti nama menjadi "Tes Tertulis"
+
+**Konteks.** Istilah "Evaluasi" terkesan sebagai tahap akhir, padahal letaknya di tengah (tahap 5,
+sebelum penilaian asesor). Pada proses klasikal tahap ini disebut "tes tertulis".
+
+**Keputusan.**
+
+- Nama tampilan menjadi **Tes Tertulis** di seluruh aplikasi (menu peserta, "Perencanaan Tes
+  Tertulis", tombol, pesan, nama tahap timeline). "Tertulis" merujuk bentuk tes (pilihan ganda),
+  bukan medianya, sehingga tetap tepat untuk tes berbasis komputer.
+- Kolom `stage_name` tahap 5 di sheet `certification_timelines` diperbarui manual oleh pemilik
+  proyek menjadi "Tes Tertulis" untuk periode yang sudah ada.
+- **Nama teknis tidak diubah** (tab sheet `evaluation_*`, `period_evaluations`, kode `EVALUATION`,
+  prefix ID, rute `/evaluation(s)`); dicatat di docs/04 bahwa artinya Tes Tertulis.
+- "Pemantauan dan Evaluasi" pada isi unit CMSP-02 tidak termasuk (isi resmi form).
+- Entri lama di dokumen ini tetap memakai istilah "Evaluasi" sebagai riwayat.
+
+**Penerapan.** Label di `app/`, pesan di `server/`, `app/utils/timeline.ts`, `stageName` di
+`certification-timeline.service.ts` & halaman timeline; docs 01/03/04/05/07, CLAUDE.md.

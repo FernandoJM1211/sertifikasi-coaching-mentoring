@@ -138,7 +138,7 @@
           <div
             v-for="item in accountDetails"
             :key="item.label"
-            class="min-w-0 rounded-xl border border-slate-200 bg-slate-50 p-4"
+            class="min-w-0 rounded-xl border border-slate-300 bg-slate-50 p-4"
           >
             <p class="text-sm text-slate-600">
               {{ item.label }}
@@ -178,7 +178,7 @@
           <div
             v-for="item in activityDetails"
             :key="item.label"
-            class="min-w-0 rounded-xl border border-slate-200 bg-slate-50 p-4"
+            class="min-w-0 rounded-xl border border-slate-300 bg-slate-50 p-4"
           >
             <p class="text-sm text-slate-600">
               {{ item.label }}

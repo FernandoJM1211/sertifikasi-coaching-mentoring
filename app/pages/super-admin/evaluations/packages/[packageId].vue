@@ -229,8 +229,8 @@ async function confirmToggleStatus() {
         color="info"
         variant="subtle"
         icon="i-lucide-info"
-        title="Paket ini sudah digunakan pada evaluasi peserta"
-        description="Perubahan tidak memengaruhi soal & nilai peserta yang sudah ada. Perubahan berlaku setelah perencanaan evaluasi periode diterapkan ulang."
+        title="Paket ini sudah digunakan pada tes tertulis peserta"
+        description="Perubahan tidak memengaruhi soal & nilai peserta yang sudah ada. Perubahan berlaku setelah perencanaan tes tertulis periode diterapkan ulang."
       />
 
       <UCard>
@@ -239,14 +239,14 @@ async function confirmToggleStatus() {
         </template>
         <div class="grid gap-5 md:grid-cols-2">
           <UFormField label="Nama Paket" required>
-            <UInput v-model="form.packageName" :maxlength="EVALUATION_LIMITS.packageName" placeholder="Contoh: Paket Evaluasi Coaching 2026" class="mt-1 w-full" />
+            <UInput v-model="form.packageName" :maxlength="EVALUATION_LIMITS.packageName" placeholder="Contoh: Paket Tes Tertulis Coaching 2026" class="mt-1 w-full" />
           </UFormField>
           <UFormField label="Deskripsi" :hint="`${form.description.length}/${EVALUATION_LIMITS.packageDescription}`">
             <UInput v-model="form.description" :maxlength="EVALUATION_LIMITS.packageDescription" placeholder="Opsional" class="mt-1 w-full" />
           </UFormField>
         </div>
 
-        <div v-if="detail" class="mt-5 border-t border-slate-100 pt-4">
+        <div v-if="detail" class="mt-5 border-t border-slate-200 pt-4">
           <p class="text-sm font-medium text-slate-700">Dipakai pada Periode</p>
           <div v-if="detail.periods.length" class="mt-2 space-y-2">
             <div class="flex flex-wrap gap-2">
@@ -267,7 +267,7 @@ async function confirmToggleStatus() {
               agar perubahan berlaku. Periode tersebut memakai {{ detail.required_count }} soal per peserta.
             </p>
           </div>
-          <p v-else class="mt-1 text-sm text-slate-600">Belum dipakai pada perencanaan evaluasi periode mana pun.</p>
+          <p v-else class="mt-1 text-sm text-slate-600">Belum dipakai pada perencanaan tes tertulis periode mana pun.</p>
         </div>
       </UCard>
 
@@ -328,7 +328,7 @@ async function confirmToggleStatus() {
               <tr
                 v-for="item in pagedQuestions"
                 :key="item.question_id"
-                class="border-b border-slate-200 last:border-0"
+                class="border-b border-slate-300 last:border-0"
                 :class="selectedSet.has(item.question_id) ? 'bg-blue-50' : ''"
               >
                 <td class="px-4 py-3 text-center">
@@ -386,8 +386,8 @@ async function confirmToggleStatus() {
       <template #body>
         <p class="text-sm text-slate-600">
           {{ detail?.status === 'ACTIVE'
-            ? 'Paket yang diarsipkan tidak dapat dipilih pada perencanaan evaluasi. Paket yang masih dipakai periode tidak dapat diarsipkan.'
-            : 'Paket akan kembali dapat dipilih pada perencanaan evaluasi.' }}
+            ? 'Paket yang diarsipkan tidak dapat dipilih pada perencanaan tes tertulis. Paket yang masih dipakai periode tidak dapat diarsipkan.'
+            : 'Paket akan kembali dapat dipilih pada perencanaan tes tertulis.' }}
         </p>
       </template>
       <template #footer>

@@ -140,7 +140,7 @@ Periode/gelombang sertifikasi. Repository: `certification-period.repository.ts`.
 | B | `period_id` | Relasi |
 | C | `stage_order` | 1–8 |
 | D | `stage_code` | `REGISTRATION`, `DOCUMENT_VERIFICATION`, `SELF_ASSESSMENT`, `SELF_ASSESSMENT_VERIFICATION`, `EVALUATION`, `ASSESSOR_ASSESSMENT`, `ASSESSMENT_VERIFICATION`, `ANNOUNCEMENT` |
-| E | `stage_name` | Nama tampilan |
+| E | `stage_name` | Nama tampilan. Tahap 5 (`EVALUATION`) = **Tes Tertulis** (dulu "Evaluasi", lihat K-17) |
 | F | `start_at` | Mulai |
 | G | `end_at` | Selesai |
 | H | `is_override_open` | `FALSE`/`NORMAL` (ikut jadwal), `OPEN`, `CLOSED` (`TRUE` lama = `OPEN`) |
@@ -470,13 +470,19 @@ Berkas KTP, Surat Tugas, evidence, dan dokumen pengganti dicatat di sheet `files
 (`uploaded_by` = `user_id` peserta). Tipe yang diterima dideteksi dari isi file:
 dokumen pendaftaran PDF; KTP/Surat Tugas PDF/JPG/PNG; evidence PDF/DOC/DOCX; maks. 4 MB (di bawah batas 4,5 MB per request Vercel).
 
-## Evaluasi Pilihan Ganda
+## Tes Tertulis Pilihan Ganda
+
+> **Catatan istilah (K-17).** Di aplikasi tahap ini bernama **Tes Tertulis** (dulu "Evaluasi").
+> Nama teknis sengaja **tidak** diubah agar data lama aman: tab sheet `evaluation_questions`,
+> `evaluation_packages`, `period_evaluations`, `evaluation_snapshot_questions`, `evaluation_attempts`;
+> kode tahap `EVALUATION`; prefix ID `EVQ-`, `EVP-`, `PEV-`, `ESQ-`, `EVA-`; folder/rute kode
+> `evaluation(s)`. Semua nama `evaluation*` tersebut berarti **Tes Tertulis**.
 
 Dikelola Super Admin (bank soal → paket soal → pengaturan per periode); dikerjakan Peserta.
 Kunci jawaban & nilai **tidak pernah** dikirim ke Peserta.
 
 **Model snapshot:** bank soal & paket selalu dapat diubah. "Simpan & Terapkan" pada Perencanaan
-Evaluasi menyalin isi soal paket ke `evaluation_snapshot_questions`; peserta yang mulai sesudahnya
+Tes Tertulis menyalin isi soal paket ke `evaluation_snapshot_questions`; peserta yang mulai sesudahnya
 memakai snapshot itu dan setiap pengerjaan mencatat `snapshot_id`-nya, sehingga nilai lama tidak
 berubah walau soal diedit atau perencanaan diterapkan ulang.
 
@@ -510,7 +516,7 @@ Soal tidak dihapus, hanya diarsipkan. Soal yang sudah dipakai tetap dapat diubah
 
 Paket dapat diubah kapan saja; paket yang dipakai perencanaan periode tidak dapat diarsipkan.
 
-### `period_evaluations` — ID `PEV-000001` (pengaturan evaluasi; satu baris per periode)
+### `period_evaluations` — ID `PEV-000001` (pengaturan tes tertulis; satu baris per periode)
 
 | # | Kolom | Isi |
 | --- | --- | --- |

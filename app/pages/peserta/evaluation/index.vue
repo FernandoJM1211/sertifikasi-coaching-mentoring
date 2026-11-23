@@ -1,7 +1,7 @@
 <script setup lang="ts">
-/** Daftar periode (pengajuan diterima) untuk membuka halaman evaluasi. Tata letak seragam dengan PeriodPicker. */
+/** Daftar periode (pengajuan diterima) untuk membuka halaman tes tertulis. Tata letak seragam dengan PeriodPicker. */
 definePageMeta({ layout: 'peserta' })
-useHead({ title: 'Evaluasi' })
+useHead({ title: 'Tes Tertulis' })
 
 type DashboardApplication = {
   application: { application_id: string, period_id: string, application_status?: string, institution_name?: string }
@@ -11,7 +11,7 @@ type DashboardApplication = {
 
 const { data, pending, error, refresh } = await useFetch<{ applications: DashboardApplication[] }>('/api/peserta/dashboard')
 
-/** Hanya pengajuan yang sudah diterima yang dapat mengikuti evaluasi. */
+/** Hanya pengajuan yang sudah diterima yang dapat mengikuti tes tertulis. */
 const applications = computed(() =>
   (data.value?.applications ?? []).filter((item) => item.application?.application_status === 'accepted'),
 )
@@ -47,10 +47,10 @@ function getPeriodStatusColor(status?: string) {
   <div class="mx-auto w-full max-w-5xl space-y-8 pb-8">
     <div class="space-y-2">
       <h1 class="text-3xl font-semibold tracking-tight text-blue-500">
-        Evaluasi
+        Tes Tertulis
       </h1>
       <p class="text-sm leading-6 text-slate-600">
-        Pilih periode sertifikasi untuk mengerjakan evaluasi pilihan ganda.
+        Pilih periode sertifikasi untuk mengerjakan tes tertulis pilihan ganda.
       </p>
     </div>
 
@@ -60,7 +60,7 @@ function getPeriodStatusColor(status?: string) {
           Daftar Periode
         </h2>
         <p class="mt-1 text-sm text-slate-600">
-          Evaluasi dikerjakan satu kali pada tahap Evaluasi, setelah self assessment Anda terverifikasi.
+          Tes tertulis dikerjakan satu kali pada tahap Tes Tertulis, setelah self assessment Anda terverifikasi.
         </p>
       </div>
 
@@ -84,7 +84,7 @@ function getPeriodStatusColor(status?: string) {
 
     <div
       v-if="pending"
-      class="flex items-center justify-center rounded-xl border border-slate-200 bg-white/90 py-16 shadow-sm"
+      class="flex items-center justify-center rounded-xl border border-slate-300 bg-white/90 py-16 shadow-sm"
     >
       <UIcon name="i-lucide-loader-circle" class="size-6 animate-spin text-primary" />
       <span class="ml-3 text-sm text-slate-600">Memuat daftar periode...</span>
@@ -139,14 +139,14 @@ function getPeriodStatusColor(status?: string) {
             </UBadge>
           </div>
 
-          <div class="mt-auto border-t border-slate-200 pt-4">
+          <div class="mt-auto border-t border-slate-300 pt-4">
             <UButton
               block
               color="primary"
               icon="i-lucide-file-pen-line"
               :to="`/peserta/evaluation/${encodeURIComponent(item.application.application_id)}`"
             >
-              Buka Evaluasi
+              Buka Tes Tertulis
             </UButton>
           </div>
         </div>
@@ -159,10 +159,10 @@ function getPeriodStatusColor(status?: string) {
           <UIcon name="i-lucide-calendar-x" class="size-7 text-primary" />
         </div>
         <h3 class="mt-4 text-base font-semibold text-slate-900">
-          Belum ada evaluasi
+          Belum ada tes tertulis
         </h3>
         <p class="mt-2 max-w-md text-sm leading-6 text-slate-600">
-          Evaluasi tersedia untuk pengajuan sertifikasi yang sudah diterima.
+          Tes tertulis tersedia untuk pengajuan sertifikasi yang sudah diterima.
         </p>
       </div>
     </UCard>

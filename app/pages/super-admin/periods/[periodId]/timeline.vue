@@ -40,7 +40,7 @@
     <!-- Informasi periode -->
     <template v-else-if="period">
       <UCard :ui="{ body: 'p-0 sm:p-0' }">
-        <div class="rounded-lg border border-blue-200 bg-blue-50 p-5">
+        <div class="p-5">
           <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div class="min-w-0">
               <p class="text-sm font-medium text-primary">
@@ -169,7 +169,7 @@
               </div>
             </div>
 
-            <div class="mt-5 grid grid-cols-1 gap-4 border-t border-slate-200 pt-4 sm:grid-cols-2">
+            <div class="mt-5 grid grid-cols-1 gap-4 border-t border-slate-300 pt-4 sm:grid-cols-2">
               <UFormField
                 :label="`Waktu Mulai — ${stage.stageName}`"
                 :name="`startAt-${stage.stageCode}`"
@@ -412,8 +412,8 @@ const REQUIRED_STAGES = [
   {
     stageOrder: 5,
     stageCode: 'EVALUATION',
-    stageName: 'Evaluasi',
-    description: 'Pelaksanaan evaluasi kompetensi peserta sesuai mekanisme sertifikasi.',
+    stageName: 'Tes Tertulis',
+    description: 'Pelaksanaan tes tertulis kompetensi peserta sesuai mekanisme sertifikasi.',
   },
   {
     stageOrder: 6,

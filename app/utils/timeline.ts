@@ -43,7 +43,7 @@ const STAGE_FALLBACKS: Record<number, { code: string, name: string }> = {
   2: { code: 'DOCUMENT_VERIFICATION', name: 'Verifikasi Peserta' },
   3: { code: 'SELF_ASSESSMENT', name: 'Self Assessment' },
   4: { code: 'SELF_ASSESSMENT_VERIFICATION', name: 'Verifikasi Self Assessment' },
-  5: { code: 'EVALUATION', name: 'Evaluasi' },
+  5: { code: 'EVALUATION', name: 'Tes Tertulis' },
   6: { code: 'ASSESSOR_ASSESSMENT', name: 'Assessment oleh Asesor' },
   7: { code: 'ASSESSMENT_VERIFICATION', name: 'Verifikasi Penilaian' },
   8: { code: 'ANNOUNCEMENT', name: 'Pengumuman' },

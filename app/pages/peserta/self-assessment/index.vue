@@ -116,7 +116,7 @@ function getPeriodStatusColor(status?: string) {
 
     <div
       v-if="pending"
-      class="flex items-center justify-center rounded-xl border border-slate-200 bg-white/90 py-16 shadow-sm"
+      class="flex items-center justify-center rounded-xl border border-slate-300 bg-white/90 py-16 shadow-sm"
     >
       <UIcon name="i-lucide-loader-circle" class="size-6 animate-spin text-primary" />
       <span class="ml-3 text-sm text-slate-600">Memuat daftar periode...</span>
@@ -171,7 +171,7 @@ function getPeriodStatusColor(status?: string) {
             </UBadge>
           </div>
 
-          <div class="mt-auto border-t border-slate-200 pt-4">
+          <div class="mt-auto border-t border-slate-300 pt-4">
             <UButton
               block
               color="primary"

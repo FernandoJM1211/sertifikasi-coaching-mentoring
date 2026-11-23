@@ -280,7 +280,7 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', onBeforeUnload)
               class="flex items-center gap-3 rounded-xl border p-4 text-left text-sm font-medium transition disabled:cursor-not-allowed"
               :class="form.unitResults[unit.code] === value
                 ? (value === 'K' ? 'border-emerald-500 bg-emerald-50 text-emerald-800' : 'border-rose-500 bg-rose-50 text-rose-800')
-                : 'border-slate-200 bg-white text-slate-700 enabled:hover:border-slate-300'"
+                : 'border-slate-300 bg-white text-slate-700 enabled:hover:border-slate-300'"
               :disabled="!editable"
               :aria-checked="form.unitResults[unit.code] === value"
               @click="form.unitResults[unit.code] = value"
@@ -333,7 +333,7 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', onBeforeUnload)
                 class="flex items-center gap-3 rounded-xl border p-4 text-left text-sm font-medium transition disabled:cursor-not-allowed"
                 :class="form.recommendation === value
                   ? (value === 'CONTINUE' ? 'border-emerald-500 bg-emerald-50 text-emerald-800' : 'border-rose-500 bg-rose-50 text-rose-800')
-                  : 'border-slate-200 bg-white text-slate-700 enabled:hover:border-slate-300'"
+                  : 'border-slate-300 bg-white text-slate-700 enabled:hover:border-slate-300'"
                 :disabled="!editable"
                 :aria-pressed="form.recommendation === value"
                 @click="form.recommendation = value"
@@ -347,7 +347,7 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', onBeforeUnload)
             </div>
           </div>
 
-          <div v-if="editable" class="flex flex-wrap items-center justify-end gap-3 border-t border-slate-100 pt-4">
+          <div v-if="editable" class="flex flex-wrap items-center justify-end gap-3 border-t border-slate-200 pt-4">
             <p v-if="isDirty" class="mr-auto text-xs text-amber-600">Ada perubahan yang belum disimpan.</p>
             <UButton color="neutral" variant="outline" icon="i-lucide-save" :loading="saving" :disabled="saving" @click="save(false)">
               Simpan Draf
@@ -371,7 +371,7 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', onBeforeUnload)
               ? 'border-emerald-200 bg-emerald-50'
               : form.recommendation === 'NOT_CONTINUE'
                 ? 'border-rose-200 bg-rose-50'
-                : 'border-slate-200 bg-slate-50'"
+                : 'border-slate-300 bg-slate-50'"
           >
             <p>{{ kCount }} unit Kompeten · {{ bkCount }} unit Belum Kompeten</p>
             <p v-if="form.recommendation" class="mt-1 font-semibold" :class="form.recommendation === 'CONTINUE' ? 'text-emerald-700' : 'text-rose-700'">

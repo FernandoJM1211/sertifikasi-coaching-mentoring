@@ -7,9 +7,14 @@ const navigation = [
     exact: true,
   },
   {
-    label: 'Periode Sertifikasi',
+    label: 'Atur Periode',
     icon: 'i-lucide-calendar-days',
     to: '/super-admin/periods',
+  },
+  {
+    label: 'Verifikasi Peserta',
+    icon: 'i-lucide-users',
+    to: '/super-admin/participant-verifications',
   },
   {
     label: 'Verifikasi Self Assessment',
@@ -32,7 +37,7 @@ const navigation = [
     to: '/super-admin/evaluations/packages',
   },
   {
-    label: 'Perencanaan Evaluasi',
+    label: 'Perencanaan Tes Tertulis',
     icon: 'i-lucide-calendar-check',
     to: '/super-admin/evaluations/plans',
   },

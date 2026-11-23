@@ -44,7 +44,7 @@ Gunakan `slate-*`, **bukan** `gray-*` (beberapa file lama masih memakai `gray`; 
 | Gagal / ditutup / ditolak | `error` | `rejected`, `DITOLAK`, `CLOSED`, `DISABLED` |
 | Informasi / selesai | `primary` atau `info` | `COMPLETED`, label role |
 | Netral / draf | `neutral` | `DRAFT`, `superseded` |
-| Selesai dikerjakan/dinilai (ungu) | `secondary` (= `violet`, di `app.config.ts`) | evaluasi & penilaian asesor "Selesai" |
+| Selesai dikerjakan/dinilai (ungu) | `secondary` (= `violet`, di `app.config.ts`) | tes tertulis & penilaian asesor "Selesai" |
 
 Jika halaman punya **card ringkasan** per status, warna badge di tabel **harus sama** dengan warna card
 terkait (abu = `neutral`, kuning = `warning`, ungu = `secondary`, hijau = `success`, merah = `error`,
@@ -97,7 +97,7 @@ useHead({ title: 'Judul Halaman' })
       </div>
 
       <div class="flex shrink-0 items-center gap-3">
-        <UButton color="neutral" variant="outline" icon="i-lucide-arrow-left" to="/verifikator/periods">
+        <UButton color="neutral" variant="outline" icon="i-lucide-arrow-left" to="/verifikator/participant-verifications">
           Kembali
         </UButton>
         <UButton icon="i-lucide-plus">Aksi Utama</UButton>

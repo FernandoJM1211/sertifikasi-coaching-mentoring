@@ -236,7 +236,7 @@ async function confirmDecision() {
           <li
             v-for="review in data.reviews"
             :key="review.review_id"
-            class="rounded-xl border border-slate-200 bg-slate-50 p-4"
+            class="rounded-xl border border-slate-300 bg-slate-50 p-4"
           >
             <div class="flex flex-wrap items-center justify-between gap-2">
               <UBadge
@@ -273,7 +273,7 @@ async function confirmDecision() {
           class="rounded-xl border p-4 text-left transition"
           :class="activeTab === tab.id
             ? 'border-primary bg-blue-50 ring-1 ring-blue-200'
-            : 'border-slate-200 bg-white hover:border-slate-300'"
+            : 'border-slate-300 bg-white hover:border-slate-300'"
           @click="activeTab = tab.id"
         >
           <div class="flex items-start gap-3">

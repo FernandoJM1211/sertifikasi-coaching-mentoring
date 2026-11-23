@@ -6,5 +6,5 @@ export default defineEventHandler(async (event) => {
   const periodId = requireRouterParam(event, 'periodId', 'ID periode')
   const input = parsePeriodEvaluationInput(await readBody(event))
 
-  return { success: true, message: 'Pengaturan evaluasi berhasil disimpan dan diterapkan.', data: await savePeriodEvaluation(user, periodId, input) }
+  return { success: true, message: 'Pengaturan tes tertulis berhasil disimpan dan diterapkan.', data: await savePeriodEvaluation(user, periodId, input) }
 })

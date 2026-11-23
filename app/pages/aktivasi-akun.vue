@@ -76,7 +76,7 @@ async function activateAccount() {
     class="flex min-h-[65vh] items-center justify-center px-4 py-10"
   >
     <section
-      class="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-8 shadow-sm"
+      class="w-full max-w-md rounded-2xl border border-gray-300 bg-white p-8 shadow-sm"
     >
       <div class="mb-6 text-center">
         <h1 class="text-2xl font-bold text-blue-500">

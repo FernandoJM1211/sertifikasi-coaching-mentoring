@@ -14,7 +14,7 @@
 
   <div class="flex shrink-0 flex-col items-end gap-2">
     <UButton
-      :to="application ? `/super-admin/periods/${application.period_id}` : '/super-admin/periods'"
+      :to="application ? `/super-admin/participant-verifications/${application.period_id}` : '/super-admin/participant-verifications'"
       label="Kembali"
       icon="i-lucide-arrow-left"
       color="neutral"
@@ -362,7 +362,7 @@
         "
       >
         <template #body>
-          <div class="rounded-lg border border-slate-200 bg-slate-50 p-4">
+          <div class="rounded-lg border border-slate-300 bg-slate-50 p-4">
             <p class="text-sm text-slate-700">
               {{
                 pendingDecision === 'DITERIMA'
@@ -616,7 +616,7 @@ async function submitApplicationDecision() {
     )
     decisionModalOpen.value = false
     pendingDecision.value = null
-    await navigateTo(`/super-admin/periods/${application.value?.period_id ?? ''}`)
+    await navigateTo(`/super-admin/participant-verifications/${application.value?.period_id ?? ''}`)
 } catch (error: any) {
   console.error(
     'Gagal menyimpan keputusan verifikasi:',

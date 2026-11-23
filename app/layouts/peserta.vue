@@ -12,7 +12,7 @@ const navigation = [
     to: '/peserta/self-assessment',
   },
   {
-    label: 'Evaluasi',
+    label: 'Tes Tertulis',
     icon: 'i-lucide-file-pen-line',
     to: '/peserta/evaluation',
   },

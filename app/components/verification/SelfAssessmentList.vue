@@ -95,7 +95,7 @@ const summaryCards = computed(() => [
   { key: 'SUBMITTED', label: 'Menunggu Verifikasi', value: data.value?.summary.submitted ?? 0, icon: 'i-lucide-inbox', tone: 'border-blue-200 bg-blue-50 text-blue-700' },
   { key: 'REVISION_REQUESTED', label: 'Perlu Perbaikan', value: data.value?.summary.revision ?? 0, icon: 'i-lucide-pencil-line', tone: 'border-amber-200 bg-amber-50 text-amber-700' },
   { key: 'VERIFIED', label: 'Terverifikasi', value: data.value?.summary.verified ?? 0, icon: 'i-lucide-circle-check', tone: 'border-emerald-200 bg-emerald-50 text-emerald-700' },
-  { key: 'NOT_SUBMITTED', label: 'Belum Dikirim', value: data.value?.summary.notSubmitted ?? 0, icon: 'i-lucide-clock', tone: 'border-slate-200 bg-slate-50 text-slate-600' },
+  { key: 'NOT_SUBMITTED', label: 'Belum Dikirim', value: data.value?.summary.notSubmitted ?? 0, icon: 'i-lucide-clock', tone: 'border-slate-300 bg-slate-50 text-slate-600' },
 ])
 
 const PERIOD_STATUS_LABELS: Record<string, string> = {
@@ -267,7 +267,7 @@ watch([activeFilter, searchQuery], resetTablePage)
               <tr
                 v-for="item in pagedItems"
                 :key="item.application_id"
-                class="border-b border-slate-200 last:border-0"
+                class="border-b border-slate-300 last:border-0"
               >
                 <td class="px-4 py-4 font-medium text-slate-800">{{ item.full_name }}</td>
                 <td class="px-4 py-4 text-slate-600">{{ item.nip }}</td>

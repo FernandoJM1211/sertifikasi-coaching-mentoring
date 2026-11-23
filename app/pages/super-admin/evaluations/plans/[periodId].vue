@@ -2,12 +2,12 @@
 import { EVALUATION_DURATION_OPTIONS } from '~~/shared/utils/evaluation'
 
 /**
- * Perencanaan evaluasi satu periode (Super Admin): paket soal, jumlah soal, durasi,
+ * Perencanaan tes tertulis satu periode (Super Admin): paket soal, jumlah soal, durasi,
  * passing grade, pengaturan acak, serta nilai peserta (hanya dapat dilihat Super Admin).
  * "Simpan & Terapkan" membuat snapshot soal; peserta berikutnya memakai snapshot terbaru.
  */
 definePageMeta({ layout: 'super-admin' })
-useHead({ title: 'Perencanaan Evaluasi' })
+useHead({ title: 'Perencanaan Tes Tertulis' })
 
 type PlanItem = {
   application_id: string
@@ -74,7 +74,7 @@ async function load() {
       form.shuffleOptions = config.shuffle_options
     }
   } catch (error) {
-    errorMessage.value = getApiErrorMessage(error, 'Data evaluasi periode belum dapat dimuat.')
+    errorMessage.value = getApiErrorMessage(error, 'Data tes tertulis periode belum dapat dimuat.')
   } finally {
     loading.value = false
   }
@@ -201,7 +201,7 @@ const filteredItems = computed(() => {
 
 const summaryCards = computed(() => [
   { key: 'ALL', label: 'Peserta Berhak', value: data.value?.summary.eligible ?? 0, icon: 'i-lucide-users', tone: 'border-blue-200 bg-blue-50 text-blue-700' },
-  { key: 'NOT_STARTED', label: 'Belum Mulai', value: data.value?.summary.notStarted ?? 0, icon: 'i-lucide-clock', tone: 'border-slate-200 bg-slate-50 text-slate-600' },
+  { key: 'NOT_STARTED', label: 'Belum Mulai', value: data.value?.summary.notStarted ?? 0, icon: 'i-lucide-clock', tone: 'border-slate-300 bg-slate-50 text-slate-600' },
   { key: 'IN_PROGRESS', label: 'Mengerjakan', value: data.value?.summary.inProgress ?? 0, icon: 'i-lucide-pencil-line', tone: 'border-amber-200 bg-amber-50 text-amber-700' },
   { key: 'SUBMITTED', label: 'Selesai', value: data.value?.summary.submitted ?? 0, icon: 'i-lucide-circle-check', tone: 'border-violet-200 bg-violet-50 text-violet-700' },
   { key: 'PASSED', label: 'Mencapai PG', value: data.value?.summary.passed ?? 0, icon: 'i-lucide-trophy', tone: 'border-emerald-200 bg-emerald-50 text-emerald-700' },
@@ -269,9 +269,9 @@ watch([activeFilter, searchQuery], resetTablePage)
     <div class="flex items-start justify-between gap-4">
       <div class="min-w-0">
         <h1 class="text-xl font-semibold text-blue-500 sm:text-2xl">
-          {{ data?.period.period_name || 'Perencanaan Evaluasi' }}
+          {{ data?.period.period_name || 'Perencanaan Tes Tertulis' }}
         </h1>
-        <p class="mt-1 text-sm text-slate-600">Perencanaan Evaluasi</p>
+        <p class="mt-1 text-sm text-slate-600">Perencanaan Tes Tertulis</p>
       </div>
       <div class="flex shrink-0 flex-col items-end gap-2">
         <UButton :to="BACK_PATH" color="neutral" variant="outline" icon="i-lucide-arrow-left" size="sm">Kembali</UButton>
@@ -283,21 +283,21 @@ watch([activeFilter, searchQuery], resetTablePage)
 
     <div v-if="loading && !data" class="flex items-center justify-center py-12">
       <UIcon name="i-lucide-loader-circle" class="size-6 animate-spin text-primary" />
-      <span class="ml-3 text-sm text-slate-600">Memuat data evaluasi...</span>
+      <span class="ml-3 text-sm text-slate-600">Memuat data tes tertulis...</span>
     </div>
 
-    <UAlert v-else-if="errorMessage || !data" color="error" variant="soft" icon="i-lucide-circle-alert" :title="errorMessage || 'Data evaluasi belum dapat dimuat.'">
+    <UAlert v-else-if="errorMessage || !data" color="error" variant="soft" icon="i-lucide-circle-alert" :title="errorMessage || 'Data tes tertulis belum dapat dimuat.'">
       <template #actions>
         <UButton color="error" variant="outline" size="sm" icon="i-lucide-refresh-cw" @click="load">Muat Ulang</UButton>
       </template>
     </UAlert>
 
     <template v-else>
-      <!-- Jadwal tahap evaluasi -->
-      <div class="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm">
+      <!-- Jadwal tahap tes tertulis -->
+      <div class="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm">
         <span class="flex items-center gap-2 font-medium text-slate-800">
           <UIcon name="i-lucide-calendar-clock" class="size-4 text-primary" />
-          Tahap Evaluasi
+          Tahap Tes Tertulis
         </span>
         <span class="text-slate-600">Mulai: <span class="font-medium text-slate-800">{{ formatDateTimeId(data.stage.startAt) }}</span></span>
         <span class="text-slate-600">Selesai: <span class="font-medium text-slate-800">{{ formatDateTimeId(data.stage.endAt) }}</span></span>
@@ -310,7 +310,7 @@ watch([activeFilter, searchQuery], resetTablePage)
         <template #header>
           <div class="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <h2 class="font-semibold text-slate-900">Pengaturan Evaluasi</h2>
+              <h2 class="font-semibold text-slate-900">Pengaturan Tes Tertulis</h2>
               <p class="mt-1 text-sm text-slate-600">
                 <template v-if="data.config?.applied_at">Terakhir diterapkan {{ formatDateTimeId(data.config.applied_at) }}.</template>
                 <template v-else>Pengaturan berlaku bagi peserta setelah disimpan &amp; diterapkan.</template>
@@ -337,7 +337,7 @@ watch([activeFilter, searchQuery], resetTablePage)
             variant="subtle"
             icon="i-lucide-circle-alert"
             title="Pengaturan belum diterapkan"
-            description="Peserta belum dapat memulai evaluasi. Tekan Simpan & Terapkan."
+            description="Peserta belum dapat memulai tes tertulis. Tekan Simpan & Terapkan."
           />
           <UAlert
             v-if="configShortage > 0"
@@ -345,7 +345,7 @@ watch([activeFilter, searchQuery], resetTablePage)
             variant="subtle"
             icon="i-lucide-circle-alert"
             title="Soal aktif pada paket kurang"
-            :description="`Paket kekurangan ${configShortage} soal aktif dari jumlah soal yang ditetapkan (ada soal yang diarsipkan). Peserta tidak dapat memulai evaluasi sampai pengaturan diperbaiki.`"
+            :description="`Paket kekurangan ${configShortage} soal aktif dari jumlah soal yang ditetapkan (ada soal yang diarsipkan). Peserta tidak dapat memulai tes tertulis sampai pengaturan diperbaiki.`"
           />
           <UAlert
             v-else-if="data.packages.length === 0"
@@ -384,20 +384,20 @@ watch([activeFilter, searchQuery], resetTablePage)
              
               label="Acak soal"
               description="Soal diambil acak dari paket dan urutannya berbeda tiap peserta. Bila nonaktif, dipakai N soal pertama sesuai urutan paket."
-              class="rounded-lg border border-slate-200 p-3"
+              class="rounded-lg border border-slate-300 p-3"
             />
             <UCheckbox
               v-model="form.shuffleOptions"
              
               label="Acak opsi jawaban"
               description="Urutan opsi A–E diacak per soal untuk tiap peserta. Bila nonaktif, opsi tampil sesuai urutan di bank soal."
-              class="rounded-lg border border-slate-200 p-3"
+              class="rounded-lg border border-slate-300 p-3"
             />
           </div>
 
           <ul class="space-y-1 rounded-lg bg-slate-50 p-3 text-xs leading-5 text-slate-600">
             <li>• Nilai = jumlah jawaban benar ÷ jumlah soal × 100; soal yang tidak dijawab dihitung salah.</li>
-            <li>• Batas waktu peserta = waktu mulai + durasi, namun tidak melewati akhir tahap Evaluasi.</li>
+            <li>• Batas waktu peserta = waktu mulai + durasi, namun tidak melewati akhir tahap Tes Tertulis.</li>
             <li>• Setiap peserta mengerjakan satu kali (Super Admin dapat mereset progres bila diperlukan). Nilai hanya dapat dilihat Super Admin.</li>
             <li>• Simpan &amp; Terapkan menyalin isi soal paket saat itu. Perubahan bank soal/paket sesudahnya baru berlaku setelah diterapkan ulang; peserta yang sudah mulai tetap memakai soal versinya.</li>
           </ul>
@@ -417,7 +417,7 @@ watch([activeFilter, searchQuery], resetTablePage)
       </UCard>
 
       <section class="space-y-3">
-        <h2 class="text-lg font-semibold text-slate-900">Hasil Evaluasi</h2>
+        <h2 class="text-lg font-semibold text-slate-900">Hasil Tes Tertulis</h2>
         <div class="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
           <button
             v-for="card in summaryCards"
@@ -492,7 +492,7 @@ watch([activeFilter, searchQuery], resetTablePage)
               </tr>
             </thead>
             <tbody>
-              <tr v-for="item in pagedItems" :key="item.application_id" class="border-b border-slate-200 last:border-0">
+              <tr v-for="item in pagedItems" :key="item.application_id" class="border-b border-slate-300 last:border-0">
                 <td class="px-4 py-3">
                   <p class="truncate font-medium text-slate-800" :title="item.full_name">{{ item.full_name }}</p>
                   <p class="truncate text-xs text-slate-600">{{ item.nip }}</p>
@@ -529,8 +529,8 @@ watch([activeFilter, searchQuery], resetTablePage)
                       variant="solid"
                       square
                       size="md"
-                      aria-label="Lihat detail hasil evaluasi"
-                      title="Lihat detail hasil evaluasi"
+                      aria-label="Lihat detail hasil tes tertulis"
+                      title="Lihat detail hasil tes tertulis"
                     />
                     <UButton
                       icon="i-lucide-rotate-ccw"
@@ -539,8 +539,8 @@ watch([activeFilter, searchQuery], resetTablePage)
                       square
                       size="md"
                       class="bg-red-700 hover:bg-red-800"
-                      aria-label="Reset progres evaluasi peserta"
-                      title="Reset progres evaluasi peserta"
+                      aria-label="Reset progres tes tertulis peserta"
+                      title="Reset progres tes tertulis peserta"
                       @click="askReset(item)"
                     />
                   </div>
@@ -561,8 +561,8 @@ watch([activeFilter, searchQuery], resetTablePage)
     <UModal
       v-model:open="applyModalOpen"
       :dismissible="!saving"
-      title="Terapkan Pengaturan Evaluasi?"
-      description="Sudah ada peserta yang mulai mengerjakan evaluasi pada periode ini."
+      title="Terapkan Pengaturan Tes Tertulis?"
+      description="Sudah ada peserta yang mulai mengerjakan tes tertulis pada periode ini."
     >
       <template #body>
         <div class="space-y-3 text-sm text-slate-600">
@@ -588,7 +588,7 @@ watch([activeFilter, searchQuery], resetTablePage)
     <UModal
       v-model:open="resetModalOpen"
       :dismissible="!resetting"
-      title="Reset Progres Evaluasi?"
+      title="Reset Progres Tes Tertulis?"
       :description="resetTarget?.full_name"
     >
       <template #body>
@@ -596,7 +596,7 @@ watch([activeFilter, searchQuery], resetTablePage)
           <p>
             Pengerjaan peserta ini
             <template v-if="resetTarget?.status === 'SUBMITTED'">beserta nilainya</template>
-            akan dibatalkan dan peserta dapat memulai evaluasi lagi dari awal selama tahap Evaluasi dibuka.
+            akan dibatalkan dan peserta dapat memulai tes tertulis lagi dari awal selama tahap Tes Tertulis dibuka.
           </p>
           <p>Data pengerjaan lama tetap tersimpan sebagai riwayat, tetapi tidak lagi ditampilkan atau dihitung.</p>
           <p v-if="resetTarget?.status === 'IN_PROGRESS'" class="rounded-lg bg-amber-50 p-3 text-amber-800">

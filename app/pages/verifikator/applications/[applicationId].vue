@@ -24,7 +24,7 @@
 
       <div class="flex shrink-0 flex-col items-end gap-2">
         <UButton
-          :to="application ? `/verifikator/periods/${application.period_id}` : '/verifikator/periods'"
+          :to="application ? `/verifikator/participant-verifications/${application.period_id}` : '/verifikator/participant-verifications'"
           label="Kembali"
           icon="i-lucide-arrow-left"
           color="neutral"
@@ -661,7 +661,7 @@
         "
       >
         <template #body>
-          <div class="rounded-lg border border-slate-200 bg-slate-50 p-4">
+          <div class="rounded-lg border border-slate-300 bg-slate-50 p-4">
             <p class="text-sm text-slate-700">
               {{
                 pendingDecision === 'DITERIMA'
@@ -1098,7 +1098,7 @@ async function submitApplicationDecision() {
 
     pendingDecision.value = null
 
-    await navigateTo(`/verifikator/periods/${application.value?.period_id ?? ''}`)
+    await navigateTo(`/verifikator/participant-verifications/${application.value?.period_id ?? ''}`)
 
 
 } catch (error: any) {

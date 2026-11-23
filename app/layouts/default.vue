@@ -2,11 +2,11 @@
   <div class="flex min-h-screen flex-col bg-mesh">
     <!-- Header (sticky) -->
     <header
-      class="sticky top-0 z-50 border-b border-slate-200 bg-white/80 backdrop-blur-xl"
+      class="sticky top-0 z-50 border-b border-slate-300 bg-white/80 backdrop-blur-xl"
     >
       <div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
         <NuxtLink to="/" class="flex items-center gap-3">
-          <div class="flex size-10 items-center justify-center overflow-hidden rounded-xl bg-white ring-1 ring-slate-200">
+          <div class="flex size-10 items-center justify-center overflow-hidden rounded-xl bg-white ring-1 ring-slate-300">
             <img src="/logo-lan.png" alt="Logo LAN" class="size-full scale-150 object-contain">
           </div>
 

@@ -54,7 +54,7 @@ const LABEL: Record<TimelineStageStatus, string> = {
       </div>
     </div>
 
-    <div class="flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-gray-200 pt-4">
+    <div class="flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-gray-300 pt-4">
       <div class="flex items-center gap-2 text-xs text-slate-600">
         <span class="size-2.5 rounded-full bg-emerald-500" />
         Selesai

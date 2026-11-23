@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /**
- * Pengerjaan evaluasi pilihan ganda (Peserta).
+ * Pengerjaan tes tertulis pilihan ganda (Peserta).
  *
  * - Soal & urutan opsi sudah diacak server saat mulai; halaman ini hanya menampilkan.
  * - Jawaban disimpan otomatis (debounce) ke server; timer mengikuti jam server.
@@ -8,7 +8,7 @@
  * - Nilai tidak ditampilkan kepada peserta.
  */
 definePageMeta({ layout: 'peserta' })
-useHead({ title: 'Evaluasi' })
+useHead({ title: 'Tes Tertulis' })
 
 type EvaluationQuestion = { number: number, text: string, options: { key: string, text: string }[] }
 
@@ -70,7 +70,7 @@ async function load() {
     const response = await $fetch<{ data: EvaluationData }>(apiPath.value, { credentials: 'include' })
     applyData(response.data)
   } catch (error) {
-    errorMessage.value = getApiErrorMessage(error, 'Data evaluasi belum dapat dimuat.')
+    errorMessage.value = getApiErrorMessage(error, 'Data tes tertulis belum dapat dimuat.')
   } finally {
     loading.value = false
   }
@@ -105,7 +105,7 @@ async function startEvaluation() {
     applyData(response.data)
     startModalOpen.value = false
   } catch (error) {
-    toast.add({ title: 'Evaluasi tidak dapat dimulai', description: getApiErrorMessage(error, 'Terjadi kesalahan. Silakan coba lagi.'), color: 'error', icon: 'i-lucide-circle-x' })
+    toast.add({ title: 'Tes tertulis tidak dapat dimulai', description: getApiErrorMessage(error, 'Terjadi kesalahan. Silakan coba lagi.'), color: 'error', icon: 'i-lucide-circle-x' })
     await load()
     startModalOpen.value = false
   } finally {
@@ -176,7 +176,7 @@ async function saveAnswers() {
     const message = getApiErrorMessage(error, '')
     // Waktu habis / sudah dikirim di server: muat ulang status terbaru.
     if (message.includes('habis') || message.includes('sudah dikirim')) {
-      toast.add({ title: 'Evaluasi telah ditutup', description: message, color: 'warning', icon: 'i-lucide-alarm-clock' })
+      toast.add({ title: 'Tes tertulis telah ditutup', description: message, color: 'warning', icon: 'i-lucide-alarm-clock' })
       await load()
     }
   }
@@ -210,7 +210,7 @@ async function submit(type: 'MANUAL' | 'AUTO') {
     await $fetch(`${apiPath.value}/submit`, { method: 'POST', body: { answers: answers.value }, credentials: 'include' })
     lastSavedSnapshot.value = JSON.stringify(answers.value)
     toast.add({
-      title: type === 'AUTO' ? 'Waktu habis — jawaban dikirim otomatis' : 'Jawaban evaluasi berhasil dikirim',
+      title: type === 'AUTO' ? 'Waktu habis — jawaban dikirim otomatis' : 'Jawaban tes tertulis berhasil dikirim',
       color: type === 'AUTO' ? 'warning' : 'success',
       icon: type === 'AUTO' ? 'i-lucide-alarm-clock' : 'i-lucide-circle-check',
     })
@@ -251,10 +251,10 @@ onBeforeUnmount(() => {
   <div class="mx-auto max-w-6xl space-y-6">
     <div v-if="loading && !data" class="flex items-center justify-center py-16">
       <UIcon name="i-lucide-loader-circle" class="size-6 animate-spin text-primary" />
-      <span class="ml-3 text-sm text-slate-600">Memuat evaluasi...</span>
+      <span class="ml-3 text-sm text-slate-600">Memuat tes tertulis...</span>
     </div>
 
-    <UAlert v-else-if="errorMessage || !data" color="error" variant="soft" icon="i-lucide-circle-alert" :title="errorMessage || 'Data evaluasi belum dapat dimuat.'">
+    <UAlert v-else-if="errorMessage || !data" color="error" variant="soft" icon="i-lucide-circle-alert" :title="errorMessage || 'Data tes tertulis belum dapat dimuat.'">
       <template #actions>
         <UButton color="error" variant="outline" size="sm" icon="i-lucide-refresh-cw" @click="load">Muat Ulang</UButton>
       </template>
@@ -262,9 +262,9 @@ onBeforeUnmount(() => {
 
     <!-- ================= Sedang mengerjakan ================= -->
     <template v-else-if="inProgress && attempt">
-      <div class="sticky top-0 z-10 -mx-1 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white/95 px-4 py-3 shadow-sm backdrop-blur">
+      <div class="sticky top-0 z-10 -mx-1 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-300 bg-white/95 px-4 py-3 shadow-sm backdrop-blur">
         <div class="min-w-0">
-          <p class="truncate text-sm font-semibold text-slate-900">Evaluasi · {{ data.period.period_name }}</p>
+          <p class="truncate text-sm font-semibold text-slate-900">Tes Tertulis · {{ data.period.period_name }}</p>
           <p class="text-xs text-slate-600">
             {{ answeredCount }} dari {{ questions.length }} soal dijawab ·
             <span :class="saveState === 'error' ? 'text-red-600' : ''">
@@ -301,7 +301,7 @@ onBeforeUnmount(() => {
               class="flex w-full items-start gap-3 rounded-xl border p-3.5 text-left transition"
               :class="answers[currentIndex] === option.key
                 ? 'border-primary bg-blue-50 ring-1 ring-primary'
-                : 'border-slate-200 bg-white hover:border-blue-300 hover:bg-slate-50'"
+                : 'border-slate-300 bg-white hover:border-blue-300 hover:bg-slate-50'"
               @click="choose(option.key)"
             >
               <span
@@ -338,7 +338,7 @@ onBeforeUnmount(() => {
               type="button"
               class="flex aspect-square items-center justify-center rounded-lg border text-sm font-medium transition"
               :class="[
-                answers[index] ? 'border-primary bg-primary text-white' : 'border-slate-200 bg-white text-slate-600 hover:border-blue-300',
+                answers[index] ? 'border-primary bg-primary text-white' : 'border-slate-300 bg-white text-slate-600 hover:border-blue-300',
                 index === currentIndex ? 'ring-2 ring-blue-300 ring-offset-1' : '',
               ]"
               :aria-label="`Soal ${question.number}${answers[index] ? ', sudah dijawab' : ''}`"
@@ -357,7 +357,7 @@ onBeforeUnmount(() => {
         </UCard>
       </div>
 
-      <UModal v-model:open="submitModalOpen" :dismissible="!submitting" title="Kirim Jawaban Evaluasi?" description="Jawaban tidak dapat diubah setelah dikirim.">
+      <UModal v-model:open="submitModalOpen" :dismissible="!submitting" title="Kirim Jawaban Tes Tertulis?" description="Jawaban tidak dapat diubah setelah dikirim.">
         <template #body>
           <div class="space-y-3 text-sm">
             <div class="grid grid-cols-2 gap-3">
@@ -390,12 +390,12 @@ onBeforeUnmount(() => {
         <div class="flex size-14 items-center justify-center rounded-full bg-emerald-50">
           <UIcon name="i-lucide-circle-check" class="size-8 text-emerald-600" />
         </div>
-        <h1 class="mt-4 text-xl font-semibold text-blue-500">Evaluasi Telah Dikirim</h1>
+        <h1 class="mt-4 text-xl font-semibold text-blue-500">Tes Tertulis Telah Dikirim</h1>
         <p class="mt-2 max-w-md text-sm leading-6 text-slate-600">
           Jawaban Anda untuk {{ attempt.total_questions }} soal telah diterima pada
           <span class="font-medium text-slate-800">{{ formatDateTimeId(attempt.submitted_at) }}</span>
           <template v-if="attempt.submit_type === 'AUTO'"> (dikirim otomatis karena waktu habis)</template>.
-          Hasil evaluasi akan disampaikan oleh penyelenggara.
+          Hasil tes tertulis akan disampaikan oleh penyelenggara.
         </p>
         <UButton class="mt-6" to="/peserta" color="neutral" variant="outline" icon="i-lucide-house">Kembali ke Beranda</UButton>
       </div>
@@ -405,7 +405,7 @@ onBeforeUnmount(() => {
     <template v-else>
       <div class="flex items-start justify-between gap-4">
         <div class="min-w-0">
-          <h1 class="text-2xl font-semibold text-blue-500">Evaluasi</h1>
+          <h1 class="text-2xl font-semibold text-blue-500">Tes Tertulis</h1>
           <p class="mt-1 text-sm text-slate-600">{{ data.period.period_name }}</p>
         </div>
         <UButton to="/peserta/evaluation" color="neutral" variant="outline" icon="i-lucide-arrow-left" size="sm" class="shrink-0">Kembali</UButton>
@@ -413,7 +413,7 @@ onBeforeUnmount(() => {
 
       <UCard class="mx-auto max-w-3xl">
         <template #header>
-          <h2 class="font-semibold text-slate-900">Petunjuk Evaluasi</h2>
+          <h2 class="font-semibold text-slate-900">Petunjuk Tes Tertulis</h2>
         </template>
 
         <div class="space-y-5">
@@ -427,7 +427,7 @@ onBeforeUnmount(() => {
               <dd class="mt-0.5 text-lg font-semibold text-slate-900">{{ data.config ? `${data.config.duration_minutes} menit` : '-' }}</dd>
             </div>
             <div class="rounded-lg bg-slate-50 p-3">
-              <dt class="text-sm text-slate-600">Batas Tahap Evaluasi</dt>
+              <dt class="text-sm text-slate-600">Batas Tahap Tes Tertulis</dt>
               <dd class="mt-0.5 text-sm font-semibold text-slate-900">{{ formatDateTimeId(data.stage.endAt) }}</dd>
             </div>
           </dl>
@@ -437,7 +437,7 @@ onBeforeUnmount(() => {
             <li class="flex gap-2"><UIcon name="i-lucide-circle-dot" class="mt-1 size-4 shrink-0 text-primary" /> Waktu berjalan sejak tombol <b>Mulai</b> ditekan dan tidak dapat dihentikan, termasuk bila halaman ditutup.</li>
             <li class="flex gap-2"><UIcon name="i-lucide-circle-dot" class="mt-1 size-4 shrink-0 text-primary" /> Jawaban tersimpan otomatis. Bila koneksi terputus, buka kembali halaman ini untuk melanjutkan.</li>
             <li class="flex gap-2"><UIcon name="i-lucide-circle-dot" class="mt-1 size-4 shrink-0 text-primary" /> Saat waktu habis, jawaban yang tersimpan dikirim otomatis. Soal yang tidak dijawab dinilai salah.</li>
-            <li class="flex gap-2"><UIcon name="i-lucide-circle-dot" class="mt-1 size-4 shrink-0 text-primary" /> Evaluasi hanya dapat dikerjakan <b>satu kali</b>.</li>
+            <li class="flex gap-2"><UIcon name="i-lucide-circle-dot" class="mt-1 size-4 shrink-0 text-primary" /> Tes tertulis hanya dapat dikerjakan <b>satu kali</b>.</li>
           </ul>
 
           <UAlert
@@ -445,7 +445,7 @@ onBeforeUnmount(() => {
             color="warning"
             variant="subtle"
             icon="i-lucide-info"
-            title="Evaluasi belum dapat dimulai"
+            title="Tes tertulis belum dapat dimulai"
             :description="data.eligibility.message"
           />
           <UAlert
@@ -454,20 +454,20 @@ onBeforeUnmount(() => {
             variant="subtle"
             icon="i-lucide-alarm-clock"
             title="Waktu pengerjaan terpotong"
-            :description="`Tahap evaluasi berakhir sebelum durasi penuh. Bila mulai sekarang, Anda hanya memiliki sekitar ${effectiveMinutes} menit.`"
+            :description="`Tahap tes tertulis berakhir sebelum durasi penuh. Bila mulai sekarang, Anda hanya memiliki sekitar ${effectiveMinutes} menit.`"
           />
         </div>
 
         <template #footer>
           <div class="flex justify-center">
             <UButton size="lg" icon="i-lucide-play" :disabled="!data.eligibility.canStart" @click="startModalOpen = true">
-              Mulai Evaluasi
+              Mulai Tes Tertulis
             </UButton>
           </div>
         </template>
       </UCard>
 
-      <UModal v-model:open="startModalOpen" :dismissible="!starting" title="Mulai Evaluasi Sekarang?" description="Waktu pengerjaan akan langsung berjalan.">
+      <UModal v-model:open="startModalOpen" :dismissible="!starting" title="Mulai Tes Tertulis Sekarang?" description="Waktu pengerjaan akan langsung berjalan.">
         <template #body>
           <p class="text-sm leading-6 text-slate-600">
             Anda memiliki <span class="font-semibold text-slate-900">{{ effectiveMinutes }} menit</span> untuk mengerjakan

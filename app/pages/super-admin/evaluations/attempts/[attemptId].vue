@@ -1,11 +1,11 @@
 <script setup lang="ts">
 /**
- * Detail hasil evaluasi satu peserta (Super Admin): ringkasan nilai & waktu, lalu
+ * Detail hasil tes tertulis satu peserta (Super Admin): ringkasan nilai & waktu, lalu
  * setiap soal dengan opsi (urutan seperti yang dilihat peserta), jawaban peserta,
  * kunci jawaban, dan status benar/salah.
  */
 definePageMeta({ layout: 'super-admin' })
-useHead({ title: 'Detail Hasil Evaluasi' })
+useHead({ title: 'Detail Hasil Tes Tertulis' })
 
 type Result = 'CORRECT' | 'WRONG' | 'UNANSWERED'
 
@@ -58,7 +58,7 @@ async function load() {
     )
     data.value = response.data
   } catch (error) {
-    errorMessage.value = getApiErrorMessage(error, 'Detail hasil evaluasi belum dapat dimuat.')
+    errorMessage.value = getApiErrorMessage(error, 'Detail hasil tes tertulis belum dapat dimuat.')
   } finally {
     loading.value = false
   }
@@ -106,7 +106,7 @@ function formatWorkTime(seconds: number | null) {
 function optionClass(option: { is_correct: boolean, is_selected: boolean }) {
   if (option.is_correct) return 'border-emerald-300 bg-emerald-50'
   if (option.is_selected) return 'border-rose-300 bg-rose-50'
-  return 'border-slate-200 bg-white'
+  return 'border-slate-300 bg-white'
 }
 
 function optionKeyClass(option: { is_correct: boolean, is_selected: boolean }) {
@@ -121,9 +121,9 @@ function optionKeyClass(option: { is_correct: boolean, is_selected: boolean }) {
     <!-- Header: judul kiri; Kembali + status kanan -->
     <div class="flex items-start justify-between gap-4">
       <div class="min-w-0">
-        <h1 class="text-2xl font-semibold text-blue-500">Detail Hasil Evaluasi</h1>
+        <h1 class="text-2xl font-semibold text-blue-500">Detail Hasil Tes Tertulis</h1>
         <p class="mt-1 text-sm text-slate-600">
-          Jawaban peserta per soal beserta kunci, waktu, dan nilai evaluasi.
+          Jawaban peserta per soal beserta kunci, waktu, dan nilai tes tertulis.
         </p>
       </div>
       <div class="flex shrink-0 flex-col items-end gap-2">
@@ -139,7 +139,7 @@ function optionKeyClass(option: { is_correct: boolean, is_selected: boolean }) {
       <span class="ml-3 text-sm text-slate-600">Memuat detail hasil...</span>
     </div>
 
-    <UAlert v-else-if="errorMessage || !data" color="error" variant="soft" icon="i-lucide-circle-alert" :title="errorMessage || 'Detail hasil evaluasi belum dapat dimuat.'">
+    <UAlert v-else-if="errorMessage || !data" color="error" variant="soft" icon="i-lucide-circle-alert" :title="errorMessage || 'Detail hasil tes tertulis belum dapat dimuat.'">
       <template #actions>
         <UButton color="error" variant="outline" size="sm" icon="i-lucide-refresh-cw" @click="load">Muat Ulang</UButton>
       </template>
@@ -213,7 +213,7 @@ function optionKeyClass(option: { is_correct: boolean, is_selected: boolean }) {
       <div class="grid grid-cols-2 gap-3 md:grid-cols-4">
         <div
           class="rounded-xl border p-3.5"
-          :class="data.attempt.passed === null ? 'border-slate-200 bg-slate-50 text-slate-600' : data.attempt.passed ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-rose-200 bg-rose-50 text-rose-700'"
+          :class="data.attempt.passed === null ? 'border-slate-300 bg-slate-50 text-slate-600' : data.attempt.passed ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-rose-200 bg-rose-50 text-rose-700'"
         >
           <p class="text-sm font-medium">Nilai</p>
           <p class="mt-1 text-2xl font-semibold">{{ data.attempt.score === null ? '-' : formatScore(data.attempt.score) }}</p>
@@ -227,7 +227,7 @@ function optionKeyClass(option: { is_correct: boolean, is_selected: boolean }) {
           <p class="text-sm font-medium">Salah</p>
           <p class="mt-1 text-2xl font-semibold">{{ data.summary.wrong }}</p>
         </div>
-        <div class="rounded-xl border border-slate-200 bg-slate-50 p-3.5 text-slate-600">
+        <div class="rounded-xl border border-slate-300 bg-slate-50 p-3.5 text-slate-600">
           <p class="text-sm font-medium">Tidak Dijawab</p>
           <p class="mt-1 text-2xl font-semibold">{{ data.summary.unanswered }}</p>
         </div>
@@ -253,7 +253,7 @@ function optionKeyClass(option: { is_correct: boolean, is_selected: boolean }) {
           <div
             v-for="question in filteredQuestions"
             :key="question.number"
-            class="rounded-xl border border-slate-200 p-4"
+            class="rounded-xl border border-slate-300 p-4"
           >
             <div class="flex items-start justify-between gap-3">
               <p class="text-sm font-semibold text-slate-600">

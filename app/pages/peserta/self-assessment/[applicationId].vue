@@ -315,7 +315,7 @@ onBeforeUnmount(() => {
           class="rounded-xl border p-4 text-left transition"
           :class="activeTab === tab.id
             ? 'border-primary bg-blue-50 ring-1 ring-blue-200'
-            : 'border-slate-200 bg-white hover:border-slate-300'"
+            : 'border-slate-300 bg-white hover:border-slate-300'"
           @click="activeTab = tab.id"
         >
           <div class="flex items-start gap-3">

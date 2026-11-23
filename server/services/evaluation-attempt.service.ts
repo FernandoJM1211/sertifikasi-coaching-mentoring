@@ -16,9 +16,9 @@ import { getStageAccess } from './certification-stage.service'
 import { requireOwnedApplication } from './peserta-application.service'
 
 /**
- * Pengerjaan evaluasi pilihan ganda oleh Peserta.
+ * Pengerjaan tes tertulis pilihan ganda oleh Peserta.
  *
- * - Syarat mulai: pengajuan diterima, self assessment VERIFIED, perencanaan evaluasi
+ * - Syarat mulai: pengajuan diterima, self assessment VERIFIED, perencanaan tes tertulis
  *   periode sudah diterapkan (punya snapshot soal), tahap EVALUATION dibuka, dan belum
  *   punya pengerjaan aktif (pengerjaan berstatus RESET diabaikan).
  * - Soal diambil dari SNAPSHOT perencanaan, bukan bank soal langsung; perubahan bank
@@ -186,24 +186,24 @@ async function loadContext(application: Application) {
 type Context = Awaited<ReturnType<typeof loadContext>>
 
 function startBlocker(application: Application, context: Context): string {
-  if (context.attempt) return 'Anda sudah mengerjakan evaluasi ini.'
+  if (context.attempt) return 'Anda sudah mengerjakan tes tertulis ini.'
   if (application.application_status !== 'accepted') return 'Pengajuan sertifikasi Anda belum diterima.'
   if (!context.saVerified) return 'Self assessment Anda belum terverifikasi.'
-  if (!context.config?.snapshot_id) return 'Evaluasi untuk periode ini belum disiapkan oleh penyelenggara.'
+  if (!context.config?.snapshot_id) return 'Tes tertulis untuk periode ini belum disiapkan oleh penyelenggara.'
   if (!context.stage.open) return context.stage.message
 
   const end = Date.parse(context.stage.endAt)
   if (!Number.isNaN(end) && end > Date.now() && end - Date.now() < MIN_START_WINDOW_MS) {
-    return 'Waktu tahap evaluasi hampir berakhir sehingga evaluasi tidak dapat dimulai.'
+    return 'Waktu tahap tes tertulis hampir berakhir sehingga tes tertulis tidak dapat dimulai.'
   }
 
   return ''
 }
 
 /**
- * Ringkasan evaluasi untuk beranda peserta (tanpa mengubah data):
+ * Ringkasan tes tertulis untuk beranda peserta (tanpa mengubah data):
  * - `NOT_STARTED` / `IN_PROGRESS` / `SUBMITTED` (pengerjaan kedaluwarsa dianggap selesai);
- * - `available`: evaluasi dapat dimulai atau dilanjutkan saat ini.
+ * - `available`: tes tertulis dapat dimulai atau dilanjutkan saat ini.
  */
 export async function getEvaluationProgress(application: Application) {
   const context = await loadContext(application)
@@ -319,7 +319,7 @@ export async function startEvaluation(user: AuthenticatedUser, applicationId: st
   if (pool.length < questionCount) {
     throw createError({
       statusCode: 409,
-      statusMessage: 'Evaluasi belum siap (soal tidak lengkap). Hubungi penyelenggara.',
+      statusMessage: 'Tes tertulis belum siap (soal tidak lengkap). Hubungi penyelenggara.',
     })
   }
 
@@ -370,9 +370,9 @@ async function requireActiveAttempt(user: AuthenticatedUser, applicationId: stri
   const application = await requireOwnedApplication(user, applicationId)
   const attempt = await findAttempt(application.application_id)
 
-  if (!attempt) throw createError({ statusCode: 404, statusMessage: 'Evaluasi belum dimulai.' })
+  if (!attempt) throw createError({ statusCode: 404, statusMessage: 'Tes tertulis belum dimulai.' })
   if (attempt.status !== 'IN_PROGRESS') {
-    throw createError({ statusCode: 409, statusMessage: 'Evaluasi sudah dikirim.' })
+    throw createError({ statusCode: 409, statusMessage: 'Tes tertulis sudah dikirim.' })
   }
 
   return attempt
@@ -402,7 +402,7 @@ export async function saveEvaluationAnswers(user: AuthenticatedUser, application
 
   if (isExpired(attempt, DEADLINE_GRACE_MS)) {
     await finalizeAttempt(attempt, 'AUTO')
-    throw createError({ statusCode: 409, statusMessage: 'Waktu evaluasi telah habis. Jawaban tersimpan sudah dikirim otomatis.' })
+    throw createError({ statusCode: 409, statusMessage: 'Waktu tes tertulis telah habis. Jawaban tersimpan sudah dikirim otomatis.' })
   }
 
   const now = new Date().toISOString()

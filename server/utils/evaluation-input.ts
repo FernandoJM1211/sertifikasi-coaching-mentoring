@@ -10,7 +10,7 @@ import {
 } from '../../shared/utils/evaluation'
 
 /**
- * Validasi input evaluasi dari `readBody` (bertipe unknown sampai dicek).
+ * Validasi input tes tertulis dari `readBody` (bertipe unknown sampai dicek).
  * Dipakai lapisan `server/api` sebelum memanggil service.
  */
 

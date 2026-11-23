@@ -3,5 +3,5 @@ import { startEvaluation } from '../../../../../services/evaluation-attempt.serv
 export default defineEventHandler(async (event) => {
   const user = await requireUser(event, ['PESERTA'])
   const applicationId = requireRouterParam(event, 'applicationId', 'ID pengajuan')
-  return { success: true, message: 'Evaluasi dimulai.', data: await startEvaluation(user, applicationId) }
+  return { success: true, message: 'Tes tertulis dimulai.', data: await startEvaluation(user, applicationId) }
 })

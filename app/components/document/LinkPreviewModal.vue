@@ -61,7 +61,7 @@ const open = defineModel<boolean>('open', { default: false })
     </template>
 
     <template #body>
-      <div class="flex h-[calc(96vh-5rem)] w-full flex-col overflow-hidden rounded-lg border border-slate-200 bg-slate-900">
+      <div class="flex h-[calc(96vh-5rem)] w-full flex-col overflow-hidden rounded-lg border border-slate-300 bg-slate-900">
         <iframe
           v-if="open && embedUrl"
           :src="embedUrl"

@@ -175,7 +175,7 @@ const summaryCards = computed(() => [
   { key: 'ALL', label: 'Total Peserta', value: data.value?.summary.total ?? 0, icon: 'i-lucide-users', tone: 'border-blue-200 bg-blue-50 text-blue-700' },
   { key: 'ASSIGNED', label: 'Sudah Ditugaskan', value: data.value?.summary.assigned ?? 0, icon: 'i-lucide-user-check', tone: 'border-emerald-200 bg-emerald-50 text-emerald-700' },
   { key: 'NOT_ASSIGNED', label: 'Belum Ditugaskan', value: data.value?.summary.unassigned ?? 0, icon: 'i-lucide-user-x', tone: 'border-amber-200 bg-amber-50 text-amber-700' },
-  { key: 'NOT_VERIFIED', label: 'SA Belum Terverifikasi', value: data.value?.summary.notVerified ?? 0, icon: 'i-lucide-clock', tone: 'border-slate-200 bg-slate-50 text-slate-600' },
+  { key: 'NOT_VERIFIED', label: 'SA Belum Terverifikasi', value: data.value?.summary.notVerified ?? 0, icon: 'i-lucide-clock', tone: 'border-slate-300 bg-slate-50 text-slate-600' },
 ])
 
 /* ---------------- Pilih banyak peserta ---------------- */
@@ -477,7 +477,7 @@ watch([activeFilter, searchQuery], resetTablePage)
             <!-- Maksimal 3 nama terlihat; selebihnya di-scroll -->
             <ul
               v-if="section.data?.period.length"
-              class="mt-4 max-h-28 divide-y divide-slate-100 overflow-y-auto pr-1"
+              class="mt-4 max-h-28 divide-y divide-slate-200 overflow-y-auto pr-1"
             >
               <li
                 v-for="assessor in section.data.period"
@@ -488,7 +488,7 @@ watch([activeFilter, searchQuery], resetTablePage)
                 <span class="shrink-0 text-xs text-slate-600">{{ assessor.assigned_count }} peserta</span>
               </li>
             </ul>
-            <p v-else class="mt-4 rounded-lg border border-dashed border-slate-200 p-3 text-center text-sm text-slate-500">
+            <p v-else class="mt-4 rounded-lg border border-dashed border-slate-300 p-3 text-center text-sm text-slate-500">
               Belum ada {{ ROLE_LABELS[section.role] }} pada periode ini.
             </p>
           </UCard>
@@ -618,7 +618,7 @@ watch([activeFilter, searchQuery], resetTablePage)
               <tr
                 v-for="item in pagedItems"
                 :key="item.application_id"
-                class="border-b border-slate-200 last:border-0"
+                class="border-b border-slate-300 last:border-0"
                 :class="selectedSet.has(item.application_id) ? 'bg-blue-50' : ''"
               >
                 <td class="px-4 py-4">
@@ -771,14 +771,14 @@ watch([activeFilter, searchQuery], resetTablePage)
               class="w-full"
             />
 
-            <div class="max-h-80 overflow-y-auto rounded-lg border border-slate-200">
+            <div class="max-h-80 overflow-y-auto rounded-lg border border-slate-300">
               <p v-if="manageCandidates.length === 0" class="p-4 text-center text-sm text-slate-600">
                 Tidak ada akun asesor aktif. Akun asesor dibuat oleh Super Admin melalui menu Manajemen Akun.
               </p>
               <label
                 v-for="candidate in manageCandidates"
                 :key="candidate.user_id"
-                class="flex cursor-pointer items-center justify-between gap-3 border-b border-slate-100 px-4 py-3 last:border-0 hover:bg-slate-50"
+                class="flex cursor-pointer items-center justify-between gap-3 border-b border-slate-200 px-4 py-3 last:border-0 hover:bg-slate-50"
               >
                 <span class="flex min-w-0 items-center gap-3">
                   <UCheckbox

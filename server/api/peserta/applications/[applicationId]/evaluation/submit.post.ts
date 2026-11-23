@@ -6,5 +6,5 @@ export default defineEventHandler(async (event) => {
   const applicationId = requireRouterParam(event, 'applicationId', 'ID pengajuan')
   const answers = parseAnswersInput(await readBody(event))
 
-  return { success: true, message: 'Jawaban evaluasi berhasil dikirim.', data: await submitEvaluation(user, applicationId, answers) }
+  return { success: true, message: 'Jawaban tes tertulis berhasil dikirim.', data: await submitEvaluation(user, applicationId, answers) }
 })

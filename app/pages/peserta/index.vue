@@ -65,7 +65,7 @@ const STAGE_INFO: Record<string, string> = {
   REGISTRATION: 'Pendaftaran peserta sedang dibuka.',
   DOCUMENT_VERIFICATION: 'Berkas pendaftaran sedang diverifikasi oleh penyelenggara.',
   SELF_ASSESSMENT_VERIFICATION: 'Self assessment Anda sedang diperiksa oleh Verifikator. Jika diminta perbaikan, Anda akan mendapat catatan pada halaman Self Assessment.',
-  ASSESSOR_ASSESSMENT: 'Hasil self assessment dan evaluasi Anda sedang dinilai oleh asesor.',
+  ASSESSOR_ASSESSMENT: 'Hasil self assessment dan tes tertulis Anda sedang dinilai oleh asesor.',
   ASSESSMENT_VERIFICATION: 'Hasil penilaian asesor sedang diverifikasi oleh penyelenggara.',
   ANNOUNCEMENT: 'Hasil sertifikasi akan diumumkan pada tahapan ini.',
 }
@@ -100,7 +100,7 @@ function selfAssessmentTodo(): TimelineTask | null {
   return null
 }
 
-/** Pekerjaan evaluasi yang masih dapat dikerjakan. */
+/** Pekerjaan tes tertulis yang masih dapat dikerjakan. */
 function evaluationTodo(): TimelineTask | null {
   const evaluation = progress.value?.evaluation
   if (!evaluation?.available || evaluation.status === 'SUBMITTED') return null
@@ -108,9 +108,9 @@ function evaluationTodo(): TimelineTask | null {
   const inProgress = evaluation.status === 'IN_PROGRESS'
   return {
     tone: 'pending',
-    title: inProgress ? 'Evaluasi Anda belum diselesaikan' : 'Evaluasi Anda belum dikerjakan',
-    description: 'Selesaikan evaluasi pilihan ganda sebelum batas waktunya berakhir.',
-    label: inProgress ? 'Lanjutkan Evaluasi' : 'Kerjakan Evaluasi',
+    title: inProgress ? 'Tes tertulis Anda belum diselesaikan' : 'Tes tertulis Anda belum dikerjakan',
+    description: 'Selesaikan tes tertulis pilihan ganda sebelum batas waktunya berakhir.',
+    label: inProgress ? 'Lanjutkan Tes Tertulis' : 'Kerjakan Tes Tertulis',
     icon: 'i-lucide-file-pen-line',
     to: pathFor(EVALUATION_PATH),
   }
@@ -181,24 +181,24 @@ const tasks = computed<TimelineTask[]>(() => {
     if (evaluation?.status === 'SUBMITTED') {
       return [{
         tone: 'done',
-        title: 'Evaluasi sudah dikerjakan',
-        description: 'Jawaban evaluasi Anda sudah terkirim.',
-        label: 'Lihat Evaluasi',
+        title: 'Tes tertulis sudah dikerjakan',
+        description: 'Jawaban tes tertulis Anda sudah terkirim.',
+        label: 'Lihat Tes Tertulis',
         icon: 'i-lucide-eye',
         to: pathFor(EVALUATION_PATH),
       }]
     }
     const todo = evaluationTodo()
     if (todo) {
-      return [{ ...todo, tone: 'action', title: '', description: 'Kerjakan evaluasi pilihan ganda sebelum tahapan ini berakhir. Evaluasi hanya dapat dikerjakan satu kali.' }]
+      return [{ ...todo, tone: 'action', title: '', description: 'Kerjakan tes tertulis pilihan ganda sebelum tahapan ini berakhir. Tes tertulis hanya dapat dikerjakan satu kali.' }]
     }
     return [{
       tone: 'info',
-      title: 'Evaluasi belum dapat dikerjakan',
+      title: 'Tes tertulis belum dapat dikerjakan',
       description: progress.value?.self_assessment?.status === 'VERIFIED'
-        ? 'Buka halaman Evaluasi untuk melihat keterangan lebih lanjut.'
-        : 'Evaluasi hanya dapat dikerjakan oleh peserta yang self assessment-nya telah terverifikasi.',
-      label: 'Buka Evaluasi',
+        ? 'Buka halaman Tes Tertulis untuk melihat keterangan lebih lanjut.'
+        : 'Tes tertulis hanya dapat dikerjakan oleh peserta yang self assessment-nya telah terverifikasi.',
+      label: 'Buka Tes Tertulis',
       icon: 'i-lucide-file-pen-line',
       to: pathFor(EVALUATION_PATH),
     }]

@@ -358,7 +358,7 @@ async function handleSubmit() {
         </div>
 
         <div
-          class="flex flex-col-reverse gap-3 border-t border-slate-100 pt-5 sm:flex-row sm:justify-end"
+          class="flex flex-col-reverse gap-3 border-t border-slate-200 pt-5 sm:flex-row sm:justify-end"
         >
           <UButton
             color="neutral"

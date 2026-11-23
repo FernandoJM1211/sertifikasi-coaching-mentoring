@@ -7,7 +7,7 @@ import {
 } from '~~/shared/utils/evaluation'
 
 /**
- * Bank Soal evaluasi (Super Admin): tambah, ubah, arsipkan soal pilihan ganda.
+ * Bank Soal tes tertulis (Super Admin): tambah, ubah, arsipkan soal pilihan ganda.
  * Soal yang sudah muncul di pengerjaan peserta terkunci (hanya bisa diarsipkan).
  */
 definePageMeta({ layout: 'super-admin' })
@@ -213,7 +213,7 @@ async function confirmToggleStatus() {
       <div class="min-w-0">
         <h1 class="text-2xl font-bold tracking-tight text-blue-500 sm:text-3xl">Bank Soal</h1>
         <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-          Kumpulan soal pilihan ganda evaluasi. Soal aktif dapat disusun menjadi paket soal.
+          Kumpulan soal pilihan ganda tes tertulis. Soal aktif dapat disusun menjadi paket soal.
         </p>
       </div>
       <div class="flex flex-wrap gap-2">
@@ -280,7 +280,7 @@ async function confirmToggleStatus() {
             </tr>
           </thead>
           <tbody>
-            <tr v-for="item in pagedQuestions" :key="item.question_id" class="border-b border-slate-200 last:border-0">
+            <tr v-for="item in pagedQuestions" :key="item.question_id" class="border-b border-slate-300 last:border-0">
               <td class="px-4 py-3">
                 <p class="truncate font-medium text-slate-800" :title="item.question_text">{{ item.question_text }}</p>
               </td>
@@ -327,8 +327,8 @@ async function confirmToggleStatus() {
             color="info"
             variant="subtle"
             icon="i-lucide-info"
-            title="Soal ini sudah digunakan pada evaluasi peserta"
-            description="Perubahan tidak memengaruhi soal & nilai peserta yang sudah ada. Perubahan berlaku untuk peserta berikutnya setelah perencanaan evaluasi periode diterapkan ulang."
+            title="Soal ini sudah digunakan pada tes tertulis peserta"
+            description="Perubahan tidak memengaruhi soal & nilai peserta yang sudah ada. Perubahan berlaku untuk peserta berikutnya setelah perencanaan tes tertulis periode diterapkan ulang."
           />
 
           <UFormField label="Topik" description="Opsional, untuk memudahkan pencarian saat menyusun paket.">

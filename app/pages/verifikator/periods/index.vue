@@ -3,7 +3,7 @@
     <!-- Header -->
     <div class="space-y-2">
       <h1 class="text-3xl font-semibold tracking-tight text-blue-500">
-        Periode Sertifikasi
+        Timeline Periode
       </h1>
 
       <p class="text-sm leading-6 text-slate-600">
@@ -53,7 +53,7 @@
     <!-- Loading -->
     <div
       v-if="loading"
-      class="flex items-center justify-center rounded-xl border border-slate-200 bg-white/90 py-16 shadow-sm"
+      class="flex items-center justify-center rounded-xl border border-slate-300 bg-white/90 py-16 shadow-sm"
     >
       <UIcon
         name="i-lucide-loader-circle"
@@ -117,7 +117,7 @@ class="grid grid-cols-1 items-start gap-5 md:grid-cols-2"
 
           <!-- Navigasi -->
           <div
-            class="mt-auto grid grid-cols-1 gap-2 border-t border-slate-200 pt-4 sm:grid-cols-2"
+            class="mt-auto grid grid-cols-1 gap-2 border-t border-slate-300 pt-4"
           >
             <UButton
               block
@@ -127,15 +127,6 @@ class="grid grid-cols-1 items-start gap-5 md:grid-cols-2"
               :to="`/verifikator/periods/${period.period_id}/timeline`"
             >
               Lihat Timeline
-            </UButton>
-
-            <UButton
-              block
-              color="primary"
-              icon="i-lucide-users"
-              :to="`/verifikator/periods/${period.period_id}`"
-            >
-              Verifikasi Peserta
             </UButton>
           </div>
         </div>

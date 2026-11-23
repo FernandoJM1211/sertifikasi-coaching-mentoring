@@ -3,7 +3,7 @@
     <!-- Header (seragam dengan halaman pemilihan periode lain / PeriodPicker) -->
     <div class="space-y-2">
       <h1 class="text-3xl font-semibold tracking-tight text-blue-500">
-        Periode Sertifikasi
+        Atur Periode
       </h1>
       <p class="text-sm leading-6 text-slate-600">
         Pilih periode sertifikasi yang ingin dipantau dan dikelola.
@@ -57,7 +57,7 @@
     <!-- Loading -->
     <div
       v-if="loading"
-      class="flex items-center justify-center rounded-xl border border-slate-200 bg-white/90 py-16 shadow-sm"
+      class="flex items-center justify-center rounded-xl border border-slate-300 bg-white/90 py-16 shadow-sm"
     >
       <UIcon
         name="i-lucide-loader-circle"
@@ -121,25 +121,17 @@ class="grid grid-cols-1 items-start gap-5 md:grid-cols-2"
 
           <!-- Navigasi -->
           <div
-            class="mt-auto grid grid-cols-1 gap-2 border-t border-slate-200 pt-4 sm:grid-cols-2"
+            class="mt-auto grid grid-cols-1 gap-2 border-t border-slate-300 pt-4 sm:grid-cols-2"
           >
             <UButton
               block
               color="neutral"
               variant="outline"
               icon="i-lucide-calendar-clock"
+              class="sm:col-span-2"
               :to="`/super-admin/periods/${period.period_id}/timeline`"
             >
               Atur Timeline
-            </UButton>
-
-            <UButton
-              block
-              color="primary"
-              icon="i-lucide-users"
-              :to="`/super-admin/periods/${period.period_id}`"
-            >
-              Verifikasi Peserta
             </UButton>
 
             <!-- Draft menjadi Aktif -->
@@ -234,7 +226,7 @@ class="grid grid-cols-1 items-start gap-5 md:grid-cols-2"
 <template #content>
   <div class="flex max-h-[85dvh] flex-col overflow-hidden">
     <!-- Header modal -->
-    <div class="flex shrink-0 items-start gap-4 border-b border-slate-200 px-6 py-5">
+    <div class="flex shrink-0 items-start gap-4 border-b border-slate-300 px-6 py-5">
       <div
         class="flex size-12 shrink-0 items-center justify-center rounded-xl ring-1"
         :class="statusModalHeaderClass"
@@ -261,7 +253,7 @@ class="grid grid-cols-1 items-start gap-5 md:grid-cols-2"
       <!-- Periode yang dipilih -->
       <div
         v-if="selectedPeriod"
-        class="rounded-xl border border-slate-200 bg-slate-50 p-4"
+        class="rounded-xl border border-slate-300 bg-slate-50 p-4"
       >
         <p class="text-xs font-medium text-slate-600">
           Periode yang akan diubah
@@ -302,7 +294,7 @@ class="grid grid-cols-1 items-start gap-5 md:grid-cols-2"
     </div>
 
     <!-- Tombol aksi: tetap terlihat di bawah -->
-    <div class="flex shrink-0 flex-col-reverse gap-2 border-t border-slate-200 bg-white px-6 py-4 sm:flex-row sm:justify-end">
+    <div class="flex shrink-0 flex-col-reverse gap-2 border-t border-slate-300 bg-white px-6 py-4 sm:flex-row sm:justify-end">
       <UButton
         color="neutral"
         variant="outline"

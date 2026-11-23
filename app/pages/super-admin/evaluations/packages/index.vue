@@ -1,5 +1,5 @@
 <script setup lang="ts">
-/** Daftar paket soal evaluasi (Super Admin). */
+/** Daftar paket soal tes tertulis (Super Admin). */
 definePageMeta({ layout: 'super-admin' })
 useHead({ title: 'Paket Soal' })
 
@@ -63,7 +63,7 @@ watch([searchQuery, statusFilter], resetTablePage)
       <div class="min-w-0">
         <h1 class="text-2xl font-bold tracking-tight text-blue-500 sm:text-3xl">Paket Soal</h1>
         <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-          Kumpulan soal pilihan dari bank soal. Paket dipasangkan ke periode melalui menu Perencanaan Evaluasi.
+          Kumpulan soal pilihan dari bank soal. Paket dipasangkan ke periode melalui menu Perencanaan Tes Tertulis.
         </p>
       </div>
       <UButton icon="i-lucide-plus" to="/super-admin/evaluations/packages/baru">Buat Paket</UButton>
@@ -86,7 +86,7 @@ watch([searchQuery, statusFilter], resetTablePage)
           <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <h2 class="font-semibold text-slate-900">Daftar Paket Soal</h2>
-              <p class="mt-1 text-sm text-slate-600">Perubahan paket berlaku pada periode setelah perencanaan evaluasinya diterapkan ulang.</p>
+              <p class="mt-1 text-sm text-slate-600">Perubahan paket berlaku pada periode setelah perencanaan tes tertulisnya diterapkan ulang.</p>
             </div>
             <UButton color="neutral" variant="outline" icon="i-lucide-refresh-cw" size="sm" :loading="loading" class="self-start" @click="load">
               Muat Ulang
@@ -131,7 +131,7 @@ watch([searchQuery, statusFilter], resetTablePage)
             </tr>
           </thead>
           <tbody>
-            <tr v-for="item in pagedItems" :key="item.package_id" class="border-b border-slate-200 last:border-0">
+            <tr v-for="item in pagedItems" :key="item.package_id" class="border-b border-slate-300 last:border-0">
               <td class="px-4 py-3">
                 <p class="truncate font-medium text-slate-800" :title="item.package_name">{{ item.package_name }}</p>
               </td>

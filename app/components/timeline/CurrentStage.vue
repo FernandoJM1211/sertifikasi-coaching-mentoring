@@ -42,7 +42,7 @@ const ICON: Record<TimelineTask['tone'], { name: string, color: string }> = {
           Tanggal Mulai:
           <span class="font-semibold text-slate-900">{{ formatDateTimeId(activeStage.startAt) }}</span>
         </p>
-        <span class="hidden h-4 border-l border-slate-200 sm:block" />
+        <span class="hidden h-4 border-l border-slate-300 sm:block" />
         <p>
           Tanggal Selesai:
           <span class="font-semibold text-slate-900">{{ formatDateTimeId(activeStage.endAt) }}</span>

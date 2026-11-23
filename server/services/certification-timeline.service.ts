@@ -48,7 +48,7 @@ const REQUIRED_STAGES = [
   {
     stageOrder: 5,
     stageCode: 'EVALUATION',
-    stageName: 'Evaluasi',
+    stageName: 'Tes Tertulis',
   },
   {
     stageOrder: 6,

@@ -22,9 +22,9 @@
     </div>
 
     <!-- Tabel akun -->
-    <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+    <div class="overflow-hidden rounded-xl border border-slate-300 bg-white shadow-sm">
       <!-- Header tabel dan filter -->
-      <div class="border-b border-slate-200 p-5 sm:px-8 sm:py-6">
+      <div class="border-b border-slate-300 p-5 sm:px-8 sm:py-6">
         <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <h2 class="text-lg font-semibold text-slate-900">
@@ -127,7 +127,7 @@
             </tr>
           </thead>
 
-          <tbody class="divide-y divide-slate-200">
+          <tbody class="divide-y divide-slate-300">
             <tr
               v-if="isRefreshing && accounts.length === 0"
             >
@@ -234,7 +234,7 @@
       </div>
 
       <!-- Footer dan pagination -->
-      <div class="border-t border-slate-200 px-4 py-4 sm:px-6">
+      <div class="border-t border-slate-300 px-4 py-4 sm:px-6">
         <TablePagination v-model:page="currentPage" v-model:page-size="pageSize" :total="filteredAccounts.length" label="akun" />
       </div>
     </div>
@@ -247,7 +247,7 @@
     >
       <template #body>
         <div v-if="selectedAccount" class="space-y-4">
-          <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+          <div class="rounded-xl border border-slate-300 bg-slate-50 p-4">
             <p class="font-semibold text-slate-900">
               {{ selectedAccount.name }}
             </p>
@@ -261,7 +261,7 @@
 
           <button
             type="button"
-            class="flex w-full items-center gap-3 rounded-xl border border-slate-200 p-4 text-left transition hover:border-blue-300 hover:bg-blue-50"
+            class="flex w-full items-center gap-3 rounded-xl border border-slate-300 p-4 text-left transition hover:border-blue-300 hover:bg-blue-50"
             @click="goToAccountProfile(selectedAccount.id)"
           >
             <div class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
@@ -294,7 +294,7 @@
           <button
             v-else
             type="button"
-            class="flex w-full items-center gap-3 rounded-xl border border-slate-200 p-4 text-left transition hover:border-amber-300 hover:bg-amber-50"
+            class="flex w-full items-center gap-3 rounded-xl border border-slate-300 p-4 text-left transition hover:border-amber-300 hover:bg-amber-50"
             @click="openResetPassword"
           >
             <div class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-amber-50 text-amber-600">
@@ -315,7 +315,7 @@
           <button
             v-if="selectedAccount.status === 'PENDING_ACTIVATION' && selectedAccount.role === 'PESERTA'"
             type="button"
-            class="flex w-full items-center gap-3 rounded-xl border border-slate-200 p-4 text-left transition hover:border-sky-300 hover:bg-sky-50 disabled:cursor-not-allowed disabled:opacity-60"
+            class="flex w-full items-center gap-3 rounded-xl border border-slate-300 p-4 text-left transition hover:border-sky-300 hover:bg-sky-50 disabled:cursor-not-allowed disabled:opacity-60"
             :disabled="isResendingActivation"
             @click="resendActivation"
           >
@@ -341,7 +341,7 @@
 <button
   v-if="selectedAccount.status === 'ACTIVE' && selectedAccount.role !== 'SUPER_ADMIN'"
   type="button"
-  class="flex w-full items-center gap-3 rounded-xl border border-slate-200 p-4 text-left transition hover:border-red-300 hover:bg-red-50"
+  class="flex w-full items-center gap-3 rounded-xl border border-slate-300 p-4 text-left transition hover:border-red-300 hover:bg-red-50"
   @click="confirmAccountStatusChange('DISABLED')"
 >
   <div class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-red-50 text-red-600">
@@ -363,7 +363,7 @@
 <button
   v-else-if="selectedAccount.status === 'DISABLED' && selectedAccount.role !== 'SUPER_ADMIN'"
   type="button"
-  class="flex w-full items-center gap-3 rounded-xl border border-slate-200 p-4 text-left transition hover:border-emerald-300 hover:bg-emerald-50"
+  class="flex w-full items-center gap-3 rounded-xl border border-slate-300 p-4 text-left transition hover:border-emerald-300 hover:bg-emerald-50"
   @click="confirmAccountStatusChange('ACTIVE')"
 >
   <div class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
@@ -383,7 +383,7 @@
 </button>
 
 
-          <div class="flex justify-end border-t border-slate-100 pt-3">
+          <div class="flex justify-end border-t border-slate-200 pt-3">
             <UButton
               color="neutral"
               variant="outline"
@@ -436,7 +436,7 @@
 
     <div
       v-if="selectedAccount"
-      class="mt-5 rounded-xl border border-slate-200 bg-slate-50 p-4"
+      class="mt-5 rounded-xl border border-slate-300 bg-slate-50 p-4"
     >
       <p class="font-semibold text-slate-900">
         {{ selectedAccount.name }}
@@ -478,7 +478,7 @@
         </p>
       </div>
 
-      <div class="flex justify-end gap-3 border-t border-slate-100 pt-4">
+      <div class="flex justify-end gap-3 border-t border-slate-200 pt-4">
         <button
           type="button"
           class="rounded-xl border border-slate-300 px-4 py-2.5 font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
@@ -582,7 +582,7 @@
             </p>
           </div>
 
-          <div class="flex justify-end gap-3 border-t border-slate-100 pt-4">
+          <div class="flex justify-end gap-3 border-t border-slate-200 pt-4">
             <UButton
               type="button"
               color="neutral"

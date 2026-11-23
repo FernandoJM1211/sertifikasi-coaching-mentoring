@@ -90,7 +90,7 @@ async function handleLogout() {
     <aside class="relative z-20 flex h-full w-72 shrink-0 flex-col border-r border-slate-300 bg-white/95">
       <!-- Identitas Sistem -->
       <div class="flex h-[76px] shrink-0 items-center gap-3 border-b border-slate-300 px-6">
-        <div class="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white ring-1 ring-slate-200">
+        <div class="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white ring-1 ring-slate-300">
           <img src="/logo-lan.png" alt="Logo LAN" class="size-full scale-150 object-contain">
         </div>
 
@@ -159,9 +159,9 @@ async function handleLogout() {
         <!-- Menu Akun -->
         <div
           v-if="isProfileMenuOpen"
-          class="absolute bottom-full left-4 right-4 z-50 mb-2 rounded-xl border border-slate-200 bg-white p-2 shadow-xl"
+          class="absolute bottom-full left-4 right-4 z-50 mb-2 rounded-xl border border-slate-300 bg-white p-2 shadow-xl"
         >
-          <div class="border-b border-slate-100 px-3 py-3">
+          <div class="border-b border-slate-200 px-3 py-3">
             <p class="truncate text-sm font-semibold text-slate-900">
               {{ displayName }}
             </p>
@@ -191,7 +191,7 @@ async function handleLogout() {
             Ganti Kata Sandi
           </button>
 
-          <div class="my-1 border-t border-slate-100" />
+          <div class="my-1 border-t border-slate-200" />
 
           <button
             type="button"
@@ -223,7 +223,7 @@ async function handleLogout() {
         </div>
 
         <div class="flex shrink-0 items-center gap-3">
-          <div class="hidden items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 md:flex">
+          <div class="hidden items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 md:flex">
             <UIcon name="i-lucide-calendar-days" class="size-4 text-blue-500" />
             {{ todayLabel }}
           </div>

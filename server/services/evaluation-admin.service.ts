@@ -27,8 +27,8 @@ import {
 import { EVALUATION_OPTION_KEYS } from '../../shared/utils/evaluation'
 
 /**
- * Pengelolaan evaluasi oleh Super Admin: bank soal, paket soal, dan
- * perencanaan evaluasi per periode (termasuk melihat nilai & mereset progres peserta).
+ * Pengelolaan tes tertulis oleh Super Admin: bank soal, paket soal, dan
+ * perencanaan tes tertulis per periode (termasuk melihat nilai & mereset progres peserta).
  *
  * Model snapshot (tidak ada penguncian):
  * - bank soal & paket soal selalu dapat diubah; ditandai "sudah digunakan" bila pernah dipakai;
@@ -300,7 +300,7 @@ export async function setPackageStatus(user: AuthenticatedUser, packageId: strin
 }
 
 /* ------------------------------------------------------------------ */
-/* Perencanaan evaluasi per periode + hasil                            */
+/* Perencanaan tes tertulis per periode + hasil                            */
 /* ------------------------------------------------------------------ */
 
 async function requirePeriod(periodId: string) {
@@ -508,8 +508,8 @@ export async function savePeriodEvaluation(user: AuthenticatedUser, periodId: st
 }
 
 /**
- * Mereset progres evaluasi satu peserta: pengerjaan ditandai RESET (tetap tersimpan
- * sebagai riwayat) sehingga peserta dapat mulai lagi selama tahap Evaluasi dibuka.
+ * Mereset progres tes tertulis satu peserta: pengerjaan ditandai RESET (tetap tersimpan
+ * sebagai riwayat) sehingga peserta dapat mulai lagi selama tahap Tes Tertulis dibuka.
  */
 export async function resetAttempt(user: AuthenticatedUser, attemptId: string) {
   const [attempt] = await evaluationAttempts.findWhere((item) => item.attempt_id === attemptId)
@@ -528,7 +528,7 @@ export async function resetAttempt(user: AuthenticatedUser, attemptId: string) {
 }
 
 /**
- * Detail hasil evaluasi satu pengerjaan (Super Admin): identitas peserta, waktu,
+ * Detail hasil tes tertulis satu pengerjaan (Super Admin): identitas peserta, waktu,
  * nilai, dan setiap soal beserta opsi (urutan seperti yang dilihat peserta),
  * jawaban peserta, kunci, serta benar/salah.
  */

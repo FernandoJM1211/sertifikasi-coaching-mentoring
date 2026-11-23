@@ -103,7 +103,7 @@ const filteredItems = computed(() => {
 
 const summaryCards = computed(() => [
   { key: 'ALL', label: 'Peserta', value: data.value?.summary.total ?? 0, icon: 'i-lucide-users', tone: 'border-blue-200 bg-blue-50 text-blue-700' },
-  { key: 'NOT_STARTED', label: 'Belum Dinilai', value: data.value?.summary.notStarted ?? 0, icon: 'i-lucide-clock', tone: 'border-slate-200 bg-slate-50 text-slate-600' },
+  { key: 'NOT_STARTED', label: 'Belum Dinilai', value: data.value?.summary.notStarted ?? 0, icon: 'i-lucide-clock', tone: 'border-slate-300 bg-slate-50 text-slate-600' },
   { key: 'DRAFT', label: 'Draf', value: data.value?.summary.draft ?? 0, icon: 'i-lucide-pencil-line', tone: 'border-amber-200 bg-amber-50 text-amber-700' },
   { key: 'SUBMITTED', label: 'Selesai', value: data.value?.summary.submitted ?? 0, icon: 'i-lucide-circle-check', tone: 'border-violet-200 bg-violet-50 text-violet-700' },
   { key: 'CONTINUE', label: 'Dapat Dilanjutkan', value: data.value?.summary.continued ?? 0, icon: 'i-lucide-arrow-right-circle', tone: 'border-emerald-200 bg-emerald-50 text-emerald-700' },
@@ -158,7 +158,7 @@ watch([activeFilter, searchQuery], resetTablePage)
 
     <template v-else>
       <!-- Jadwal tahap penilaian asesor -->
-      <div class="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm">
+      <div class="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm">
         <span class="flex items-center gap-2 font-medium text-slate-800">
           <UIcon name="i-lucide-calendar-clock" class="size-4 text-primary" />
           Tahap Penilaian Asesor
@@ -241,7 +241,7 @@ watch([activeFilter, searchQuery], resetTablePage)
               </tr>
             </thead>
             <tbody>
-              <tr v-for="item in pagedItems" :key="item.application_id" class="border-b border-slate-200 last:border-0">
+              <tr v-for="item in pagedItems" :key="item.application_id" class="border-b border-slate-300 last:border-0">
                 <td class="px-4 py-3">
                   <p class="truncate font-medium text-slate-800" :title="item.full_name">{{ item.full_name }}</p>
                   <p class="truncate text-xs text-slate-600">{{ item.nip }}</p>
