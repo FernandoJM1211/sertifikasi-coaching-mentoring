@@ -49,7 +49,11 @@ const helpOptions = [
     v-if="variant === 'compact'"
     class="mt-8 flex flex-col gap-2 rounded-xl border border-slate-300 bg-white/90 px-5 py-3 text-xs text-slate-600 shadow-sm backdrop-blur-xl sm:flex-row sm:items-center sm:justify-between"
   >
-    <p>© {{ year }} {{ contact.unit }} — {{ contact.institution }}</p>
+    <p>
+      © {{ year }} {{ contact.unit }} — {{ contact.institution }}
+      · <NuxtLink to="/kebijakan-privasi" class="hover:text-blue-600 hover:underline">Kebijakan Privasi</NuxtLink>
+      · <NuxtLink to="/syarat-ketentuan" class="hover:text-blue-600 hover:underline">Syarat &amp; Ketentuan</NuxtLink>
+    </p>
 
     <UButton
       label="Butuh Bantuan?"
@@ -103,7 +107,12 @@ const helpOptions = [
         </div>
         <div class="leading-tight">
           <p class="text-sm font-semibold text-slate-900">{{ contact.unit }}</p>
-          <p class="text-xs text-slate-600">© {{ year }} {{ contact.institution }}</p>
+          <p class="text-xs text-slate-600">
+            © {{ year }} {{ contact.institution }}
+            <!-- Tautan wajib untuk Branding Google OAuth (beranda harus menautkan kebijakan privasi). -->
+            · <NuxtLink to="/kebijakan-privasi" class="hover:text-blue-600 hover:underline">Kebijakan Privasi</NuxtLink>
+            · <NuxtLink to="/syarat-ketentuan" class="hover:text-blue-600 hover:underline">Syarat &amp; Ketentuan</NuxtLink>
+          </p>
         </div>
       </div>
 

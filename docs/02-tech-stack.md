@@ -87,11 +87,19 @@ Refresh token Drive ditolak Google, sehingga unggah & preview dokumen gagal. Pen
 OAuth consent screen masih berstatus **Testing** (token hanya berlaku 7 hari), token dicabut
 dari akun Google, atau kata sandi akun Google diganti.
 
-1. Google Cloud Console → *APIs & Services* → *OAuth consent screen* → **Publish App**
-   (status *In production*), atau pilih *Internal* jika memakai Google Workspace instansi.
+1. Google Cloud Console → *Google Auth Platform* → **Branding**: isi
+   *Application home page* `https://sertifikasi-coaching-mentoring.vercel.app`,
+   *privacy policy* `…/kebijakan-privasi`, *terms of service* `…/syarat-ketentuan`, dan
+   *Authorized domains* `sertifikasi-coaching-mentoring.vercel.app` → Save. Lalu **Audience** →
+   **Publish app** (status *In production*), atau pilih *Internal* jika memakai Google Workspace instansi.
+   Scope `drive.file` tidak sensitif sehingga tidak perlu verifikasi Google.
 2. Pastikan `GOOGLE_OAUTH_REDIRECT_URI` terdaftar di *Credentials* → OAuth client.
 3. Login sebagai Super Admin, buka `<APP_BASE_URL>/api/auth/google`, pilih akun Google pemilik
    folder Drive, setujui akses. Respons sukses = token baru tersimpan.
+   Token yang dibuat **saat masih Testing tetap kedaluwarsa 7 hari** — hubungkan ulang setelah
+   status *In production*. Di Vercel token tidak tersimpan otomatis: hubungkan dari lokal, lalu
+   salin `refresh_token` dari file `GOOGLE_OAUTH_TOKEN_PATH` ke env `GOOGLE_OAUTH_REFRESH_TOKEN`
+   di Vercel dan redeploy.
 
 ## Tool Pengembangan
 

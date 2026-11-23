@@ -380,3 +380,21 @@ sebelum penilaian asesor). Pada proses klasikal tahap ini disebut "tes tertulis"
 
 **Penerapan.** Label di `app/`, pesan di `server/`, `app/utils/timeline.ts`, `stageName` di
 `certification-timeline.service.ts` & halaman timeline; docs 01/03/04/05/07, CLAUDE.md.
+
+## K-18 — Halaman Kebijakan Privasi & Syarat Ketentuan untuk publish OAuth Google
+
+**Konteks.** Refresh token Google Drive kedaluwarsa tiap 7 hari (`invalid_grant`) karena aplikasi
+OAuth berstatus *Testing*. Publish ke *In production* mewajibkan Branding berisi tautan beranda,
+kebijakan privasi, dan syarat & ketentuan pada domain publik — baru tersedia setelah deploy Vercel.
+
+**Keputusan.**
+
+- Halaman publik `/kebijakan-privasi` dan `/syarat-ketentuan` dibuat di dalam aplikasi (bukan situs
+  terpisah) dan ditautkan dari footer publik & dashboard.
+- Isi menjelaskan data yang dikumpulkan, penggunaannya, akses per role, penyimpanan di Google
+  Sheets/Drive Penyelenggara dengan scope `drive.file`, dan kepatuhan Google API Limited Use.
+  Isi merupakan draf yang dapat disesuaikan pemilik proyek/instansi.
+- Setelah publish, Drive dihubungkan ulang agar refresh token baru tidak lagi kedaluwarsa.
+
+**Penerapan.** `app/pages/kebijakan-privasi.vue`, `app/pages/syarat-ketentuan.vue`,
+`app/components/layout/LegalPage.vue`, `AppFooter.vue`; langkah di docs/02 (Troubleshooting).

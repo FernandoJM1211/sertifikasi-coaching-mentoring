@@ -101,6 +101,8 @@ Untuk role baru (mis. asesor), buat layout tipis serupa yang memakai `LayoutDash
 | `/login` | `login.vue` | Login; redirect ke halaman sesuai role (`ROLE_HOME_PATHS`). |
 | `/pendaftaran` | `pendaftaran.vue` | Membungkus `GuestRegistrationForm`. |
 | `/aktivasi-akun?token=` | `aktivasi-akun.vue` | Peserta membuat kata sandi dari tautan email. |
+| `/kebijakan-privasi` | `kebijakan-privasi.vue` | Kebijakan Privasi (publik; ditautkan di footer & Branding Google OAuth). |
+| `/syarat-ketentuan` | `syarat-ketentuan.vue` | Syarat & Ketentuan (publik; ditautkan di footer & Branding Google OAuth). |
 
 **Super Admin** (`app/pages/super-admin/`)
 
