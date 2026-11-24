@@ -56,6 +56,10 @@ tercampur dengan latar halaman yang bergradasi. Untuk elemen buatan sendiri di a
 pakai warna solid (mis. `bg-amber-50`, `border-amber-200`), **jangan** opacity seperti `bg-warning/10`
 atau `bg-primary/5`.
 
+**Latar muda selalu bergaris tepi.** Elemen berlatar hampir putih (`bg-{warna}-50/100`, mis. kotak ikon,
+kotak ringkasan, kotak info, tab tidak aktif) wajib diberi `border` senada: abu-abu → `border-slate-400`,
+warna lain → `border-{warna}-300` (mis. `border border-blue-300 bg-blue-50`). Garis tepi kartu/tabel umum tetap `slate-300`.
+
 Selalu tampilkan **label Bahasa Indonesia**, bukan nilai mentah database
 (mis. `pending_verification` → "Menunggu Verifikasi"). Untuk role dan status akun pakai
 `getRoleLabel()` dan `getAccountStatusLabel()` dari `shared/utils/roles.ts`.

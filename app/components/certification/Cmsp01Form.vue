@@ -1062,7 +1062,7 @@ defineExpose({
         class="flex flex-col gap-4 rounded-xl border border-dashed border-slate-300 bg-white p-4 sm:flex-row sm:items-center sm:justify-between"
       >
         <div class="flex min-w-0 items-center gap-3">
-          <div class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-primary">
+          <div class="flex size-10 shrink-0 items-center justify-center rounded-xl border border-blue-300 bg-blue-100 text-primary">
             <UIcon :name="getApplicationDocumentIcon(document.documentType)" class="size-5" />
           </div>
 

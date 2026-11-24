@@ -278,8 +278,8 @@ async function confirmDecision() {
         >
           <div class="flex items-start gap-3">
             <span
-              class="flex size-10 shrink-0 items-center justify-center rounded-lg text-sm font-semibold"
-              :class="activeTab === tab.id ? 'bg-primary text-white' : 'bg-slate-100 text-slate-600'"
+              class="flex size-10 shrink-0 items-center justify-center rounded-lg border text-sm font-semibold"
+              :class="activeTab === tab.id ? 'border-primary bg-primary text-white' : 'border-slate-400 bg-slate-100 text-slate-600'"
             >
               {{ tab.number }}
             </span>

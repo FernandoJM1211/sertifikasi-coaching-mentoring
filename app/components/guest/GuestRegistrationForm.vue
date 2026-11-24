@@ -434,7 +434,7 @@ function resetForm() {
       <UCard class="bg-white/95 shadow-sm">
         <div class="flex flex-col items-center text-center">
           <div
-            class="flex size-16 items-center justify-center rounded-full bg-green-100"
+            class="flex size-16 items-center justify-center rounded-full border border-green-300 bg-green-100"
           >
             <UIcon
               name="i-lucide-check"
@@ -790,7 +790,7 @@ function resetForm() {
               >
                 <div class="flex min-w-0 items-center gap-3">
                   <div
-                    class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-primary"
+                    class="flex size-10 shrink-0 items-center justify-center rounded-xl border border-blue-300 bg-blue-100 text-primary"
                   >
                     <UIcon
                       :name="

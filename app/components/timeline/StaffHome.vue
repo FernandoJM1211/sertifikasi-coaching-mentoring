@@ -79,7 +79,7 @@ function tasksOf(period: { period_id: string, stages: TimelineStage[] }) {
 
     <UCard v-else-if="periods.length === 0" class="mx-auto max-w-2xl">
       <div class="flex flex-col items-center px-4 py-10 text-center">
-        <div class="mb-5 flex size-16 items-center justify-center rounded-full bg-blue-50">
+        <div class="mb-5 flex size-16 items-center justify-center rounded-full border border-blue-300 bg-blue-50">
           <UIcon name="i-lucide-calendar-x" class="size-8 text-blue-500" />
         </div>
         <h2 class="text-xl font-semibold text-slate-900">Belum Ada Periode Aktif</h2>

@@ -179,7 +179,7 @@ async function handleSubmit() {
       <template #header>
         <div class="flex items-start gap-3">
           <div
-            class="flex size-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600"
+            class="flex size-11 shrink-0 items-center justify-center rounded-xl border border-blue-300 bg-blue-50 text-blue-600"
           >
             <UIcon
               name="i-lucide-shield-check"

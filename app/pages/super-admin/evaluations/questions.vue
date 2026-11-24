@@ -437,7 +437,7 @@ async function confirmToggleStatus() {
     >
       <template #body>
         <div class="space-y-3 text-sm text-slate-600">
-          <p class="line-clamp-3 rounded-lg bg-slate-50 p-3 text-slate-700">{{ statusTarget?.question_text }}</p>
+          <p class="line-clamp-3 rounded-lg border border-slate-400 bg-slate-50 p-3 text-slate-700">{{ statusTarget?.question_text }}</p>
           <p v-if="statusTarget?.status === 'ACTIVE'">
             Soal yang diarsipkan tidak akan diberikan kepada peserta berikutnya dan tidak dapat ditambahkan ke paket.
             Riwayat jawaban peserta yang sudah mengerjakan tetap tersimpan.

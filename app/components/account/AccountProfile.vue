@@ -256,7 +256,7 @@ async function saveProfile() {
       <UCard class="ring-1 ring-slate-300 shadow-sm">
         <template #header>
           <div class="flex items-start gap-3">
-            <div class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-blue-50">
+            <div class="flex size-10 shrink-0 items-center justify-center rounded-xl border border-blue-300 bg-blue-50">
               <UIcon name="i-lucide-user-round" class="size-5 text-primary" />
             </div>
             <div>
@@ -395,7 +395,7 @@ async function saveProfile() {
       <!-- Keamanan Akun -->
       <UCard class="ring-1 ring-slate-300 shadow-sm">
         <div class="flex flex-col gap-4 sm:flex-row sm:items-center">
-          <div class="flex size-11 shrink-0 items-center justify-center rounded-xl bg-emerald-50">
+          <div class="flex size-11 shrink-0 items-center justify-center rounded-xl border border-emerald-300 bg-emerald-50">
             <UIcon name="i-lucide-lock-keyhole" class="size-5 text-emerald-600" />
           </div>
 

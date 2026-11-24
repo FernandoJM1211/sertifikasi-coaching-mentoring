@@ -114,10 +114,10 @@ async function handleLogout() {
           v-for="item in navigation"
           :key="item.to"
           :to="item.to"
-          class="mb-1 flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition"
+          class="mb-1 flex w-full items-center gap-3 rounded-xl border px-3 py-3 text-sm font-medium transition"
           :class="isActive(item)
-            ? 'bg-blue-50 text-primary'
-            : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'"
+            ? 'border-blue-300 bg-blue-50 text-primary'
+            : 'border-transparent text-slate-600 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900'"
         >
           <UIcon :name="item.icon" class="size-5 shrink-0" />
           <span class="truncate">{{ item.label }}</span>

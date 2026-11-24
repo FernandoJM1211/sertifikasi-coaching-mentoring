@@ -137,7 +137,7 @@ class="grid grid-cols-1 items-start gap-5 md:grid-cols-2"
     <UCard v-else class="bg-white/90 shadow-sm">
       <div class="flex flex-col items-center py-12 text-center">
         <div
-          class="flex size-14 items-center justify-center rounded-full bg-blue-100"
+          class="flex size-14 items-center justify-center rounded-full border border-blue-300 bg-blue-100"
         >
           <UIcon
             name="i-lucide-calendar-x"

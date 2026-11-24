@@ -395,7 +395,7 @@ watch([activeFilter, searchQuery], resetTablePage)
             />
           </div>
 
-          <ul class="space-y-1 rounded-lg bg-slate-50 p-3 text-xs leading-5 text-slate-600">
+          <ul class="space-y-1 rounded-lg border border-slate-400 bg-slate-50 p-3 text-xs leading-5 text-slate-600">
             <li>• Nilai = jumlah jawaban benar ÷ jumlah soal × 100; soal yang tidak dijawab dihitung salah.</li>
             <li>• Batas waktu peserta = waktu mulai + durasi, namun tidak melewati akhir tahap Tes Tertulis.</li>
             <li>• Setiap peserta mengerjakan satu kali (Super Admin dapat mereset progres bila diperlukan). Nilai hanya dapat dilihat Super Admin.</li>
@@ -566,7 +566,7 @@ watch([activeFilter, searchQuery], resetTablePage)
     >
       <template #body>
         <div class="space-y-3 text-sm text-slate-600">
-          <p class="rounded-lg bg-slate-50 p-3 text-slate-700">
+          <p class="rounded-lg border border-slate-400 bg-slate-50 p-3 text-slate-700">
             <span class="font-semibold">{{ data?.started_count }}</span> peserta sudah mulai/selesai mengerjakan.
           </p>
           <p>
@@ -599,7 +599,7 @@ watch([activeFilter, searchQuery], resetTablePage)
             akan dibatalkan dan peserta dapat memulai tes tertulis lagi dari awal selama tahap Tes Tertulis dibuka.
           </p>
           <p>Data pengerjaan lama tetap tersimpan sebagai riwayat, tetapi tidak lagi ditampilkan atau dihitung.</p>
-          <p v-if="resetTarget?.status === 'IN_PROGRESS'" class="rounded-lg bg-amber-50 p-3 text-amber-800">
+          <p v-if="resetTarget?.status === 'IN_PROGRESS'" class="rounded-lg border border-amber-300 bg-amber-50 p-3 text-amber-800">
             Peserta sedang mengerjakan. Jawaban yang sedang diisi tidak dapat disimpan lagi setelah direset.
           </p>
         </div>

@@ -211,7 +211,7 @@
           >
             <!-- Icon -->
             <div
-              class="flex size-14 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-primary"
+              class="flex size-14 shrink-0 items-center justify-center rounded-xl border border-blue-300 bg-blue-100 text-primary"
             >
               <UIcon
                 :name="getDocumentIcon(document.document_type)"

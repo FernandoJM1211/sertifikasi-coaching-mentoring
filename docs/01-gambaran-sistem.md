@@ -184,8 +184,12 @@ DRAFT ──► ACTIVE ──► CLOSED ──► COMPLETED
 - **Peserta** (pengajuan diterima + SA `VERIFIED`) mengerjakan **satu kali** (Super Admin dapat
   **mereset progres** peserta; data lama disimpan sebagai riwayat) saat tahap `EVALUATION`
   dibuka. Bila diaktifkan, urutan soal & opsi diacak per peserta dan disimpan (tetap sama saat dimuat ulang).
-- Batas waktu = mulai + durasi, **terpotong** pada akhir tahap Tes Tertulis. Jawaban tersimpan otomatis;
-  saat waktu habis jawaban dikirim otomatis.
+- Batas waktu = mulai + durasi, **terpotong** pada akhir tahap Tes Tertulis (dihitung server; tetap berjalan
+  saat perangkat mati/offline). Saat waktu habis jawaban dikirim otomatis dengan jawaban terakhir yang tersimpan.
+- Jawaban disimpan otomatis ke server 1,5 detik setelah dipilih. Bila gagal (koneksi putus), dicoba lagi
+  otomatis (5→10→20→30 detik) dan segera saat internet kembali / tab ditinggalkan. Cadangan jawaban juga
+  disimpan di browser (`localStorage`) dan dipulihkan saat halaman dibuka lagi di perangkat yang sama,
+  hanya jika data server belum berubah sejak cadangan dibuat (K-20).
 - Nilai skala 0–100 (benar ÷ jumlah soal × 100, tidak dijawab = salah), **hanya dilihat Super Admin**
   (di halaman Perencanaan Tes Tertulis) karena Super Admin yang menetapkan kelulusan.
 - Pencegahan kecurangan (deteksi pindah tab, layar penuh, blokir salin) **ditunda** — belum dibutuhkan (keputusan Nov 2026).

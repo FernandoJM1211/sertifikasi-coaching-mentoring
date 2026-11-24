@@ -56,9 +56,13 @@ function applyData(value: EvaluationData) {
     answers.value = [...value.attempt.answers]
     lastSavedSnapshot.value = JSON.stringify(answers.value)
     currentIndex.value = Math.min(currentIndex.value, Math.max(0, value.attempt.questions.length - 1))
+    restoreBackup()
 
     // Dibuka kembali tepat setelah waktu habis (masih dalam toleransi server): kirim otomatis.
     if (Date.parse(value.attempt.deadline_at) <= Date.parse(value.server_now)) autoSubmit()
+  } else if (value.attempt) {
+    // Sudah dikirim: cadangan di browser tidak diperlukan lagi.
+    clearBackup()
   }
 }
 
@@ -154,10 +158,77 @@ function autoSubmit() {
   void nextTick(() => submit('AUTO'))
 }
 
+/* ---------------- Cadangan jawaban di browser (localStorage) ----------------
+ * Menjaga jawaban yang belum sempat terkirim (sinyal putus, perangkat mati) di perangkat yang sama.
+ * Tidak membebani server. `base` = isi jawaban di server saat cadangan dibuat; cadangan hanya
+ * dipulihkan bila server masih sama, agar cadangan lama tidak menimpa jawaban dari perangkat lain.
+ */
+type AnswerBackup = { answers: string[], base: string }
+
+const backupKey = computed(() => (
+  attempt.value ? `cmsp-tes-tertulis:${applicationId.value}:${attempt.value.started_at}` : ''
+))
+
+function writeBackup() {
+  if (!backupKey.value) return
+  try {
+    localStorage.setItem(backupKey.value, JSON.stringify({ answers: answers.value, base: lastSavedSnapshot.value }))
+  } catch {
+    // Penyimpanan browser tidak tersedia (mode privat/penuh): lewati, autosave server tetap berjalan.
+  }
+}
+
+function clearBackup() {
+  if (!backupKey.value) return
+  try {
+    localStorage.removeItem(backupKey.value)
+  } catch {
+    // Abaikan.
+  }
+}
+
+function readBackup(): AnswerBackup | null {
+  if (!backupKey.value) return null
+  try {
+    const parsed = JSON.parse(localStorage.getItem(backupKey.value) || 'null') as AnswerBackup | null
+    const valid = parsed
+      && Array.isArray(parsed.answers)
+      && parsed.answers.length === answers.value.length
+      && parsed.answers.every((item) => typeof item === 'string' && item.length <= 1)
+      && typeof parsed.base === 'string'
+    return valid ? parsed : null
+  } catch {
+    return null
+  }
+}
+
+/** Dipanggil setelah data server dimuat: pulihkan jawaban yang belum terkirim, lalu kirim. */
+function restoreBackup() {
+  const backup = readBackup()
+
+  if (!backup || JSON.stringify(backup.answers) === lastSavedSnapshot.value || backup.base !== lastSavedSnapshot.value) {
+    clearBackup()
+    return
+  }
+
+  answers.value = [...backup.answers]
+  toast.add({
+    title: 'Jawaban dipulihkan',
+    description: 'Jawaban yang belum sempat tersimpan di perangkat ini dipulihkan dan sedang dikirim.',
+    color: 'info',
+    icon: 'i-lucide-history',
+  })
+  scheduleSave(0)
+}
+
 /* ---------------- Autosave ---------------- */
 const saveState = ref<'saved' | 'saving' | 'error'>('saved')
 const lastSavedSnapshot = ref('')
 let saveTimer: ReturnType<typeof setTimeout> | null = null
+
+/** Jeda simpan ulang setelah gagal: 5 → 10 → 20 → 30 detik (maks), kembali normal setelah berhasil. */
+const RETRY_DELAYS_MS = [5_000, 10_000, 20_000, 30_000]
+let retryCount = 0
 
 const hasUnsaved = computed(() => JSON.stringify(answers.value) !== lastSavedSnapshot.value)
 
@@ -169,8 +240,16 @@ async function saveAnswers() {
   try {
     await $fetch(`${apiPath.value}/answers`, { method: 'PUT', body: { answers: answers.value }, credentials: 'include' })
     lastSavedSnapshot.value = snapshot
-    saveState.value = hasUnsaved.value ? 'saving' : 'saved'
-    if (hasUnsaved.value) scheduleSave()
+    retryCount = 0
+
+    if (hasUnsaved.value) {
+      saveState.value = 'saving'
+      writeBackup()
+      scheduleSave()
+    } else {
+      saveState.value = 'saved'
+      clearBackup()
+    }
   } catch (error) {
     saveState.value = 'error'
     const message = getApiErrorMessage(error, '')
@@ -178,7 +257,12 @@ async function saveAnswers() {
     if (message.includes('habis') || message.includes('sudah dikirim')) {
       toast.add({ title: 'Tes tertulis telah ditutup', description: message, color: 'warning', icon: 'i-lucide-alarm-clock' })
       await load()
+      return
     }
+
+    // Gagal karena jaringan/server: coba lagi otomatis dengan jeda bertahap.
+    scheduleSave(RETRY_DELAYS_MS[Math.min(retryCount, RETRY_DELAYS_MS.length - 1)])
+    retryCount++
   }
 }
 
@@ -187,9 +271,19 @@ function scheduleSave(delay = 1500) {
   saveTimer = setTimeout(saveAnswers, delay)
 }
 
+/** Internet kembali tersambung / tab ditinggalkan: segera kirim jawaban yang belum tersimpan. */
+function flushPendingSave() {
+  if (inProgress.value && hasUnsaved.value && !submitting.value) scheduleSave(0)
+}
+
+function onVisibilityChange() {
+  if (document.visibilityState === 'hidden') flushPendingSave()
+}
+
 function choose(key: string) {
   if (!inProgress.value || remainingMs.value <= 0) return
   answers.value[currentIndex.value] = answers.value[currentIndex.value] === key ? '' : key
+  writeBackup()
   scheduleSave()
 }
 
@@ -209,6 +303,7 @@ async function submit(type: 'MANUAL' | 'AUTO') {
   try {
     await $fetch(`${apiPath.value}/submit`, { method: 'POST', body: { answers: answers.value }, credentials: 'include' })
     lastSavedSnapshot.value = JSON.stringify(answers.value)
+    clearBackup()
     toast.add({
       title: type === 'AUTO' ? 'Waktu habis — jawaban dikirim otomatis' : 'Jawaban tes tertulis berhasil dikirim',
       color: type === 'AUTO' ? 'warning' : 'success',
@@ -237,12 +332,16 @@ onMounted(async () => {
     now.value = Date.now()
   }, 1000)
   window.addEventListener('beforeunload', beforeUnload)
+  window.addEventListener('online', flushPendingSave)
+  document.addEventListener('visibilitychange', onVisibilityChange)
 })
 
 onBeforeUnmount(() => {
   if (ticker) clearInterval(ticker)
   if (saveTimer) clearTimeout(saveTimer)
   window.removeEventListener('beforeunload', beforeUnload)
+  window.removeEventListener('online', flushPendingSave)
+  document.removeEventListener('visibilitychange', onVisibilityChange)
   void saveAnswers()
 })
 </script>
@@ -262,55 +361,62 @@ onBeforeUnmount(() => {
 
     <!-- ================= Sedang mengerjakan ================= -->
     <template v-else-if="inProgress && attempt">
-      <div class="sticky top-0 z-10 -mx-1 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-300 bg-white/95 px-4 py-3 shadow-sm backdrop-blur">
-        <div class="min-w-0">
-          <p class="truncate text-sm font-semibold text-slate-900">Tes Tertulis · {{ data.period.period_name }}</p>
-          <p class="text-xs text-slate-600">
-            {{ answeredCount }} dari {{ questions.length }} soal dijawab ·
-            <span :class="saveState === 'error' ? 'text-red-600' : ''">
-              {{ saveState === 'saving' || hasUnsaved ? 'Menyimpan...' : saveState === 'error' ? 'Gagal menyimpan, akan dicoba lagi' : 'Jawaban tersimpan' }}
-            </span>
-          </p>
-        </div>
-        <div
-          class="flex items-center gap-2 rounded-lg px-3 py-1.5 font-mono text-lg font-semibold tabular-nums"
-          :class="remainingMs <= 5 * 60_000 ? 'bg-red-50 text-red-600' : 'bg-blue-100 text-primary'"
-          role="timer"
-          :aria-label="`Sisa waktu ${timerLabel}`"
+      <!-- Judul halaman (seragam dengan halaman lain) -->
+      <div>
+        <p class="text-sm font-medium text-primary">Tes Tertulis</p>
+        <h1 class="mt-2 text-2xl font-bold tracking-tight text-blue-500 sm:text-3xl">{{ data.period.period_name }}</h1>
+        <p class="mt-2 text-sm text-slate-600">
+          {{ answeredCount }} dari {{ questions.length }} soal dijawab ·
+          <span :class="saveState === 'error' ? 'text-red-600' : ''">
+            {{ saveState === 'error' ? 'Belum tersimpan (koneksi bermasalah), dicoba lagi otomatis' : saveState === 'saving' || hasUnsaved ? 'Menyimpan...' : 'Jawaban tersimpan' }}
+          </span>
+        </p>
+      </div>
+
+      <!-- Layar kecil: navigasi soal ada di bawah, jadi sisa waktu menempel di atas layar. -->
+      <div
+        class="sticky top-0 z-10 flex items-center justify-between gap-3 rounded-xl border border-slate-300 bg-white px-4 py-2.5 shadow-sm lg:hidden"
+        role="timer"
+        :aria-label="`Sisa waktu ${timerLabel}`"
+      >
+        <span class="text-sm font-medium text-slate-700">Sisa Waktu</span>
+        <span
+          class="flex items-center gap-2 font-mono text-lg font-semibold tabular-nums"
+          :class="remainingMs <= 5 * 60_000 ? 'text-red-600' : 'text-primary'"
         >
           <UIcon name="i-lucide-timer" class="size-5" />
           {{ timerLabel }}
-        </div>
+        </span>
       </div>
 
       <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_17rem]">
         <UCard v-if="currentQuestion">
           <template #header>
-            <p class="text-sm font-semibold text-primary">Soal {{ currentQuestion.number }} dari {{ questions.length }}</p>
+            <p class="text-sm font-semibold text-primary">Soal {{ currentQuestion.number }}</p>
           </template>
 
           <p class="whitespace-pre-line text-base leading-7 text-slate-900">{{ currentQuestion.text }}</p>
 
-          <div class="mt-6 space-y-3" role="radiogroup" :aria-label="`Pilihan jawaban soal ${currentQuestion.number}`">
+          <div class="mt-5 space-y-2" role="radiogroup" :aria-label="`Pilihan jawaban soal ${currentQuestion.number}`">
             <button
               v-for="option in currentQuestion.options"
               :key="option.key"
               type="button"
               role="radio"
               :aria-checked="answers[currentIndex] === option.key"
-              class="flex w-full items-start gap-3 rounded-xl border p-3.5 text-left transition"
+              class="flex w-full items-start gap-3 rounded-lg border px-3 py-2 text-left transition"
               :class="answers[currentIndex] === option.key
                 ? 'border-primary bg-blue-50 ring-1 ring-primary'
                 : 'border-slate-300 bg-white hover:border-blue-300 hover:bg-slate-50'"
               @click="choose(option.key)"
             >
               <span
-                class="flex size-8 shrink-0 items-center justify-center rounded-full border text-sm font-semibold"
+                class="flex size-7 shrink-0 items-center justify-center rounded-full border text-xs font-semibold"
                 :class="answers[currentIndex] === option.key ? 'border-primary bg-primary text-white' : 'border-slate-300 text-slate-600'"
               >
                 {{ option.key }}
               </span>
-              <span class="pt-1 text-sm leading-6 text-slate-800">{{ option.text }}</span>
+              <span class="pt-0.5 text-sm leading-6 text-slate-800">{{ option.text }}</span>
             </button>
           </div>
 
@@ -327,45 +433,64 @@ onBeforeUnmount(() => {
           </template>
         </UCard>
 
-        <UCard class="h-fit lg:sticky lg:top-24">
-          <template #header>
-            <p class="text-sm font-semibold text-slate-900">Navigasi Soal</p>
-          </template>
-          <div class="grid grid-cols-6 gap-2 lg:grid-cols-5">
-            <button
-              v-for="(question, index) in questions"
-              :key="question.number"
-              type="button"
-              class="flex aspect-square items-center justify-center rounded-lg border text-sm font-medium transition"
-              :class="[
-                answers[index] ? 'border-primary bg-primary text-white' : 'border-slate-300 bg-white text-slate-600 hover:border-blue-300',
-                index === currentIndex ? 'ring-2 ring-blue-300 ring-offset-1' : '',
-              ]"
-              :aria-label="`Soal ${question.number}${answers[index] ? ', sudah dijawab' : ''}`"
-              @click="goTo(index)"
+        <!-- Kolom kanan (layar lebar): sisa waktu di atas navigasi, keduanya menempel saat digulir. -->
+        <div class="h-fit space-y-4 lg:sticky lg:top-6">
+          <div
+            class="hidden items-center justify-between gap-3 rounded-xl border px-4 py-3 shadow-sm lg:flex"
+            :class="remainingMs <= 5 * 60_000 ? 'border-red-300 bg-white' : 'border-slate-300 bg-white'"
+            role="timer"
+            :aria-label="`Sisa waktu ${timerLabel}`"
+          >
+            <span class="text-sm font-medium text-slate-700">Sisa Waktu</span>
+            <span
+              class="flex items-center gap-2 font-mono text-xl font-semibold tabular-nums"
+              :class="remainingMs <= 5 * 60_000 ? 'text-red-600' : 'text-primary'"
             >
-              {{ question.number }}
-            </button>
+              <UIcon name="i-lucide-timer" class="size-5" />
+              {{ timerLabel }}
+            </span>
           </div>
-          <div class="mt-4 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-600">
-            <span class="flex items-center gap-1.5"><span class="size-3 rounded bg-primary" /> Dijawab</span>
-            <span class="flex items-center gap-1.5"><span class="size-3 rounded border border-slate-300" /> Belum</span>
-          </div>
-          <template #footer>
-            <UButton block color="success" icon="i-lucide-send" @click="submitModalOpen = true">Selesai & Kirim</UButton>
-          </template>
-        </UCard>
+
+          <UCard>
+            <template #header>
+              <p class="text-sm font-semibold text-slate-900">Navigasi Soal</p>
+            </template>
+            <div class="grid grid-cols-6 gap-2 lg:grid-cols-5">
+              <button
+                v-for="(question, index) in questions"
+                :key="question.number"
+                type="button"
+                class="flex aspect-square items-center justify-center rounded-lg border text-sm font-medium transition"
+                :class="[
+                  answers[index] ? 'border-primary bg-primary text-white' : 'border-slate-300 bg-white text-slate-600 hover:border-blue-300',
+                  index === currentIndex ? 'ring-2 ring-blue-300 ring-offset-1' : '',
+                ]"
+                :aria-label="`Soal ${question.number}${answers[index] ? ', sudah dijawab' : ''}`"
+                @click="goTo(index)"
+              >
+                {{ question.number }}
+              </button>
+            </div>
+            <div class="mt-4 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-600">
+              <span class="flex items-center gap-1.5"><span class="size-3 rounded bg-primary" /> Dijawab</span>
+              <span class="flex items-center gap-1.5"><span class="size-3 rounded border border-slate-300" /> Belum</span>
+            </div>
+            <template #footer>
+              <UButton block color="success" icon="i-lucide-send" @click="submitModalOpen = true">Selesai & Kirim</UButton>
+            </template>
+          </UCard>
+        </div>
       </div>
 
       <UModal v-model:open="submitModalOpen" :dismissible="!submitting" title="Kirim Jawaban Tes Tertulis?" description="Jawaban tidak dapat diubah setelah dikirim.">
         <template #body>
           <div class="space-y-3 text-sm">
             <div class="grid grid-cols-2 gap-3">
-              <div class="rounded-lg bg-slate-50 p-3">
+              <div class="rounded-lg border border-slate-400 bg-slate-50 p-3">
                 <p class="text-slate-600">Dijawab</p>
                 <p class="text-xl font-semibold text-slate-900">{{ answeredCount }}</p>
               </div>
-              <div class="rounded-lg p-3" :class="answeredCount < questions.length ? 'bg-amber-50' : 'bg-slate-50'">
+              <div class="rounded-lg border p-3" :class="answeredCount < questions.length ? 'border-amber-300 bg-amber-50' : 'border-slate-400 bg-slate-50'">
                 <p class="text-slate-600">Belum dijawab</p>
                 <p class="text-xl font-semibold" :class="answeredCount < questions.length ? 'text-amber-700' : 'text-slate-900'">
                   {{ questions.length - answeredCount }}
@@ -387,7 +512,7 @@ onBeforeUnmount(() => {
     <!-- ================= Sudah dikirim ================= -->
     <UCard v-else-if="attempt?.status === 'SUBMITTED'" class="mx-auto max-w-2xl">
       <div class="flex flex-col items-center py-8 text-center">
-        <div class="flex size-14 items-center justify-center rounded-full bg-emerald-50">
+        <div class="flex size-14 items-center justify-center rounded-full border border-emerald-300 bg-emerald-50">
           <UIcon name="i-lucide-circle-check" class="size-8 text-emerald-600" />
         </div>
         <h1 class="mt-4 text-xl font-semibold text-blue-500">Tes Tertulis Telah Dikirim</h1>
@@ -418,15 +543,15 @@ onBeforeUnmount(() => {
 
         <div class="space-y-5">
           <dl class="grid gap-3 sm:grid-cols-3">
-            <div class="rounded-lg bg-slate-50 p-3">
+            <div class="rounded-lg border border-slate-400 bg-slate-50 p-3">
               <dt class="text-sm text-slate-600">Jumlah Soal</dt>
               <dd class="mt-0.5 text-lg font-semibold text-slate-900">{{ data.config ? `${data.config.question_count} soal` : '-' }}</dd>
             </div>
-            <div class="rounded-lg bg-slate-50 p-3">
+            <div class="rounded-lg border border-slate-400 bg-slate-50 p-3">
               <dt class="text-sm text-slate-600">Durasi</dt>
               <dd class="mt-0.5 text-lg font-semibold text-slate-900">{{ data.config ? `${data.config.duration_minutes} menit` : '-' }}</dd>
             </div>
-            <div class="rounded-lg bg-slate-50 p-3">
+            <div class="rounded-lg border border-slate-400 bg-slate-50 p-3">
               <dt class="text-sm text-slate-600">Batas Tahap Tes Tertulis</dt>
               <dd class="mt-0.5 text-sm font-semibold text-slate-900">{{ formatDateTimeId(data.stage.endAt) }}</dd>
             </div>

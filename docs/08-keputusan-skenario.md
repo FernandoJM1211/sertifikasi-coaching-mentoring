@@ -422,3 +422,22 @@ belum ada jalur mandiri bila pengguna lupa kata sandi sebelum login.
 **Penerapan.** `server/services/password-reset.service.ts`, `server/repositories/password-reset-token.repository.ts`,
 `server/api/password-reset/*`, `sendPasswordResetEmail` di `server/utils/email.ts`,
 `app/pages/lupa-kata-sandi.vue`, `app/pages/atur-ulang-kata-sandi.vue`, tautan di `login.vue`.
+
+## K-20 — Ketahanan penyimpanan jawaban tes tertulis
+
+**Konteks.** Pemilik proyek menanyakan apakah jawaban aman bila perangkat mati atau internet putus.
+Jawaban yang sudah "tersimpan" aman di server, tetapi setelah gagal simpan sistem tidak mencoba lagi
+(walau pesan menyebut "akan dicoba lagi"), dan jawaban yang belum terkirim hilang bila perangkat mati.
+
+**Keputusan.**
+
+- (a) **Simpan ulang otomatis** setelah gagal dengan jeda bertahap 5→10→20→30 detik (hanya selama ada
+  jawaban yang belum tersimpan), serta segera saat internet kembali (`online`) atau tab ditinggalkan.
+- (b) **Cadangan di browser** (`localStorage`, kunci per pengajuan + waktu mulai) diperbarui setiap memilih
+  jawaban, dihapus setelah tersimpan/dikirim. Dipulihkan saat halaman dibuka lagi **hanya bila jawaban di
+  server masih sama** dengan saat cadangan dibuat, agar cadangan lama tidak menimpa jawaban dari perangkat lain.
+- Beban server tidak bertambah dalam kondisi normal; cadangan sepenuhnya di perangkat peserta.
+- Pengacakan soal/opsi tetap per peserta (dibuat server sekali saat mulai) dan seluruh soal, urutan opsi,
+  jawaban, serta versi soal (`snapshot_id`) tercatat di `evaluation_attempts`.
+
+**Penerapan.** `app/pages/peserta/evaluation/[applicationId].vue` (autosave, retry, cadangan).

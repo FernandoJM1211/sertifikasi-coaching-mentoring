@@ -29,7 +29,7 @@ const helpOptions = [
     href: `mailto:${contact.email}?subject=${encodeURIComponent('Bantuan Sistem Sertifikasi CMSP')}`,
     external: false,
     tone: 'border-slate-300 hover:border-blue-300 hover:bg-blue-50',
-    iconTone: 'bg-blue-50 text-blue-600',
+    iconTone: 'border border-blue-300 bg-blue-50 text-blue-600',
   },
   {
     label: 'Chat WhatsApp',
@@ -38,7 +38,7 @@ const helpOptions = [
     href: contact.whatsappUrl,
     external: true,
     tone: 'border-slate-300 hover:border-emerald-300 hover:bg-emerald-50',
-    iconTone: 'bg-emerald-50 text-emerald-600',
+    iconTone: 'border border-emerald-300 bg-emerald-50 text-emerald-600',
   },
 ]
 </script>

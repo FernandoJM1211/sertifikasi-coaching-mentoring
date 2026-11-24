@@ -206,7 +206,7 @@
               v-if="!isRefreshing && !loadError && filteredAccounts.length === 0"
             >
               <td colspan="6" class="px-5 py-16 text-center">
-                <div class="mx-auto flex size-12 items-center justify-center rounded-xl bg-slate-100">
+                <div class="mx-auto flex size-12 items-center justify-center rounded-xl border border-slate-400 bg-slate-100">
                   <UIcon
                     name="i-lucide-search-x"
                     class="size-6 text-slate-500"
@@ -264,7 +264,7 @@
             class="flex w-full items-center gap-3 rounded-xl border border-slate-300 p-4 text-left transition hover:border-blue-300 hover:bg-blue-50"
             @click="goToAccountProfile(selectedAccount.id)"
           >
-            <div class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+            <div class="flex size-10 shrink-0 items-center justify-center rounded-lg border border-blue-300 bg-blue-50 text-blue-600">
               <UIcon name="i-lucide-user-round" class="size-5" />
             </div>
             <div class="min-w-0 flex-1">
@@ -297,7 +297,7 @@
             class="flex w-full items-center gap-3 rounded-xl border border-slate-300 p-4 text-left transition hover:border-amber-300 hover:bg-amber-50"
             @click="openResetPassword"
           >
-            <div class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-amber-50 text-amber-600">
+            <div class="flex size-10 shrink-0 items-center justify-center rounded-lg border border-amber-300 bg-amber-50 text-amber-600">
               <UIcon name="i-lucide-key-round" class="size-5" />
             </div>
             <div class="min-w-0 flex-1">
@@ -319,7 +319,7 @@
             :disabled="isResendingActivation"
             @click="resendActivation"
           >
-            <div class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-sky-50 text-sky-600">
+            <div class="flex size-10 shrink-0 items-center justify-center rounded-lg border border-sky-300 bg-sky-50 text-sky-600">
               <UIcon
                 :name="isResendingActivation ? 'i-lucide-loader-circle' : 'i-lucide-mail-plus'"
                 class="size-5"
@@ -344,7 +344,7 @@
   class="flex w-full items-center gap-3 rounded-xl border border-slate-300 p-4 text-left transition hover:border-red-300 hover:bg-red-50"
   @click="confirmAccountStatusChange('DISABLED')"
 >
-  <div class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-red-50 text-red-600">
+  <div class="flex size-10 shrink-0 items-center justify-center rounded-lg border border-red-300 bg-red-50 text-red-600">
     <UIcon name="i-lucide-user-round-x" class="size-5" />
   </div>
 
@@ -366,7 +366,7 @@
   class="flex w-full items-center gap-3 rounded-xl border border-slate-300 p-4 text-left transition hover:border-emerald-300 hover:bg-emerald-50"
   @click="confirmAccountStatusChange('ACTIVE')"
 >
-  <div class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
+  <div class="flex size-10 shrink-0 items-center justify-center rounded-lg border border-emerald-300 bg-emerald-50 text-emerald-600">
     <UIcon name="i-lucide-user-round-check" class="size-5" />
   </div>
 

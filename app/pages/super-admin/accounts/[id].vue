@@ -104,7 +104,7 @@
             </div>
           </div>
 
-          <div class="flex items-center gap-2 self-start rounded-lg bg-blue-50 px-3 py-2 text-sm text-blue-700 sm:self-center">
+          <div class="flex items-center gap-2 self-start rounded-lg border border-blue-300 bg-blue-50 px-3 py-2 text-sm text-blue-700 sm:self-center">
             <UIcon name="i-lucide-shield-check" class="size-5" />
             Detail Akun
           </div>
@@ -115,7 +115,7 @@
       <UCard>
         <template #header>
           <div class="flex items-start gap-3">
-            <div class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-blue-50">
+            <div class="flex size-10 shrink-0 items-center justify-center rounded-xl border border-blue-300 bg-blue-50">
               <UIcon
                 name="i-lucide-user-round"
                 class="size-5 text-primary"
@@ -155,7 +155,7 @@
       <UCard>
         <template #header>
           <div class="flex items-start gap-3">
-            <div class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50">
+            <div class="flex size-10 shrink-0 items-center justify-center rounded-xl border border-indigo-300 bg-indigo-50">
               <UIcon
                 name="i-lucide-clock"
                 class="size-5 text-indigo-600"
