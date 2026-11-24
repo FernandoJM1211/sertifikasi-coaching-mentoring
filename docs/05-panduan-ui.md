@@ -60,6 +60,9 @@ atau `bg-primary/5`.
 kotak ringkasan, kotak info, tab tidak aktif) wajib diberi `border` senada: abu-abu → `border-slate-400`,
 warna lain → `border-{warna}-300` (mis. `border border-blue-300 bg-blue-50`). Garis tepi kartu/tabel umum tetap `slate-300`.
 
+**Form CMSP dalam mode tinjau** (`review-mode`: Verifikasi SA, penilaian asesor) bukan form isian:
+tanda wajib (`*`), petunjuk format/ukuran file, dan tombol tambah/hapus tidak ditampilkan.
+
 Selalu tampilkan **label Bahasa Indonesia**, bukan nilai mentah database
 (mis. `pending_verification` → "Menunggu Verifikasi"). Untuk role dan status akun pakai
 `getRoleLabel()` dan `getAccountStatusLabel()` dari `shared/utils/roles.ts`.
@@ -197,6 +200,10 @@ Saat proses berjalan: `:loading="isSubmitting" :disabled="isSubmitting"`.
 
 ### Tabel daftar (wajib seragam)
 
+- **Judul kolom selalu satu baris** (`th { white-space: nowrap }` di `main.css`). Pada tabel
+  `table-fixed`, beri lebar kolom yang cukup untuk judulnya (mis. `w-40` untuk "Unit Kompetensi",
+  `w-44` untuk "Asesor Kepublikan") dan naikkan `min-w-[...]` tabel; kelebihan lebar ditangani scroller.
+
 Acuan: daftar pengajuan di detail periode dan daftar Verifikasi Self Assessment.
 
 - Kartu `UCard`. Header kartu: judul + deskripsi di kiri, **Muat Ulang** (`neutral outline`, `size="sm"`,
@@ -212,10 +219,23 @@ Acuan: daftar pengajuan di detail periode dan daftar Verifikasi Self Assessment.
   (+ `table-fixed` dan `:title` berisi teks lengkap), badge status tanpa `min-w`, dan tombol aksi
   ikon saja (`square size="md"`, `aria-label` + `title`).
 - Sel: `px-4 py-4`. Badge status `inline-flex min-w-32 justify-center`.
-- Tombol aksi di kolom Aksi: `size="sm"`, `class="inline-flex w-32 justify-center"`.
-  - Perlu ditindaklanjuti (mis. **Verifikasi**): `color="primary"` solid.
-  - Hanya melihat (**Lihat**): `color="neutral" variant="outline"`.
-  - Belum bisa diproses: tombol outline `disabled` dengan keterangan singkat.
+- Tombol aksi di kolom Aksi: **berlabel + ikon**, `size="sm"`, `class="inline-flex w-32 justify-center"`
+  (tabel penilaian asesor `w-24`). Aturan ikon **seragam di semua tabel proses**:
+  - Ada pekerjaan (memverifikasi, menilai, mengubah): `color="primary"` solid + ikon **`i-lucide-pencil`**,
+    label kerja (**Verifikasi**, **Nilai**).
+  - Hanya melihat: `color="neutral" variant="outline"` + ikon **`i-lucide-eye`**, label **Lihat**.
+  - Tombol "kerja" hanya bila benar-benar bisa dikerjakan (tahap dibuka, tidak menunggu tahap sebelumnya);
+    selain itu tampil sebagai **Lihat**.
+  - Belum bisa diproses sama sekali: tombol outline `disabled` dengan keterangan singkat.
+- **Lebih dari satu aksi per baris** (mis. Manajemen Akun, Penetapan Hasil Asesmen): satu tombol ikon
+  `i-lucide-settings-2` (`color="primary"` solid, `square size="md"`) yang membuka **`<TableActionModal>`**
+  berisi ringkasan baris + daftar pilihan (ikon berwarna, judul, keterangan; aksi yang belum tersedia
+  tampil nonaktif dengan alasannya). Jangan menaruh beberapa tombol di dalam sel.
+- **Isi sel nilai/status cukup badge** (`UBadge variant="subtle"`), seragam dalam satu tabel — jangan
+  mencampur teks berwarna dan badge. Penjelasan tambahan (alasan, rincian) ditaruh di modal/halaman detail.
+  Rekomendasi asesor: badge **Dilanjutkan** (`success`) / **Tidak Dilanjutkan** (`error`).
+- Status "menunggu tahap sebelumnya" (mis. Menunggu Tes Tertulis / Menunggu Asesor Teknis) memakai warna
+  **`warning`** (kuning), baik badge maupun kotak info di halaman detail.
 - Footer: jumlah data yang ditampilkan (dan paginasi bila ada).
 
 ### Ikon
@@ -259,6 +279,103 @@ Setiap halaman yang memuat data wajib punya tiga state:
 1. **Loading** — `UIcon i-lucide-loader-circle animate-spin` + teks "Memuat ...".
 2. **Error** — kartu berisi ikon `circle-alert` merah, pesan, dan tombol "Muat Ulang".
 3. **Kosong** — ikon besar abu-abu di tengah, judul ("Belum Ada ..."), keterangan, tombol aksi bila relevan.
+
+## Tombol Beranda per Role
+
+Beranda setiap role berisi progres timeline periode aktif dan kartu **Tahapan Saat Ini** dengan panel
+tombol dinamis (`TimelineTask`). Sumber kode: `app/pages/<role>/index.vue`; data staf dari
+`GET /api/home/periods` (`insight` per periode, `server/services/home.service.ts`).
+
+**Aturan umum**
+
+- **Periode yang tampil:** Peserta — periode aktif yang pengajuannya diterima; Super Admin & Verifikator —
+  semua periode aktif; Asesor — hanya periode aktif yang memiliki peserta yang ditugaskan kepadanya.
+- **Progres timeline** mengikuti jadwal saja. **Tombol** mengikuti status tahap yang sebenarnya
+  (`getStageAccess`): tahap yang **dibuka manual** Super Admin tetap memunculkan tombol (dengan catatan
+  "dibuka khusus oleh penyelenggara"), tahap yang **ditutup manual** tidak.
+- **Angka** di panel sama dengan kartu ringkasan di halaman daftar (memakai service yang sama).
+- Bila ringkasan gagal dihitung, beranda tetap tampil dengan tombol berdasarkan jadwal saja.
+- Gaya panel (`tone`):
+
+  | Tone | Arti | Kotak | Tombol |
+  | --- | --- | --- | --- |
+  | `action` | Tugas tahap ini | Biru | Biru solid |
+  | `pending` | Tunggakan / mendesak | Kuning + ikon peringatan | Kuning solid |
+  | `waiting` | Menunggu tahap/pihak lain | Kuning + ikon jam pasir | Outline |
+  | `done` | Sudah selesai | Hijau | Outline |
+  | `info` | Tanpa tindakan | Biru muda | Outline (bila ada) |
+
+- Ikon tombol mengikuti aturan tabel: pensil untuk mengerjakan, mata untuk melihat. **Satu ikon saja**
+  (tanpa panah), label **1–2 kata** (Nilai, Verifikasi, Tugaskan, Atur, Tetapkan, Pantau, Lihat);
+  konteks & jumlah ditulis di judul panel, keterangan cukup satu kalimat pendek.
+
+### Peserta
+
+Tunggakan tahap sebelumnya yang masih dapat dikerjakan **diprioritaskan** di atas tugas tahap berjalan.
+
+| Tahap berlangsung | Kondisi | Yang muncul |
+| --- | --- | --- |
+| Self Assessment | SA belum dikirim (NEW/DRAFT) & dapat diisi | `action` **Isi Sekarang** |
+| | Diminta perbaikan | `action` **Perbaiki** |
+| | Sudah dikirim / terverifikasi | `done` **Lihat** |
+| | Belum dapat diisi (mis. tahap ditutup) | `info` **Buka** |
+| Tes Tertulis | Belum mulai / sedang dikerjakan & tersedia | `action` **Kerjakan / Lanjutkan** |
+| | Sudah terkirim | `done` **Lihat** |
+| | Belum tersedia (SA belum terverifikasi, dll.) | `info` **Buka** |
+| Tahap sesudah Self Assessment | SA masih dapat diisi/diperbaiki | `pending` **Lengkapi / Perbaiki** |
+| Tahap sesudah Tes Tertulis | Tes masih tersedia & belum terkirim | `pending` **Kerjakan / Lanjutkan** |
+| Tahap lain (Pendaftaran, Verifikasi, Penilaian, Penetapan, Pengumuman) | — | `info` keterangan tahap, tanpa tombol |
+| Tidak ada tahap berlangsung | Ada pekerjaan yang dibuka manual | Tombol pekerjaan tersebut |
+
+### Verifikator
+
+| Tahap berlangsung | Kondisi | Yang muncul |
+| --- | --- | --- |
+| Pendaftaran, Verifikasi Peserta | Ada pendaftar menunggu | `action` "N pendaftar menunggu verifikasi" → **Verifikasi** |
+| | Tidak ada | `done` → **Lihat** |
+| Tahap sesudahnya | Masih ada pendaftar menunggu | `pending` → **Verifikasi** |
+| Tahap Verifikasi SA **dibuka** (jadwal/manual) | Ada SA dikirim | `action` "N self assessment menunggu verifikasi" → **Verifikasi** |
+| | Tidak ada | `done` rincian terverifikasi/diperbaiki/belum dikirim → **Lihat** |
+| | Penugasan dapat diubah, ada peserta belum lengkap asesornya | `action` → **Tugaskan** |
+| | Semua sudah ditugaskan | `done` → **Lihat** |
+| | Belum ada SA terverifikasi | `info` tanpa tombol |
+| Tes Tertulis, Penilaian Asesor | Masih ada peserta tanpa asesor lengkap (penugasan terkunci) | `pending` "hubungi Super Admin" → **Lihat** |
+| Tahap lain | — | `info` "Tidak ada tindakan Verifikator" + keterangan tahap |
+
+### Asesor Teknis
+
+| Status tahap Penilaian Asesor | Kondisi | Yang muncul |
+| --- | --- | --- |
+| Dibuka (jadwal/manual) | Ada peserta dapat dinilai (belum dinilai/draf) | `action` "N peserta belum selesai Anda nilai" → **Nilai** |
+| | Ada peserta belum mengirim tes tertulis | `waiting` "N peserta menunggu tes tertulis" (tombol **Lihat** bila tidak ada yang dapat dinilai) |
+| | Semua sudah dikirim | `done` → **Lihat** |
+| | Belum ada peserta | `info` |
+| Belum dimulai | — | `info` jumlah peserta yang ditugaskan |
+| Sudah berakhir / ditutup | — | `info` "N dari M peserta sudah Anda nilai" → **Lihat** (bila ada) |
+
+### Asesor Kepublikan
+
+| Status tahap Penilaian Asesor | Kondisi | Yang muncul |
+| --- | --- | --- |
+| Dibuka (jadwal/manual) | Ada peserta dapat dinilai | `action` "N peserta belum selesai Anda nilai" → **Nilai** |
+| | Ada peserta menunggu Asesor Teknis | `waiting` "N peserta menunggu penilaian Asesor Teknis" |
+| | Semua sudah dikirim | `done` → **Lihat** (+ jumlah yang tidak dilanjutkan Asesor Teknis) |
+| | Semua peserta tidak dilanjutkan Asesor Teknis | `info` → **Lihat** |
+| Belum dimulai / berakhir | — | Sama seperti Asesor Teknis |
+
+### Super Admin
+
+| Tahap / kondisi | Yang muncul |
+| --- | --- |
+| Sampai tahap Tes Tertulis berakhir, pengaturan tes **belum diterapkan** atau **paket berubah** | `action` (sebelum tahap) / `pending` (tahap sudah dibuka) → **Atur** |
+| Tahap Tes Tertulis dibuka & sudah diterapkan | `info` "N dari M peserta sudah mengerjakan" → **Pantau** |
+| Tahap Penetapan dibuka, semua penilaian lengkap | `action` "Hasil N peserta siap ditetapkan" → **Tetapkan** |
+| Tahap Penetapan dibuka, ada yang belum lengkap | `waiting` → **Lihat** |
+| Tahap Penetapan dibuka, sudah ditetapkan | `done` jumlah Lulus/Remedial → **Lihat** |
+| Tahap lain tanpa tugas Super Admin | `info` + pintasan pemantauan: **Lihat Verifikasi Peserta** (Pendaftaran, Verifikasi Peserta), **Lihat** (SA, Verifikasi SA), **Lihat Penilaian Asesor** (Penilaian Asesor) |
+
+Tahap **Pengumuman** belum memiliki tombol (fitur belum dibangun). Saat menambah tahap/fitur baru,
+perbarui tabel di atas.
 
 ## Format Data
 

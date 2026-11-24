@@ -10,6 +10,7 @@ import {
   type AssessmentOutcome,
   type RemedialReason,
 } from '~~/shared/utils/assessment-result'
+import type { TableAction } from '~/utils/table-action'
 
 definePageMeta({ layout: 'super-admin' })
 useHead({ title: 'Penetapan Hasil Asesmen' })
@@ -22,7 +23,7 @@ type Item = {
   nip: string
   institution_name: string
   written: { status: 'NOT_STARTED' | 'IN_PROGRESS' | 'SUBMITTED', attempt_id: string, score: number | null, passing_grade: number, passed: boolean | null }
-  technical: { status: 'NOT_STARTED' | 'DRAFT' | 'SUBMITTED', recommendation: Recommendation }
+  technical: { status: 'NOT_STARTED' | 'DRAFT' | 'SUBMITTED' | 'NOT_REQUIRED', recommendation: Recommendation }
   public: { status: 'NOT_STARTED' | 'DRAFT' | 'SUBMITTED' | 'NOT_REQUIRED' | 'WAITING', recommendation: Recommendation }
   complete: boolean
   missing: string[]
@@ -35,7 +36,7 @@ type ResultData = {
   period: { period_id: string, period_name: string, period_status: string }
   stage: { open: boolean, message: string, startAt: string, endAt: string }
   decision: { decided: boolean, decided_at: string, decided_by_name: string, canDecide: boolean, canCancel: boolean }
-  summary: { total: number, incomplete: number, passed: number, remedial: number }
+  summary: { total: number, incomplete: number, passed: number, remedial: number, withdrawn: number }
   items: Item[]
 }
 
@@ -70,6 +71,7 @@ const FILTERS = [
   { value: 'INCOMPLETE', label: 'Belum Lengkap' },
   { value: 'PASSED', label: 'Lulus' },
   { value: 'REMEDIAL', label: 'Remedial' },
+  { value: 'WITHDRAWN', label: 'Tidak Melanjutkan' },
 ]
 
 const activeFilter = ref('ALL')
@@ -93,23 +95,107 @@ const summaryCards = computed(() => [
   { key: 'INCOMPLETE', label: 'Belum Lengkap', value: data.value?.summary.incomplete ?? 0, icon: 'i-lucide-clock', tone: 'border-slate-400 bg-slate-50 text-slate-600' },
   { key: 'PASSED', label: 'Lulus', value: data.value?.summary.passed ?? 0, icon: 'i-lucide-award', tone: 'border-emerald-300 bg-emerald-50 text-emerald-700' },
   { key: 'REMEDIAL', label: 'Remedial', value: data.value?.summary.remedial ?? 0, icon: 'i-lucide-rotate-ccw', tone: 'border-amber-300 bg-amber-50 text-amber-700' },
+  { key: 'WITHDRAWN', label: 'Tidak Melanjutkan', value: data.value?.summary.withdrawn ?? 0, icon: 'i-lucide-user-x', tone: 'border-slate-400 bg-slate-50 text-slate-600' },
 ])
 
 const { page: tablePage, pageSize: tablePageSize, items: pagedItems, reset: resetTablePage } = useTablePagination(filteredItems)
 watch([activeFilter, searchQuery], resetTablePage)
 
-/* ---------------- Tampilan sel ---------------- */
-const RECOMMENDATION_TEXT: Record<'CONTINUE' | 'NOT_CONTINUE', string> = {
-  CONTINUE: 'Dapat dilanjutkan',
-  NOT_CONTINUE: 'Tidak dapat dilanjutkan',
+/* ---------------- Tampilan sel: semua berupa badge ---------------- */
+type BadgeColor = 'success' | 'error' | 'warning' | 'neutral' | 'info'
+type CellBadge = { key: string, label: string, color: BadgeColor, title?: string }
+
+const formatScore = (value: number) => value.toLocaleString('id-ID', { maximumFractionDigits: 2 })
+
+function writtenBadge(item: Item): CellBadge {
+  const { written } = item
+  if (written.status === 'SUBMITTED' && written.score !== null) {
+    return {
+      key: 'written',
+      label: formatScore(written.score),
+      color: written.passed ? 'success' : 'error',
+      title: `Passing grade ${formatScore(written.passing_grade)}`,
+    }
+  }
+  if (item.outcome === 'WITHDRAWN') return { key: 'written', label: 'Tidak Mengerjakan', color: 'neutral' }
+  return { key: 'written', label: written.status === 'IN_PROGRESS' ? 'Dikerjakan' : 'Belum Mengerjakan', color: 'neutral' }
 }
 
-function writtenDetailPath(item: Item) {
-  return item.written.attempt_id ? `/super-admin/evaluations/attempts/${item.written.attempt_id}` : ''
+function assessorBadge(key: string, status: string, recommendation: Recommendation): CellBadge {
+  if (status === 'SUBMITTED' && recommendation) {
+    return recommendation === 'CONTINUE'
+      ? { key, label: 'Dilanjutkan', color: 'success' }
+      : { key, label: 'Tidak Dilanjutkan', color: 'error' }
+  }
+  if (status === 'WAITING') return { key, label: 'Menunggu Asesor Teknis', color: 'warning' }
+  if (status === 'NOT_REQUIRED') return { key, label: 'Tidak Dinilai', color: 'neutral' }
+  return { key, label: status === 'DRAFT' ? 'Draf' : 'Belum Dinilai', color: 'neutral' }
 }
 
-const technicalDetailPath = (item: Item) => `/super-admin/technical-assessments/${periodId.value}/${item.application_id}`
-const publicDetailPath = (item: Item) => `/super-admin/public-assessments/${periodId.value}/${item.application_id}`
+function resultBadge(item: Item): CellBadge {
+  if (!item.outcome) return { key: 'result', label: 'Belum Lengkap', color: 'neutral' }
+  const color: BadgeColor = item.outcome === 'PASSED' ? 'success' : item.outcome === 'REMEDIAL' ? 'warning' : 'neutral'
+  return { key: 'result', label: ASSESSMENT_OUTCOME_LABELS[item.outcome], color }
+}
+
+/** Badge kolom Tes Tertulis, Asesor Teknis, Asesor Kepublikan, Hasil (berurutan). */
+const rowBadges = (item: Item): CellBadge[] => [
+  writtenBadge(item),
+  assessorBadge('technical', item.technical.status, item.technical.recommendation),
+  assessorBadge('public', item.public.status, item.public.recommendation),
+  resultBadge(item),
+]
+
+/* ---------------- Pilihan aksi per peserta ---------------- */
+const actionModalOpen = ref(false)
+const selectedItem = ref<Item | null>(null)
+
+function openActions(item: Item) {
+  selectedItem.value = item
+  actionModalOpen.value = true
+}
+
+const selectedActions = computed<TableAction[]>(() => {
+  const item = selectedItem.value
+  if (!item) return []
+
+  const publicBlocked: Partial<Record<Item['public']['status'], string>> = {
+    NOT_REQUIRED: item.outcome === 'WITHDRAWN'
+      ? 'Tidak dinilai karena peserta tidak melanjutkan.'
+      : 'Tidak dinilai karena Asesor Teknis tidak melanjutkan.',
+    WAITING: 'Menunggu penilaian Asesor Teknis.',
+    NOT_STARTED: 'Asesor Kepublikan belum menilai.',
+  }
+
+  return [
+    {
+      label: 'Lihat Hasil Tes Tertulis',
+      description: 'Jawaban dan nilai tes tertulis peserta.',
+      icon: 'i-lucide-file-check',
+      to: item.written.attempt_id ? `/super-admin/evaluations/attempts/${item.written.attempt_id}` : undefined,
+      newTab: true,
+      disabledReason: item.written.attempt_id ? undefined : 'Peserta belum mengerjakan tes tertulis.',
+    },
+    {
+      label: 'Lihat Penilaian Asesor Teknis',
+      description: 'Penilaian CMSP-02 dan rekomendasi Asesor Teknis.',
+      icon: 'i-lucide-clipboard-check',
+      to: `/super-admin/technical-assessments/${periodId.value}/${item.application_id}`,
+      newTab: true,
+      disabledReason: item.technical.status === 'NOT_REQUIRED'
+        ? 'Tidak dinilai karena peserta tidak melanjutkan.'
+        : item.technical.status === 'NOT_STARTED' ? 'Asesor Teknis belum menilai.' : undefined,
+    },
+    {
+      label: 'Lihat Penilaian Asesor Kepublikan',
+      description: 'Penilaian CMSP-03 dan rekomendasi Asesor Kepublikan.',
+      icon: 'i-lucide-landmark',
+      to: `/super-admin/public-assessments/${periodId.value}/${item.application_id}`,
+      newTab: true,
+      disabledReason: publicBlocked[item.public.status],
+    },
+  ]
+})
 
 const PERIOD_STATUS_LABELS: Record<string, string> = { DRAFT: 'Draft', ACTIVE: 'Aktif', CLOSED: 'Ditutup', COMPLETED: 'Selesai' }
 
@@ -220,7 +306,7 @@ async function cancelDecision() {
         :description="`Ditetapkan pada ${formatDateTimeId(data.decision.decided_at)}${data.decision.decided_by_name ? ` oleh ${data.decision.decided_by_name}` : ''}. Hasil akan disampaikan kepada peserta pada tahap Pengumuman. Buka kunci penilaian asesor dan reset tes tertulis dinonaktifkan selama hasil masih ditetapkan.`"
       />
 
-      <div class="grid grid-cols-2 gap-3 md:grid-cols-4">
+      <div class="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
         <button
           v-for="card in summaryCards"
           :key="card.key"
@@ -240,14 +326,8 @@ async function cancelDecision() {
       <UCard>
         <template #header>
           <div class="flex flex-col gap-3">
-            <div class="flex items-start justify-between gap-3">
-              <div>
-                <h2 class="font-semibold text-slate-900">Rekap Hasil Penilaian</h2>
-                <p class="mt-1 text-sm text-slate-600">
-                  Lulus bila nilai tes tertulis memenuhi passing grade dan kedua asesor merekomendasikan
-                  "dapat dilanjutkan". Selain itu peserta diarahkan ke Remedial.
-                </p>
-              </div>
+            <div class="flex items-center justify-between gap-3">
+              <h2 class="font-semibold text-slate-900">Rekap Hasil Penilaian</h2>
               <UButton color="neutral" variant="outline" icon="i-lucide-refresh-cw" size="sm" :loading="loading" @click="load">
                 Muat Ulang
               </UButton>
@@ -270,14 +350,15 @@ async function cancelDecision() {
         </div>
 
         <div v-else class="overflow-x-auto">
-          <table class="w-full min-w-[1000px] table-fixed text-left text-sm">
+          <table class="w-full min-w-[1080px] table-fixed text-left text-sm">
             <colgroup>
-              <col class="w-[20%]" />
-              <col class="w-[18%]" />
-              <col class="w-[14%]" />
-              <col class="w-[15%]" />
-              <col class="w-[15%]" />
-              <col class="w-[18%]" />
+              <col />
+              <col />
+              <col class="w-32" />
+              <col class="w-44" />
+              <col class="w-52" />
+              <col class="w-36" />
+              <col class="w-24" />
             </colgroup>
             <thead>
               <tr class="border-b border-blue-100">
@@ -287,10 +368,11 @@ async function cancelDecision() {
                 <th class="px-4 py-3 text-center font-semibold text-blue-600">Asesor Teknis</th>
                 <th class="px-4 py-3 text-center font-semibold text-blue-600">Asesor Kepublikan</th>
                 <th class="px-4 py-3 text-center font-semibold text-blue-600">Hasil</th>
+                <th class="px-4 py-3 text-center font-semibold text-blue-600">Aksi</th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="item in pagedItems" :key="item.application_id" class="border-b border-slate-300 align-top last:border-0">
+              <tr v-for="item in pagedItems" :key="item.application_id" class="border-b border-slate-300 last:border-0">
                 <td class="px-4 py-3">
                   <p class="truncate font-medium text-slate-800" :title="item.full_name">{{ item.full_name }}</p>
                   <p class="truncate text-xs text-slate-600">{{ item.nip }}</p>
@@ -298,97 +380,20 @@ async function cancelDecision() {
                 <td class="px-4 py-3 text-slate-600">
                   <p class="line-clamp-2" :title="item.institution_name">{{ item.institution_name }}</p>
                 </td>
-
-                <!-- Tes tertulis -->
+                <td v-for="badge in rowBadges(item)" :key="badge.key" class="px-4 py-3 text-center">
+                  <UBadge :color="badge.color" variant="subtle" :title="badge.title">{{ badge.label }}</UBadge>
+                </td>
                 <td class="px-4 py-3 text-center">
-                  <template v-if="item.written.status === 'SUBMITTED'">
-                    <p class="text-base font-semibold" :class="item.written.passed ? 'text-emerald-700' : 'text-rose-700'">
-                      {{ item.written.score }}
-                    </p>
-                    <p class="text-xs text-slate-600">PG {{ item.written.passing_grade }}</p>
-                  </template>
-                  <p v-else class="text-xs text-slate-500">{{ item.written.status === 'IN_PROGRESS' ? 'Sedang dikerjakan' : 'Belum mengerjakan' }}</p>
                   <UButton
-                    v-if="writtenDetailPath(item)"
-                    :to="writtenDetailPath(item)"
-                    target="_blank"
-                    size="xs"
-                    color="neutral"
-                    variant="outline"
-                    icon="i-lucide-eye"
-                    class="mt-1.5"
-                    aria-label="Lihat detail tes tertulis"
-                  >
-                    Detail
-                  </UButton>
-                </td>
-
-                <!-- Asesor Teknis -->
-                <td class="px-4 py-3 text-center text-xs">
-                  <p
-                    v-if="item.technical.status === 'SUBMITTED' && item.technical.recommendation"
-                    class="font-medium"
-                    :class="item.technical.recommendation === 'CONTINUE' ? 'text-emerald-700' : 'text-rose-700'"
-                  >
-                    {{ RECOMMENDATION_TEXT[item.technical.recommendation] }}
-                  </p>
-                  <p v-else class="text-slate-500">{{ item.technical.status === 'DRAFT' ? 'Draf (belum dikirim)' : 'Belum dinilai' }}</p>
-                  <UButton
-                    :to="technicalDetailPath(item)"
-                    target="_blank"
-                    size="xs"
-                    color="neutral"
-                    variant="outline"
-                    icon="i-lucide-eye"
-                    class="mt-1.5"
-                    aria-label="Lihat detail penilaian Asesor Teknis"
-                  >
-                    Detail
-                  </UButton>
-                </td>
-
-                <!-- Asesor Kepublikan -->
-                <td class="px-4 py-3 text-center text-xs">
-                  <p
-                    v-if="item.public.status === 'SUBMITTED' && item.public.recommendation"
-                    class="font-medium"
-                    :class="item.public.recommendation === 'CONTINUE' ? 'text-emerald-700' : 'text-rose-700'"
-                  >
-                    {{ RECOMMENDATION_TEXT[item.public.recommendation] }}
-                  </p>
-                  <p v-else-if="item.public.status === 'NOT_REQUIRED'" class="text-slate-500">Tidak dinilai (Asesor Teknis tidak melanjutkan)</p>
-                  <p v-else-if="item.public.status === 'WAITING'" class="text-slate-500">Menunggu Asesor Teknis</p>
-                  <p v-else class="text-slate-500">{{ item.public.status === 'DRAFT' ? 'Draf (belum dikirim)' : 'Belum dinilai' }}</p>
-                  <UButton
-                    v-if="item.public.status !== 'NOT_REQUIRED' && item.public.status !== 'WAITING'"
-                    :to="publicDetailPath(item)"
-                    target="_blank"
-                    size="xs"
-                    color="neutral"
-                    variant="outline"
-                    icon="i-lucide-eye"
-                    class="mt-1.5"
-                    aria-label="Lihat detail penilaian Asesor Kepublikan"
-                  >
-                    Detail
-                  </UButton>
-                </td>
-
-                <!-- Hasil -->
-                <td class="px-4 py-3 text-center">
-                  <template v-if="item.outcome">
-                    <UBadge :color="item.outcome === 'PASSED' ? 'success' : 'warning'" variant="subtle">
-                      {{ ASSESSMENT_OUTCOME_LABELS[item.outcome] }}
-                    </UBadge>
-                    <ul v-if="item.reasons.length" class="mt-1.5 space-y-0.5 text-left text-xs text-amber-800">
-                      <li v-for="reason in item.reasons" :key="reason">• {{ REMEDIAL_REASON_LABELS[reason] }}</li>
-                    </ul>
-                    <p v-if="!item.is_decided && !data.decision.decided" class="mt-1 text-xs text-slate-500">Belum ditetapkan</p>
-                  </template>
-                  <template v-else>
-                    <UBadge color="neutral" variant="subtle">Belum Lengkap</UBadge>
-                    <p class="mt-1.5 text-xs text-slate-600">Menunggu: {{ item.missing.join(', ') }}</p>
-                  </template>
+                    icon="i-lucide-settings-2"
+                    color="primary"
+                    variant="solid"
+                    square
+                    size="md"
+                    aria-label="Pilihan aksi"
+                    title="Pilihan aksi"
+                    @click="openActions(item)"
+                  />
                 </td>
               </tr>
             </tbody>
@@ -491,5 +496,26 @@ async function cancelDecision() {
         </div>
       </template>
     </UModal>
+
+    <!-- Pilihan aksi per peserta (gaya Manajemen Akun) -->
+    <TableActionModal
+      v-model:open="actionModalOpen"
+      title="Pilihan Aksi"
+      :description="selectedItem?.full_name"
+      :actions="selectedActions"
+    >
+      <template v-if="selectedItem" #summary>
+        <p class="font-semibold text-slate-900">{{ selectedItem.full_name }}</p>
+        <p class="mt-1 text-sm text-slate-600">{{ selectedItem.nip }} · {{ selectedItem.institution_name }}</p>
+        <div class="mt-3 flex flex-wrap items-center gap-2">
+          <UBadge :color="resultBadge(selectedItem).color" variant="subtle">{{ resultBadge(selectedItem).label }}</UBadge>
+          <span v-if="selectedItem.outcome && !selectedItem.is_decided" class="text-xs text-slate-500">Belum ditetapkan</span>
+        </div>
+        <ul v-if="selectedItem.reasons.length" class="mt-2 space-y-0.5 text-xs text-amber-800">
+          <li v-for="reason in selectedItem.reasons" :key="reason">• {{ REMEDIAL_REASON_LABELS[reason] }}</li>
+        </ul>
+        <p v-if="!selectedItem.complete" class="mt-2 text-xs text-slate-600">Menunggu: {{ selectedItem.missing.join(', ') }}</p>
+      </template>
+    </TableActionModal>
   </div>
 </template>

@@ -666,6 +666,7 @@ watch([activeFilter, searchQuery], resetTablePage)
                     :variant="item.status === 'ASSIGNED' ? 'outline' : 'solid'"
                     size="sm"
                     :disabled="!data.canEdit || !hasPeriodAssessors"
+                    icon="i-lucide-pencil"
                     class="inline-flex w-32 justify-center"
                     @click="openAssign([item])"
                   >

@@ -502,12 +502,12 @@ baris: `status` menjadi `CANCELLED` (riwayat). Hanya baris `ACTIVE` yang berlaku
 | B | `application_id` | Relasi |
 | C | `period_id` | Relasi |
 | D | `round` | `1` = penetapan utama (disiapkan untuk remedial nanti) |
-| E | `outcome` | `PASSED` (Lulus) / `REMEDIAL` |
+| E | `outcome` | `PASSED` (Lulus) / `REMEDIAL` / `WITHDRAWN` (Tidak Melanjutkan: tidak mengerjakan tes tertulis, K-25) |
 | F | `written_score` | Nilai tes tertulis 0–100 saat ditetapkan |
 | G | `written_passing_grade` | Passing grade yang dipakai |
-| H | `technical_recommendation` | `CONTINUE` / `NOT_CONTINUE` |
-| I | `public_recommendation` | `CONTINUE` / `NOT_CONTINUE` / `NOT_REQUIRED` (Asesor Teknis tidak melanjutkan) |
-| J | `reasons` | Alasan remedial dipisah koma: `WRITTEN_BELOW_PASSING_GRADE`, `TECHNICAL_NOT_CONTINUE`, `PUBLIC_NOT_CONTINUE` |
+| H | `technical_recommendation` | `CONTINUE` / `NOT_CONTINUE` / `NOT_REQUIRED` (peserta Tidak Melanjutkan) |
+| I | `public_recommendation` | `CONTINUE` / `NOT_CONTINUE` / `NOT_REQUIRED` (Asesor Teknis tidak melanjutkan, atau peserta Tidak Melanjutkan) |
+| J | `reasons` | Alasan remedial dipisah koma: `WRITTEN_BELOW_PASSING_GRADE`, `TECHNICAL_NOT_CONTINUE`, `PUBLIC_NOT_CONTINUE`; untuk `WITHDRAWN`: `WRITTEN_NOT_TAKEN` |
 | K | `status` | `ACTIVE` / `CANCELLED` |
 | L | `decided_by` | `user_id` Super Admin |
 | M | `decided_at` | — |

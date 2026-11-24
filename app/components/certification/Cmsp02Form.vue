@@ -445,7 +445,7 @@ defineExpose({
 
                 <div class="mt-4">
                   <label class="block text-sm font-medium text-slate-700">
-                    Nama Evidence <span class="text-red-500">*</span>
+                    Nama Evidence <span v-if="!reviewMode" class="text-red-500">*</span>
                   </label>
                   <UInput
                     v-model="evidence.evidenceName"

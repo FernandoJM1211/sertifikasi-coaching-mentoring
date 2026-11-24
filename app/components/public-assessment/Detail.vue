@@ -107,9 +107,16 @@ const submitError = computed(() => {
   return ''
 })
 
+const GATE_TITLES: Record<string, string> = {
+  PENDING: 'Menunggu penilaian Asesor Teknis',
+  NOT_CONTINUE: 'Asesmen tidak dilanjutkan',
+  WITHDRAWN: 'Peserta tidak melanjutkan',
+}
+
 const STATUS_COLORS: Record<PublicAssessmentStatus, 'neutral' | 'warning' | 'success' | 'info' | 'error'> = {
-  WAITING: 'info',
+  WAITING: 'warning',
   STOPPED: 'error',
+  WITHDRAWN: 'neutral',
   NOT_STARTED: 'neutral',
   DRAFT: 'warning',
   SUBMITTED: 'success',
@@ -241,10 +248,10 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', onBeforeUnload)
       </UAlert>
       <UAlert
         v-else-if="data.technical.gate !== 'CONTINUE'"
-        :color="data.technical.gate === 'NOT_CONTINUE' ? 'error' : 'info'"
+        :color="data.technical.gate === 'NOT_CONTINUE' ? 'error' : data.technical.gate === 'WITHDRAWN' ? 'neutral' : 'warning'"
         variant="subtle"
-        icon="i-lucide-hourglass"
-        :title="data.technical.gate === 'NOT_CONTINUE' ? 'Asesmen tidak dilanjutkan' : 'Menunggu penilaian Asesor Teknis'"
+        :icon="data.technical.gate === 'WITHDRAWN' ? 'i-lucide-user-x' : 'i-lucide-hourglass'"
+        :title="GATE_TITLES[data.technical.gate]"
         :description="data.technical.message"
       />
       <UAlert

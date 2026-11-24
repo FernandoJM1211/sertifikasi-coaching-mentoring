@@ -33,6 +33,7 @@ import {
 import type { TechnicalAssessmentInput } from '../utils/technical-assessment-input'
 import type { AuthenticatedUser } from './auth.service'
 import { getStageAccess, withStageSchedule } from './certification-stage.service'
+import { getWrittenTestGate } from './written-test-gate.service'
 
 /**
  * Penilaian CMSP-03 oleh Asesor Kepublikan (pola sama dengan penilaian CMSP-02 Asesor Teknis).
@@ -59,8 +60,9 @@ function conflict(message: string): never {
 const isSuperAdmin = (user: AuthenticatedUser) => user.role === 'SUPER_ADMIN'
 
 /** Hasil Asesor Teknis yang menjadi syarat penilaian CMSP-03. */
-function technicalGateOf(technical: TechnicalAssessment | null | undefined): TechnicalGate {
-  if (!technical || technical.status !== 'SUBMITTED') return 'PENDING'
+/** `withdrawn`: peserta tidak mengerjakan tes tertulis sampai tahapnya berakhir (K-25). */
+function technicalGateOf(technical: TechnicalAssessment | null | undefined, withdrawn = false): TechnicalGate {
+  if (!technical || technical.status !== 'SUBMITTED') return withdrawn ? 'WITHDRAWN' : 'PENDING'
   return technical.recommendation === 'CONTINUE' ? 'CONTINUE' : 'NOT_CONTINUE'
 }
 
@@ -69,6 +71,7 @@ function statusOf(assessment: PublicAssessment | null | undefined, gate: Technic
   if (assessment) return assessment.status === 'SUBMITTED' ? 'SUBMITTED' : 'DRAFT'
   if (gate === 'PENDING') return 'WAITING'
   if (gate === 'NOT_CONTINUE') return 'STOPPED'
+  if (gate === 'WITHDRAWN') return 'WITHDRAWN'
   return 'NOT_STARTED'
 }
 
@@ -137,6 +140,7 @@ export async function listPublicAssessments(user: AuthenticatedUser, periodId: s
     getStageAccess(periodId, PUBLIC_ASSESSMENT_STAGE),
     findAllUsers(),
   ])
+  const written = await getWrittenTestGate(periodId)
 
   const applicationById = new Map(applications.map((item) => [item.application_id, item]))
   const submissionByApplication = new Map(submissions.map((item) => [item.application_id, item]))
@@ -153,7 +157,7 @@ export async function listPublicAssessments(user: AuthenticatedUser, periodId: s
 
       const cmsp01 = submissionByApplication.get(application.application_id)
       const assessment = assessmentByApplication.get(application.application_id)
-      const gate = technicalGateOf(technicalByApplication.get(application.application_id))
+      const gate = technicalGateOf(technicalByApplication.get(application.application_id), written.isWithdrawn(application.application_id))
       const counts = countResults(assessment)
 
       return {
@@ -184,6 +188,7 @@ export async function listPublicAssessments(user: AuthenticatedUser, periodId: s
     summary: {
       total: items.length,
       waiting: count('WAITING') + count('STOPPED'),
+      withdrawn: count('WITHDRAWN'),
       notStarted: count('NOT_STARTED'),
       draft: count('DRAFT'),
       submitted: count('SUBMITTED'),
@@ -211,7 +216,8 @@ export async function getPublicAssessment(user: AuthenticatedUser, applicationId
   ])
 
   const userName = new Map(users.map((item) => [item.user_id, item.full_name]))
-  const gate = technicalGateOf(technical)
+  const written = await getWrittenTestGate(application.period_id, (item) => item.application_id === application.application_id)
+  const gate = technicalGateOf(technical, written.isWithdrawn(application.application_id))
   const status = statusOf(assessment, gate)
   const isSubmitted = status === 'SUBMITTED'
   const isAssignedAssessor = assignment?.public_assessor_id === user.user_id

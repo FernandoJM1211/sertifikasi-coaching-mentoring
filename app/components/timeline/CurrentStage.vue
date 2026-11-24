@@ -19,6 +19,7 @@ const nextStage = computed(() => getNextStage(props.stages))
 const BOX: Record<TimelineTask['tone'], string> = {
   pending: 'border-amber-300 bg-amber-50',
   action: 'border-blue-200 bg-blue-50',
+  waiting: 'border-amber-300 bg-amber-50',
   done: 'border-emerald-200 bg-emerald-50',
   info: 'border-sky-200 bg-sky-50',
 }
@@ -26,6 +27,7 @@ const BOX: Record<TimelineTask['tone'], string> = {
 const ICON: Record<TimelineTask['tone'], { name: string, color: string }> = {
   pending: { name: 'i-lucide-triangle-alert', color: 'text-amber-600' },
   action: { name: 'i-lucide-arrow-right-circle', color: 'text-primary' },
+  waiting: { name: 'i-lucide-hourglass', color: 'text-amber-600' },
   done: { name: 'i-lucide-circle-check', color: 'text-emerald-600' },
   info: { name: 'i-lucide-info', color: 'text-sky-600' },
 }
@@ -82,9 +84,8 @@ const ICON: Record<TimelineTask['tone'], { name: string, color: string }> = {
         size="lg"
         class="shrink-0 justify-center"
         :color="task.tone === 'pending' ? 'warning' : 'primary'"
-        :variant="task.tone === 'done' || task.tone === 'info' ? 'outline' : 'solid'"
+        :variant="task.tone === 'pending' || task.tone === 'action' ? 'solid' : 'outline'"
         :icon="task.icon"
-        trailing-icon="i-lucide-arrow-right"
       >
         {{ task.label }}
       </UButton>

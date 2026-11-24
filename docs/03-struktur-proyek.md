@@ -37,12 +37,13 @@ Peta seluruh file dan fungsinya. **Perbarui dokumen ini setiap menambah/menghapu
 | `app/assets/css/main.css` | Import Tailwind dan Nuxt UI. |
 | `app/middleware/auth.global.ts` | Redirect berdasarkan login & role untuk `/super-admin`, `/verifikator`, `/asesor-teknis`, `/asesor-kepublikan`, `/peserta`. Hanya UX — keamanan ada di API. |
 | `app/composables/useTablePagination.ts` | `useTablePagination(filtered)` paginasi sisi klien semua tabel (`page`, `pageSize`, `items`, `reset`); `TABLE_PAGE_SIZES` = 5/10/20/50. |
+| `app/components/TableActionModal.vue` | `<TableActionModal>` modal pilihan aksi untuk baris tabel dengan lebih dari satu aksi (gaya Manajemen Akun); slot `summary` + prop `actions` (tipe `TableAction` di `app/utils/table-action.ts`). |
 | `app/components/TablePagination.vue` | `<TablePagination>` footer paginasi seragam: ringkasan baris, pilihan per halaman, Sebelumnya/Berikutnya. |
 | `app/composables/useSelfAssessmentFiles.ts` | `useSelfAssessmentFiles()` unggah & URL preview berkas self assessment; `formatFileInfo()`. |
 | `app/composables/useAuthUser.ts` | `useAuthUser()` (data pengguna login, cache key `authenticated-user`) dan `logout()`. |
 | `app/utils/api-error.ts` | `getApiErrorMessage(error, fallback)` — ambil `statusMessage` dari error `$fetch` (auto-import). |
 | `app/utils/format.ts` | `formatDateTimeId()` — format `13 Nov 2026, 09.30` (auto-import). |
-| `app/utils/timeline.ts` | `buildTimelineStages()` (status progres dari jadwal saja; tahap terjauh yang berlangsung menjadi acuan), `getActiveStage()`, `getNextStage()`, tipe `TimelineTask`. |
+| `app/utils/timeline.ts` | `buildTimelineStages()` (status progres dari jadwal saja; tahap terjauh yang berlangsung menjadi acuan), `getActiveStage()`, `getNextStage()`, `stageStatusOf()`, `manualNote()`, tipe `TimelineTask` (tone `pending`/`action`/`waiting`/`done`/`info`) & `StaffHomePeriod`. |
 
 ### Layouts (`app/layouts/`)
 
@@ -80,7 +81,7 @@ Untuk role baru (mis. asesor), buat layout tipis serupa yang memakai `LayoutDash
 | `document/LinkPreviewModal.vue` | `<DocumentLinkPreviewModal>` | Modal embed link evidence (video YouTube / file Google Drive); ukuran & header sama dengan `DocumentPreviewModal`. Link lain (folder Drive, website) tidak di-embed, langsung dibuka di tab baru. |
 | `timeline/ProgressBar.vue` | `<TimelineProgressBar>` | Progres bar timeline (Selesai / Sedang Berlangsung / Belum Dimulai). Prop `stages`. |
 | `timeline/CurrentStage.vue` | `<TimelineCurrentStage>` | Kartu "Tahapan Saat Ini" (nama, tanggal mulai & selesai) + panel tombol dinamis dari prop `tasks`. Tombol tetap tampil walau tidak ada tahap berlangsung menurut jadwal (mis. self assessment dibuka lewat override — beranda peserta mengisinya dari status `editable`/`available` server). |
-| `timeline/StaffHome.vue` | `<TimelineStaffHome>` | Beranda staf: semua periode aktif dari `/api/home/periods` + progres bar; props `tasksFor(periodId, stage)`, `showCurrentStage`, `emptyDescription`. |
+| `timeline/StaffHome.vue` | `<TimelineStaffHome>` | Beranda staf: semua periode aktif dari `/api/home/periods` + progres bar; props `tasksFor(period, stage)` (dipanggil juga bila tidak ada tahap berlangsung; data pekerjaan di `period.insight`), `showCurrentStage`, `emptyDescription`. |
 | `period/PeriodPicker.vue` | `<PeriodPicker>` | Kartu pilihan periode sebelum halaman per periode (Verifikasi SA, Penugasan Asesor). Props `title`, `description`, `note`, `actionLabel`, `actionIcon`, `basePath`, `endpoint` (opsional, sumber daftar periode), `stageCode` (opsional; kartu menampilkan "Jadwal" tahap fitur tersebut, mis. `EVALUATION`). |
 | `technical-assessment/List.vue` | `<TechnicalAssessmentList>` | Daftar penilaian CMSP-02 per periode (ringkasan, filter, tabel). Props `periodId`, `basePath`, `backPath`, `showAssessor`. |
 | `technical-assessment/Detail.vue` | `<TechnicalAssessmentDetail>` | Penilaian satu peserta: evidence CMSP-02 + K/BK per unit, catatan, rekomendasi, simpan draf/kirim; buka kunci (Super Admin). Props `applicationId`, `backPath`. |
@@ -110,9 +111,9 @@ Untuk role baru (mis. asesor), buat layout tipis serupa yang memakai `LayoutDash
 
 | Route | File | Fungsi |
 | --- | --- | --- |
-| `/super-admin` | `index.vue` | Beranda: progres timeline setiap periode aktif (tanpa tombol dinamis). |
-| `/verifikator` | `verifikator/index.vue` | Beranda Verifikator: timeline periode aktif + tombol Verifikasi Pendaftar / Verifikasi SA / Penugasan Asesor sesuai tahap. |
-| `/asesor-teknis` | `asesor-teknis/index.vue` | Beranda Asesor Teknis: timeline periode aktif yang ditugaskan + tombol Nilai CMSP-02 pada tahap Penilaian Asesor. |
+| `/super-admin` | `index.vue` | Beranda Super Admin: timeline periode aktif + tombol Atur/Pantau Tes Tertulis, Tetapkan Hasil Asesmen, dan pintasan pemantauan (docs/05 "Tombol Beranda per Role"). |
+| `/verifikator` | `verifikator/index.vue` | Beranda Verifikator: timeline periode aktif + tombol Verifikasi Pendaftar / Verifikasi SA / Penugasan Asesor sesuai tahap & jumlah pekerjaan. |
+| `/asesor-teknis` | `asesor-teknis/index.vue` | Beranda Asesor Teknis: timeline periode aktif yang ditugaskan + tombol Nilai CMSP-02 sesuai status tahap & progres penilaian. |
 | `/super-admin/periods` | `periods/index.vue` | Menu **Atur Periode**: daftar periode, Atur Timeline + ubah status (aktifkan, tutup, buka kembali, selesaikan). |
 | `/super-admin/periods/create` | `periods/create.vue` | Buat periode baru (status DRAFT). |
 | `/super-admin/periods/:periodId` | `periods/[periodId]/index.vue` | Alamat lama; dialihkan ke `/super-admin/participant-verifications/:periodId`. |
@@ -135,7 +136,7 @@ Untuk role baru (mis. asesor), buat layout tipis serupa yang memakai `LayoutDash
 | `/asesor-teknis/profile`, `/asesor-teknis/change-password` | `asesor-teknis/*.vue` | Profil & ubah kata sandi. |
 | `/super-admin/public-assessments` (+ `/:periodId`, `/:periodId/:applicationId`) | `public-assessments/**` | Pantau/isi/buka kunci penilaian CMSP-03 Asesor Kepublikan. |
 | `/super-admin/assessment-results` (+ `/:periodId`) | `assessment-results/index.vue`, `[periodId].vue` | Penetapan Hasil Asesmen: pilih periode, rekap tes tertulis + kedua asesor, Tetapkan/Batalkan Penetapan. |
-| `/asesor-kepublikan` | `asesor-kepublikan/index.vue` | Beranda Asesor Kepublikan: timeline periode aktif yang ditugaskan + tombol Nilai CMSP-03. |
+| `/asesor-kepublikan` | `asesor-kepublikan/index.vue` | Beranda Asesor Kepublikan: timeline periode aktif yang ditugaskan + tombol Nilai CMSP-03 sesuai status tahap & progres penilaian. |
 | `/asesor-kepublikan/assessments` (+ `/:periodId`, `/:periodId/:applicationId`) | `asesor-kepublikan/assessments/**` | Pilih periode → daftar peserta yang ditugaskan → form penilaian CMSP-03. |
 | `/asesor-kepublikan/profile`, `/asesor-kepublikan/change-password` | `asesor-kepublikan/*.vue` | Profil & ubah kata sandi. |
 | `/super-admin/evaluations/attempts/:attemptId` | `evaluations/attempts/[attemptId].vue` | Detail hasil tes tertulis peserta: waktu, nilai, jawaban per soal vs kunci (benar/salah/tidak dijawab). |
@@ -257,7 +258,7 @@ Alur: **`api/` → `services/` → `repositories/` → Google Sheets/Drive.**
 | `POST /api/admin/accounts/:id/resend-activation` | `admin/accounts/[id]/resend-activation.post.ts` | Super Admin | Kirim ulang tautan aktivasi ke akun peserta berstatus menunggu aktivasi (token lama dicabut). |
 | `PATCH /api/admin/accounts/:id/status` | `admin/accounts/[id]/status.patch.ts` | Super Admin | `ACTIVE` / `DISABLED`. |
 | `GET /api/peserta/dashboard` | `peserta/dashboard.get.ts` | Peserta | Pengajuan milik peserta + periode + timeline + `progress` (status self assessment & tes tertulis, apakah masih dapat dikerjakan). |
-| `GET /api/home/periods` | `home/periods.get.ts` | Super Admin, Verifikator, Asesor Teknis, Asesor Kepublikan | Periode aktif (Asesor: yang memiliki peserta ditugaskan) + timeline untuk beranda. |
+| `GET /api/home/periods` | `home/periods.get.ts` | Super Admin, Verifikator, Asesor Teknis, Asesor Kepublikan | Periode aktif (Asesor: yang memiliki peserta ditugaskan) + timeline + `insight` (status tahap nyata & jumlah pekerjaan role) untuk beranda. |
 | `GET /api/peserta/applications/:applicationId/self-assessment` | `peserta/applications/[applicationId]/self-assessment/index.get.ts` | Peserta (pemilik) | Data CMSP-01 & 02, status, izin edit, catatan perbaikan, profil (hanya untuk isian awal). |
 | `PUT /api/peserta/applications/:applicationId/self-assessment` | `.../self-assessment/index.put.ts` | Peserta (pemilik) | Simpan draft CMSP-01 & 02 sekaligus. |
 | `POST /api/peserta/applications/:applicationId/self-assessment/submit` | `.../self-assessment/submit.post.ts` | Peserta (pemilik) | Submit keduanya (server mengecek kelengkapan). |
@@ -298,13 +299,15 @@ Alur: **`api/` → `services/` → `repositories/` → Google Sheets/Drive.**
 | `self-assessment.service.ts` | Baca/simpan draft/submit CMSP-01 & 02, hak edit (status + jadwal tahap), validasi payload, cek kepemilikan berkas, unggah & preview berkas. `loadSelfAssessmentContent()` dipakai ulang oleh verifikasi. |
 | `assessor-assignment.service.ts` | Daftar & simpan penugasan asesor (tahap `SELF_ASSESSMENT_VERIFICATION`, SA `VERIFIED`, asesor aktif sesuai role; Asesor Teknis/Kepublikan tidak dapat diganti bila penilaiannya sudah dimulai). Terkunci saat Penilaian Asesor dibuka, kecuali dispensasi: tahap Verifikasi SA dibuka manual (docs/08 K-14). |
 | `technical-assessment.service.ts` | Penilaian CMSP-02 Asesor Teknis: daftar periode/peserta yang ditugaskan, detail, simpan draf/kirim (tahap `ASSESSOR_ASSESSMENT`), buka kunci (Super Admin), berkas evidence. |
-| `assessment-result.service.ts` | Penetapan Hasil Asesmen: rekap & hasil otomatis (lulus/remedial), tetapkan, batalkan, `assertResultNotDecided()` (dipakai buka kunci asesor & reset tes tertulis). |
+| `assessment-result.service.ts` | Penetapan Hasil Asesmen: rekap & hasil otomatis (lulus/remedial/tidak melanjutkan), tetapkan, batalkan, `assertResultNotDecided()` (dipakai buka kunci asesor & reset tes tertulis). |
 | `public-assessment.service.ts` | Penilaian CMSP-03 Asesor Kepublikan: daftar periode/peserta, detail, simpan draf/kirim (tahap `ASSESSOR_ASSESSMENT` + syarat hasil Asesor Teknis), buka kunci (Super Admin). |
 | `self-assessment-verification.service.ts` | Daftar, detail, dan keputusan verifikasi self assessment (dijaga tahap `SELF_ASSESSMENT_VERIFICATION`). |
 | `evaluation-admin.service.ts` | Bank soal, paket soal, perencanaan tes tertulis periode & daftar nilai (Super Admin); aturan penguncian. |
 | `evaluation-attempt.service.ts` | Pengerjaan peserta: kelayakan, mulai (acak soal/opsi), autosave, submit, penilaian `scoreAttempt()`, tutup otomatis saat waktu habis. |
 | `profile.service.ts` | Baca & validasi/perbarui profil; sinkron nama ke akun. |
-| `certification-stage.service.ts` | `getStageAccess()` / `assertStageOpen()` — cek tahap timeline dibuka (jadwal + override). |
+| `home.service.ts` | Beranda staf: periode aktif sesuai role + timeline + `insight` per periode (status tahap nyata & jumlah pekerjaan), memakai ulang service daftar masing-masing role. |
+| `certification-stage.service.ts` | `getStageAccess()` / `assertStageOpen()` — cek tahap timeline dibuka (jadwal + override); `hasStageEnded()` — tahap tidak dibuka & jadwal selesai sudah lewat. |
+| `written-test-gate.service.ts` | `getWrittenTestGate()` — peserta yang tes tertulisnya terkirim + `isWithdrawn()` (Tidak Melanjutkan, K-25); dipakai penilaian Asesor Teknis/Kepublikan. |
 | `peserta-account-provisioning.service.ts` | Buat/ambil akun peserta & token aktivasi, kirim email aktivasi, kirim ulang tautan aktivasi (`resendPesertaActivation`). |
 | `certification-period.service.ts` | Buat periode & aturan transisi status. |
 | `certification-timeline.service.ts` | Validasi & simpan 8 tahapan timeline. |
@@ -348,6 +351,7 @@ Satu file per sheet. Detail kolom di [04-database.md](04-database.md).
 | `shared/utils/evidence-link.ts` | `parseEvidenceLink()`: kenali link YouTube / file Drive (embed) vs folder Drive / website lain (tab baru). |
 | `shared/utils/technical-assessment.ts` | Tahap `ASSESSOR_ASSESSMENT`, hasil `K`/`BK`, rekomendasi `CONTINUE`/`NOT_CONTINUE`, label status, batas catatan. |
 | `shared/utils/cmsp03-units.ts` | 3 unit kompetensi CMSP-03 (kode internal `KEP.n`, elemen, indikator penilaian). |
+| `shared/utils/home-insight.ts` | Tipe `HomeInsight` per role untuk tombol dinamis beranda staf. |
 | `shared/utils/assessment-result.ts` | Kode tahap Penetapan Hasil Asesmen, hasil (`PASSED`/`REMEDIAL`) & alasan remedial + label. |
 | `shared/utils/public-assessment.ts` | Status daftar CMSP-03 (`WAITING`, `STOPPED`, + status teknis) + label, syarat hasil Asesor Teknis (`TechnicalGate`). |
 | `shared/utils/evaluation.ts` | Huruf opsi `A`–`E`, 2–5 opsi, pilihan durasi 30/45/60/90, batas panjang teks tes tertulis. |

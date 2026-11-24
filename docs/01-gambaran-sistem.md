@@ -227,6 +227,9 @@ DRAFT ──► ACTIVE ──► CLOSED ──► COMPLETED
     **dan** Asesor Kepublikan "dapat dilanjutkan".
   - **Remedial** = salah satu tidak terpenuhi (bukan "gagal"). Bila Asesor Teknis "tidak dapat
     dilanjutkan", Asesor Kepublikan tidak menilai dan peserta langsung Remedial.
+  - **Tidak Melanjutkan** = peserta (SA terverifikasi) yang tidak mengerjakan tes tertulis sampai
+    tahapnya berakhir: tidak dinilai asesor, tidak lulus, **tidak berhak remedial**, dan tidak menahan
+    penetapan (K-25).
 - Tombol **Tetapkan Keputusan** (sekaligus satu periode) hanya aktif saat tahap dibuka **dan** semua
   hasil lengkap (tes tertulis terkirim, kedua asesor mengirim). Hasil disimpan sebagai potret di
   `assessment_results` dan baru disampaikan ke peserta pada tahap Pengumuman.

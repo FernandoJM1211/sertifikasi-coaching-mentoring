@@ -567,7 +567,7 @@ defineExpose({
         </div>
 
         <div class="grid grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-2">
-          <UFormField label="Nama Lengkap" required class="min-w-0">
+          <UFormField label="Nama Lengkap" :required="!reviewMode" class="min-w-0">
             <UInput
               v-model="applicant.fullName"
               placeholder="Masukkan nama lengkap"
@@ -577,7 +577,7 @@ defineExpose({
 
           <UFormField
             label="NIP"
-            required
+            :required="!reviewMode"
             class="min-w-0"
             :error="getFieldError(applicant.nip, isValidNip, 'NIP harus terdiri dari 18 digit angka.') || undefined"
           >
@@ -590,7 +590,7 @@ defineExpose({
             />
           </UFormField>
 
-          <UFormField label="Pangkat" required class="min-w-0">
+          <UFormField label="Pangkat" :required="!reviewMode" class="min-w-0">
             <USelect
               v-model="applicant.rankName"
               :items="rankNameOptions"
@@ -599,7 +599,7 @@ defineExpose({
             />
           </UFormField>
 
-          <UFormField label="Golongan Ruang" required class="min-w-0">
+          <UFormField label="Golongan Ruang" :required="!reviewMode" class="min-w-0">
             <USelect
               v-model="applicant.rankGroup"
               :items="rankGroupOptions"
@@ -608,7 +608,7 @@ defineExpose({
             />
           </UFormField>
 
-          <UFormField label="Tempat Lahir" required class="min-w-0">
+          <UFormField label="Tempat Lahir" :required="!reviewMode" class="min-w-0">
             <UInput
               v-model="applicant.birthPlace"
               placeholder="Masukkan tempat lahir"
@@ -616,7 +616,7 @@ defineExpose({
             />
           </UFormField>
 
-          <UFormField label="Tanggal Lahir" required class="min-w-0">
+          <UFormField label="Tanggal Lahir" :required="!reviewMode" class="min-w-0">
             <UInput
               v-model="applicant.birthDate"
               type="date"
@@ -624,7 +624,7 @@ defineExpose({
             />
           </UFormField>
 
-          <UFormField label="Jenis Kelamin" required class="min-w-0">
+          <UFormField label="Jenis Kelamin" :required="!reviewMode" class="min-w-0">
             <USelect
               v-model="applicant.gender"
               :items="genderItems"
@@ -635,7 +635,7 @@ defineExpose({
 
           <UFormField
             label="Nomor Telepon"
-            required
+            :required="!reviewMode"
             class="min-w-0"
             :error="getFieldError(applicant.phoneNumber, isValidPhoneNumber, 'Nomor telepon harus berupa 8–15 digit angka.') || undefined"
           >
@@ -650,7 +650,7 @@ defineExpose({
 
           <UFormField
             label="E-mail"
-            required
+            :required="!reviewMode"
             class="min-w-0"
             :error="getFieldError(applicant.email, isValidEmail, 'Gunakan format e-mail yang benar, misalnya nama@email.com.') || undefined"
           >
@@ -662,7 +662,7 @@ defineExpose({
             />
           </UFormField>
 
-          <UFormField label="Instansi" required class="min-w-0">
+          <UFormField label="Instansi" :required="!reviewMode" class="min-w-0">
             <UInput
               v-model="applicant.institution"
               placeholder="Masukkan instansi"
@@ -670,7 +670,7 @@ defineExpose({
             />
           </UFormField>
 
-          <UFormField label="Unit Kerja" required class="min-w-0">
+          <UFormField label="Unit Kerja" :required="!reviewMode" class="min-w-0">
             <UInput
               v-model="applicant.workUnit"
               placeholder="Masukkan unit kerja"
@@ -678,7 +678,7 @@ defineExpose({
             />
           </UFormField>
 
-          <UFormField label="Jabatan" required class="min-w-0">
+          <UFormField label="Jabatan" :required="!reviewMode" class="min-w-0">
             <UInput
               v-model="applicant.position"
               placeholder="Masukkan jabatan"
@@ -686,7 +686,7 @@ defineExpose({
             />
           </UFormField>
 
-          <UFormField label="Pendidikan Terakhir" required class="min-w-0">
+          <UFormField label="Pendidikan Terakhir" :required="!reviewMode" class="min-w-0">
             <UInput
               v-model="applicant.latestEducation"
               placeholder="Contoh: S1 Ilmu Komputer"
@@ -694,7 +694,7 @@ defineExpose({
             />
           </UFormField>
 
-          <UFormField label="Kualifikasi Pendidikan" required class="min-w-0">
+          <UFormField label="Kualifikasi Pendidikan" :required="!reviewMode" class="min-w-0">
             <UInput
               v-model="applicant.educationQualification"
               placeholder="Masukkan kualifikasi pendidikan"
@@ -702,7 +702,7 @@ defineExpose({
             />
           </UFormField>
 
-          <UFormField label="Alamat Domisili" required class="min-w-0 sm:col-span-2">
+          <UFormField label="Alamat Domisili" :required="!reviewMode" class="min-w-0 sm:col-span-2">
             <UTextarea
               v-model="applicant.domicileAddress"
               :rows="3"
@@ -798,7 +798,7 @@ defineExpose({
         <div class="grid grid-cols-2 gap-x-6 gap-y-5">
 
           <!-- Nama Pelatihan -->
-          <UFormField label="Nama Pelatihan" required>
+          <UFormField label="Nama Pelatihan" :required="!reviewMode">
             <UInput
               v-model="training.trainingName"
               required
@@ -808,7 +808,7 @@ defineExpose({
           </UFormField>
 
           <!-- Penyelenggara -->
-          <UFormField label="Penyelenggara" required>
+          <UFormField label="Penyelenggara" :required="!reviewMode">
             <UInput
               v-model="training.organizer"
               required
@@ -818,7 +818,7 @@ defineExpose({
           </UFormField>
 
           <!-- Tahun -->
-          <UFormField label="Tahun" required>
+          <UFormField label="Tahun" :required="!reviewMode">
             <UInput
               v-model="training.year"
               required
@@ -840,7 +840,7 @@ defineExpose({
           </UFormField>
 
           <!-- Jumlah JP -->
-          <UFormField label="Jumlah JP" required>
+          <UFormField label="Jumlah JP" :required="!reviewMode">
             <UInput
               v-model="training.jp"
               required
@@ -950,7 +950,7 @@ defineExpose({
         <div class="grid grid-cols-2 gap-x-6 gap-y-5">
 
           <!-- Tahun -->
-          <UFormField label="Tahun" required>
+          <UFormField label="Tahun" :required="!reviewMode">
             <UInput
               v-model="practice.year"
               required
@@ -972,7 +972,7 @@ defineExpose({
           </UFormField>
 
           <!-- Nama Coachee / Mentee -->
-          <UFormField label="Nama Coachee / Mentee" required>
+          <UFormField label="Nama Coachee / Mentee" :required="!reviewMode">
             <UInput
               v-model="practice.coacheeMentee"
               required
@@ -982,7 +982,7 @@ defineExpose({
           </UFormField>
 
           <!-- Topik Coaching / Mentoring -->
-          <UFormField label="Topik Coaching / Mentoring" required>
+          <UFormField label="Topik Coaching / Mentoring" :required="!reviewMode">
             <UInput
               v-model="practice.topic"
               required
@@ -992,7 +992,7 @@ defineExpose({
           </UFormField>
 
           <!-- Durasi -->
-          <UFormField label="Durasi" required>
+          <UFormField label="Durasi" :required="!reviewMode">
             <UInput
               v-model="practice.duration"
               required
@@ -1213,7 +1213,7 @@ defineExpose({
         <UCheckbox
           v-model="declarationAccepted"
           :disabled="readonly"
-          required
+          :required="!reviewMode"
           label="Saya telah membaca, memahami, dan menyetujui seluruh pernyataan di atas."
         />
 

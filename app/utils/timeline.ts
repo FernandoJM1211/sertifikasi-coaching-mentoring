@@ -1,3 +1,5 @@
+import type { HomeInsight } from '~~/shared/utils/home-insight'
+
 /**
  * Timeline sertifikasi untuk beranda semua role (progres bar & tahapan saat ini).
  *
@@ -28,8 +30,11 @@ export type TimelineRecord = {
 
 /** Isi panel tombol dinamis di bawah "Tahapan Saat Ini". */
 export type TimelineTask = {
-  /** pending = tunggakan tahap sebelumnya; action = tugas tahap ini; done = sudah dikerjakan; info = tanpa tindakan. */
-  tone: 'pending' | 'action' | 'done' | 'info'
+  /**
+   * pending = tunggakan tahap sebelumnya; action = tugas tahap ini; waiting = menunggu tahap/pihak lain;
+   * done = sudah dikerjakan; info = tanpa tindakan.
+   */
+  tone: 'pending' | 'action' | 'waiting' | 'done' | 'info'
   title?: string
   description: string
   label?: string
@@ -98,3 +103,18 @@ export function buildTimelineStages(records: TimelineRecord[] | null | undefined
 export const getActiveStage = (stages: TimelineStage[]) => stages.find((stage) => stage.status === 'active')
 
 export const getNextStage = (stages: TimelineStage[]) => stages.find((stage) => stage.status === 'upcoming')
+
+/** Periode pada beranda staf: timeline + ringkasan pekerjaan role (`insight`, null bila gagal dihitung). */
+export type StaffHomePeriod = {
+  period_id: string
+  period_name: string
+  stages: TimelineStage[]
+  insight: HomeInsight | null
+}
+
+/** Status jadwal sebuah tahap (untuk teks "belum dimulai"/"telah berakhir"). */
+export const stageStatusOf = (stages: TimelineStage[], code: string) =>
+  stages.find((stage) => stage.code === code)?.status
+
+/** Keterangan tambahan bila tahap dibuka manual oleh Super Admin di luar jadwal. */
+export const manualNote = (manual: boolean) => (manual ? ' Dibuka khusus oleh penyelenggara.' : '')

@@ -12,8 +12,8 @@ import { findCmsp01SubmissionsByPeriod } from '../repositories/self-assessment.r
 import { findTechnicalAssessmentsByPeriod } from '../repositories/technical-assessment.repository'
 import { findAllUsers } from '../repositories/user.repository'
 import type { AuthenticatedUser } from './auth.service'
-import { getStageAccess } from './certification-stage.service'
-import { finalizeExpiredAttempts } from './evaluation-attempt.service'
+import { getStageAccess, hasStageEnded } from './certification-stage.service'
+import { EVALUATION_STAGE, finalizeExpiredAttempts } from './evaluation-attempt.service'
 import {
   ASSESSMENT_RESULT_STAGE,
   type AssessmentOutcome,
@@ -41,8 +41,12 @@ function conflict(message: string): never {
 }
 
 type WrittenStatus = 'NOT_STARTED' | 'IN_PROGRESS' | 'SUBMITTED'
-type TechnicalStatus = 'NOT_STARTED' | 'DRAFT' | 'SUBMITTED'
-/** NOT_REQUIRED = Asesor Teknis "tidak dapat dilanjutkan"; WAITING = Asesor Teknis belum mengirim. */
+/** NOT_REQUIRED = peserta Tidak Melanjutkan (tidak mengerjakan tes tertulis, K-25). */
+type TechnicalStatus = 'NOT_STARTED' | 'DRAFT' | 'SUBMITTED' | 'NOT_REQUIRED'
+/**
+ * NOT_REQUIRED = Asesor Teknis "tidak dapat dilanjutkan" atau peserta Tidak Melanjutkan;
+ * WAITING = Asesor Teknis belum mengirim.
+ */
 type PublicStatus = 'NOT_STARTED' | 'DRAFT' | 'SUBMITTED' | 'NOT_REQUIRED' | 'WAITING'
 type Recommendation = 'CONTINUE' | 'NOT_CONTINUE' | ''
 
@@ -57,7 +61,7 @@ const asRecommendation = (value: string): Recommendation =>
 
 /** Menyusun hasil seluruh peserta satu periode dari data penilaian terkini. */
 async function buildPeriodResults(periodId: string) {
-  const [applications, submissions, periodAttempts, configs, technicals, publics, activeResults] = await Promise.all([
+  const [applications, submissions, periodAttempts, configs, technicals, publics, activeResults, writtenEnded] = await Promise.all([
     findApplicationsByPeriod(periodId),
     findCmsp01SubmissionsByPeriod(periodId),
     evaluationAttempts.findWhere((item) => item.period_id === periodId && item.status !== 'RESET'),
@@ -65,6 +69,7 @@ async function buildPeriodResults(periodId: string) {
     findTechnicalAssessmentsByPeriod(periodId),
     findPublicAssessmentsByPeriod(periodId),
     findActiveResultsByPeriod(periodId),
+    hasStageEnded(periodId, EVALUATION_STAGE),
   ])
 
   // Pengerjaan yang lewat batas waktu ditutup otomatis dulu agar nilainya terhitung.
@@ -97,31 +102,42 @@ async function buildPeriodResults(periodId: string) {
       const score = writtenStatus === 'SUBMITTED' ? Number(attempt!.score) : null
       const writtenPassed = score === null ? null : score >= passingGrade
 
+      // Tidak Melanjutkan (K-25): tahap Tes Tertulis berakhir & peserta tidak mengerjakannya.
+      // Tidak dinilai asesor, tidak lulus, tidak berhak remedial, dan tidak menahan penetapan.
+      const withdrawn = writtenEnded && writtenStatus === 'NOT_STARTED' && technical?.status !== 'SUBMITTED'
+
       // Asesor Teknis
-      const technicalStatus: TechnicalStatus = technical?.status === 'SUBMITTED' ? 'SUBMITTED' : technical ? 'DRAFT' : 'NOT_STARTED'
+      const technicalStatus: TechnicalStatus = withdrawn
+        ? 'NOT_REQUIRED'
+        : technical?.status === 'SUBMITTED' ? 'SUBMITTED' : technical ? 'DRAFT' : 'NOT_STARTED'
       const technicalRecommendation = technicalStatus === 'SUBMITTED' ? asRecommendation(technical!.recommendation) : ''
 
       // Asesor Kepublikan (hanya dinilai bila Asesor Teknis "dapat dilanjutkan")
       let publicStatus: PublicStatus
-      if (technicalStatus !== 'SUBMITTED') publicStatus = 'WAITING'
+      if (withdrawn) publicStatus = 'NOT_REQUIRED'
+      else if (technicalStatus !== 'SUBMITTED') publicStatus = 'WAITING'
       else if (technicalRecommendation === 'NOT_CONTINUE') publicStatus = 'NOT_REQUIRED'
       else publicStatus = publicAssessment?.status === 'SUBMITTED' ? 'SUBMITTED' : publicAssessment ? 'DRAFT' : 'NOT_STARTED'
       const publicRecommendation = publicStatus === 'SUBMITTED' ? asRecommendation(publicAssessment!.recommendation) : ''
 
       // Kelengkapan: tes tertulis terkirim, Asesor Teknis terkirim, Asesor Kepublikan terkirim (bila diperlukan).
       const missing: string[] = []
-      if (writtenStatus !== 'SUBMITTED') missing.push('Tes tertulis')
-      if (technicalStatus !== 'SUBMITTED') missing.push('Asesor Teknis')
+      if (writtenStatus !== 'SUBMITTED' && !withdrawn) missing.push('Tes tertulis')
+      if (technicalStatus !== 'SUBMITTED' && !withdrawn) missing.push('Asesor Teknis')
       if (publicStatus !== 'SUBMITTED' && publicStatus !== 'NOT_REQUIRED') missing.push('Asesor Kepublikan')
       const complete = missing.length === 0
 
       const reasons: RemedialReason[] = []
-      if (complete) {
+      if (withdrawn) {
+        reasons.push('WRITTEN_NOT_TAKEN')
+      } else if (complete) {
         if (!writtenPassed) reasons.push('WRITTEN_BELOW_PASSING_GRADE')
         if (technicalRecommendation !== 'CONTINUE') reasons.push('TECHNICAL_NOT_CONTINUE')
         if (publicStatus === 'SUBMITTED' && publicRecommendation !== 'CONTINUE') reasons.push('PUBLIC_NOT_CONTINUE')
       }
-      const outcome: AssessmentOutcome | null = complete ? (reasons.length === 0 ? 'PASSED' : 'REMEDIAL') : null
+      const outcome: AssessmentOutcome | null = withdrawn
+        ? 'WITHDRAWN'
+        : complete ? (reasons.length === 0 ? 'PASSED' : 'REMEDIAL') : null
 
       return {
         application_id: id,
@@ -190,6 +206,7 @@ export async function getPeriodAssessmentResults(periodId: string) {
       incomplete,
       passed: view.filter((item) => item.outcome === 'PASSED').length,
       remedial: view.filter((item) => item.outcome === 'REMEDIAL').length,
+      withdrawn: view.filter((item) => item.outcome === 'WITHDRAWN').length,
     },
     items: view,
   }
@@ -218,7 +235,7 @@ export async function decidePeriodAssessmentResults(user: AuthenticatedUser, per
     outcome: item.outcome!,
     written_score: String(item.written.score ?? ''),
     written_passing_grade: String(item.written.passing_grade),
-    technical_recommendation: item.technical.recommendation,
+    technical_recommendation: item.technical.status === 'NOT_REQUIRED' ? 'NOT_REQUIRED' : item.technical.recommendation,
     public_recommendation: item.public.status === 'NOT_REQUIRED' ? 'NOT_REQUIRED' : item.public.recommendation,
     reasons: item.reasons.join(','),
     status: 'ACTIVE',
@@ -232,6 +249,7 @@ export async function decidePeriodAssessmentResults(user: AuthenticatedUser, per
     total: created.length,
     passed: created.filter((item) => item.outcome === 'PASSED').length,
     remedial: created.filter((item) => item.outcome === 'REMEDIAL').length,
+    withdrawn: created.filter((item) => item.outcome === 'WITHDRAWN').length,
   }
 }
 

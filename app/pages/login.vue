@@ -145,7 +145,7 @@ async function handleLogin() {
               id="email"
               v-model="email"
               type="email"
-              placeholder="nama@email.go.id"
+              placeholder="nama@gmail.com"
               icon="i-lucide-mail"
               size="xl"
               autocomplete="username"
@@ -166,7 +166,7 @@ async function handleLogin() {
 
               <NuxtLink
                 to="/lupa-kata-sandi"
-                class="text-sm font-medium text-primary hover:underline"
+                class="relative -top-0.5 text-sm font-medium text-primary hover:underline"
               >
                 Lupa kata sandi?
               </NuxtLink>

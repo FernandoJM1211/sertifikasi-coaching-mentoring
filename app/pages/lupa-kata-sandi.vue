@@ -80,7 +80,7 @@ async function submit() {
               id="email"
               v-model="email"
               type="email"
-              placeholder="nama@email.go.id"
+              placeholder="nama@gmail.com"
               icon="i-lucide-mail"
               size="xl"
               autocomplete="email"

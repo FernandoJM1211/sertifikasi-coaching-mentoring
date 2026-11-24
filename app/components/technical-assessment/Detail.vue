@@ -31,7 +31,7 @@ type DetailResponse = {
   selfAssessmentStatus: string
   cmsp02: Cmsp02Initial
   stage: { open: boolean, message: string, startAt: string, endAt: string }
-  written: { submitted: boolean, message: string }
+  written: { submitted: boolean, withdrawn: boolean, message: string }
   units: { code: string, number: number, title: string }[]
   assessment: {
     status: TechnicalAssessmentStatus
@@ -245,10 +245,10 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', onBeforeUnload)
       </UAlert>
       <UAlert
         v-else-if="!data.written.submitted"
-        color="info"
+        :color="data.written.withdrawn ? 'neutral' : 'warning'"
         variant="subtle"
-        icon="i-lucide-hourglass"
-        title="Menunggu tes tertulis peserta"
+        :icon="data.written.withdrawn ? 'i-lucide-user-x' : 'i-lucide-hourglass'"
+        :title="data.written.withdrawn ? 'Peserta tidak melanjutkan' : 'Menunggu tes tertulis peserta'"
         :description="data.written.message"
       />
       <UAlert

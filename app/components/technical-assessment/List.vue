@@ -7,7 +7,6 @@
  */
 import {
   TECHNICAL_LIST_STATUS_LABELS,
-  TECHNICAL_RECOMMENDATION_LABELS,
   type TechnicalListStatus,
   type TechnicalRecommendation,
 } from '~~/shared/utils/technical-assessment'
@@ -70,7 +69,8 @@ onMounted(load)
 
 /** Warna badge = warna card ringkasan terkait (Belum Dinilai abu, Draf kuning, Selesai ungu). */
 const STATUS_COLORS: Record<TechnicalListStatus, 'neutral' | 'warning' | 'secondary' | 'info'> = {
-  WAITING: 'info',
+  WAITING: 'warning',
+  WITHDRAWN: 'neutral',
   NOT_STARTED: 'neutral',
   DRAFT: 'warning',
   SUBMITTED: 'secondary',
@@ -125,6 +125,13 @@ function periodStatusColor(status: string) {
     default: return 'neutral' as const
   }
 }
+
+/**
+ * Aksi tabel seragam (docs/05): ada pekerjaan → "Nilai" (pensil, biru solid); selain itu "Lihat" (mata).
+ * Dapat dinilai = tahap dibuka & penilaian belum terkirim (bukan menunggu tahap sebelumnya).
+ */
+const canAssess = (item: Item) =>
+  Boolean(data.value?.stage.open) && (item.status === 'NOT_STARTED' || item.status === 'DRAFT')
 
 /* ---------------- Paginasi tabel ---------------- */
 const { page: tablePage, pageSize: tablePageSize, items: pagedItems, reset: resetTablePage } = useTablePagination(filteredItems)
@@ -223,22 +230,22 @@ watch([activeFilter, searchQuery], resetTablePage)
         </div>
 
         <div v-else class="overflow-x-auto">
-          <table class="w-full table-fixed text-left text-sm" :class="showAssessor ? 'min-w-[900px]' : 'min-w-[760px]'">
+          <table class="w-full table-fixed text-left text-sm" :class="showAssessor ? 'min-w-[1140px]' : 'min-w-[960px]'">
             <colgroup>
-              <col :class="showAssessor ? 'w-[20%]' : 'w-[24%]'" />
-              <col :class="showAssessor ? 'w-[22%]' : 'w-[28%]'" />
-              <col v-if="showAssessor" class="w-[14%]" />
-              <col :class="showAssessor ? 'w-[10%]' : 'w-[11%]'" />
-              <col :class="showAssessor ? 'w-[10%]' : 'w-[12%]'" />
-              <col class="w-[16%]" />
-              <col :class="showAssessor ? 'w-[8%]' : 'w-[9%]'" />
+              <col />
+              <col />
+              <col v-if="showAssessor" class="w-44" />
+              <col class="w-40" />
+              <col class="w-40" />
+              <col class="w-36" />
+              <col class="w-32" />
             </colgroup>
             <thead>
               <tr class="border-b border-blue-100">
                 <th class="px-4 py-3 text-center font-semibold text-blue-600">Peserta</th>
                 <th class="px-4 py-3 text-center font-semibold text-blue-600">Instansi</th>
                 <th v-if="showAssessor" class="px-4 py-3 text-center font-semibold text-blue-600">Asesor Teknis</th>
-                <th class="px-4 py-3 text-center font-semibold text-blue-600">Unit K / BK</th>
+                <th class="px-4 py-3 text-center font-semibold text-blue-600">Unit Kompetensi</th>
                 <th class="px-4 py-3 text-center font-semibold text-blue-600">Status</th>
                 <th class="px-4 py-3 text-center font-semibold text-blue-600">Rekomendasi</th>
                 <th class="px-4 py-3 text-center font-semibold text-blue-600">Aksi</th>
@@ -269,27 +276,27 @@ watch([activeFilter, searchQuery], resetTablePage)
                     {{ TECHNICAL_LIST_STATUS_LABELS[item.status] }}
                   </UBadge>
                 </td>
-                <td class="px-4 py-3 text-center text-xs">
-                  <span
+                <td class="px-4 py-3 text-center">
+                  <UBadge
                     v-if="item.status === 'SUBMITTED' && item.recommendation"
-                    class="font-medium"
-                    :class="item.recommendation === 'CONTINUE' ? 'text-emerald-700' : 'text-rose-700'"
+                    :color="item.recommendation === 'CONTINUE' ? 'success' : 'error'"
+                    variant="subtle"
                   >
-                    {{ TECHNICAL_RECOMMENDATION_LABELS[item.recommendation] }}
-                  </span>
+                    {{ item.recommendation === 'CONTINUE' ? 'Dilanjutkan' : 'Tidak Dilanjutkan' }}
+                  </UBadge>
                   <span v-else class="text-slate-500">-</span>
                 </td>
                 <td class="px-4 py-3 text-center">
                   <UButton
                     :to="`${basePath}/${periodId}/${item.application_id}`"
-                    :icon="showAssessor || item.status === 'SUBMITTED' ? 'i-lucide-eye' : 'i-lucide-pencil'"
-                    color="primary"
-                    variant="solid"
-                    square
-                    size="md"
-                    :aria-label="showAssessor || item.status === 'SUBMITTED' ? 'Lihat penilaian' : 'Nilai peserta'"
-                    :title="showAssessor || item.status === 'SUBMITTED' ? 'Lihat penilaian' : 'Nilai peserta'"
-                  />
+                    :icon="canAssess(item) ? 'i-lucide-pencil' : 'i-lucide-eye'"
+                    :color="canAssess(item) ? 'primary' : 'neutral'"
+                    :variant="canAssess(item) ? 'solid' : 'outline'"
+                    size="sm"
+                    class="inline-flex w-24 justify-center"
+                  >
+                    {{ canAssess(item) ? 'Nilai' : 'Lihat' }}
+                  </UButton>
                 </td>
               </tr>
             </tbody>

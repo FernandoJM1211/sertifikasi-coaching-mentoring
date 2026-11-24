@@ -9,7 +9,7 @@ export default defineEventHandler(async (event) => {
 
   return {
     success: true,
-    message: `Hasil asesmen ${data.total} peserta berhasil ditetapkan: ${data.passed} lulus, ${data.remedial} remedial.`,
+    message: `Hasil asesmen ${data.total} peserta berhasil ditetapkan: ${data.passed} lulus, ${data.remedial} remedial${data.withdrawn ? `, ${data.withdrawn} tidak melanjutkan` : ''}.`,
     data,
   }
 })

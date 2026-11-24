@@ -80,7 +80,7 @@ function selfAssessmentTodo(): TimelineTask | null {
       tone: 'pending',
       title: 'Self assessment Anda perlu diperbaiki',
       description: 'Verifikator meminta perbaikan. Baca catatan perbaikan, perbaiki CMSP-01/CMSP-02, lalu kirim ulang.',
-      label: 'Perbaiki Self Assessment',
+      label: 'Perbaiki',
       icon: 'i-lucide-pencil-line',
       to: pathFor(SA_PATH),
     }
@@ -91,7 +91,7 @@ function selfAssessmentTodo(): TimelineTask | null {
       tone: 'pending',
       title: 'Self assessment Anda belum dikirim',
       description: 'Lengkapi Formulir Permohonan Sertifikasi (CMSP.01) dan Self Assessment Teknis (CMSP.02), lalu kirim.',
-      label: 'Lengkapi Self Assessment',
+      label: 'Lengkapi',
       icon: 'i-lucide-clipboard-check',
       to: pathFor(SA_PATH),
     }
@@ -110,7 +110,7 @@ function evaluationTodo(): TimelineTask | null {
     tone: 'pending',
     title: inProgress ? 'Tes tertulis Anda belum diselesaikan' : 'Tes tertulis Anda belum dikerjakan',
     description: 'Selesaikan tes tertulis pilihan ganda sebelum batas waktunya berakhir.',
-    label: inProgress ? 'Lanjutkan Tes Tertulis' : 'Kerjakan Tes Tertulis',
+    label: inProgress ? 'Lanjutkan' : 'Kerjakan',
     icon: 'i-lucide-file-pen-line',
     to: pathFor(EVALUATION_PATH),
   }
@@ -151,7 +151,7 @@ const tasks = computed<TimelineTask[]>(() => {
             tone: 'action',
             title: '',
             description: 'Lengkapi Formulir Permohonan Sertifikasi (CMSP.01) dan Self Assessment Teknis (CMSP.02), lalu kirim sebelum tahapan ini berakhir.',
-            label: 'Isi Self Assessment',
+            label: 'Isi Sekarang',
           }]
     }
     if (!['SUBMITTED', 'VERIFIED'].includes(saStatus)) {
@@ -159,7 +159,7 @@ const tasks = computed<TimelineTask[]>(() => {
         tone: 'info',
         title: 'Self assessment belum dapat diisi',
         description: 'Buka halaman Self Assessment untuk melihat keterangan lebih lanjut.',
-        label: 'Buka Self Assessment',
+        label: 'Buka',
         icon: 'i-lucide-clipboard-check',
         to: pathFor(SA_PATH),
       }]
@@ -170,7 +170,7 @@ const tasks = computed<TimelineTask[]>(() => {
       description: saStatus === 'VERIFIED'
         ? 'Self assessment Anda telah diverifikasi oleh Verifikator.'
         : 'Self assessment Anda sudah dikirim dan akan diperiksa oleh Verifikator.',
-      label: 'Lihat Self Assessment',
+      label: 'Lihat',
       icon: 'i-lucide-eye',
       to: pathFor(SA_PATH),
     }]
@@ -183,7 +183,7 @@ const tasks = computed<TimelineTask[]>(() => {
         tone: 'done',
         title: 'Tes tertulis sudah dikerjakan',
         description: 'Jawaban tes tertulis Anda sudah terkirim.',
-        label: 'Lihat Tes Tertulis',
+        label: 'Lihat',
         icon: 'i-lucide-eye',
         to: pathFor(EVALUATION_PATH),
       }]
@@ -198,7 +198,7 @@ const tasks = computed<TimelineTask[]>(() => {
       description: progress.value?.self_assessment?.status === 'VERIFIED'
         ? 'Buka halaman Tes Tertulis untuk melihat keterangan lebih lanjut.'
         : 'Tes tertulis hanya dapat dikerjakan oleh peserta yang self assessment-nya telah terverifikasi.',
-      label: 'Buka Tes Tertulis',
+      label: 'Buka',
       icon: 'i-lucide-file-pen-line',
       to: pathFor(EVALUATION_PATH),
     }]

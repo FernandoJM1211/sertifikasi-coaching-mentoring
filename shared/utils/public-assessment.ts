@@ -17,22 +17,25 @@ export { TECHNICAL_ASSESSMENT_STAGE as PUBLIC_ASSESSMENT_STAGE } from './technic
  * Status di daftar peserta Asesor Kepublikan:
  * - `WAITING`  : penilaian Asesor Teknis belum dikirim.
  * - `STOPPED`  : Asesor Teknis merekomendasikan asesmen tidak dapat dilanjutkan.
+ * - `WITHDRAWN`: peserta tidak mengerjakan tes tertulis sampai tahapnya berakhir (K-25).
  * - selebihnya sama dengan status penilaian Asesor Teknis.
  */
-export type PublicAssessmentStatus = TechnicalAssessmentStatus | 'WAITING' | 'STOPPED'
+export type PublicAssessmentStatus = TechnicalAssessmentStatus | 'WAITING' | 'STOPPED' | 'WITHDRAWN'
 
 export const PUBLIC_ASSESSMENT_STATUS_LABELS: Record<PublicAssessmentStatus, string> = {
   WAITING: 'Menunggu Asesor Teknis',
   STOPPED: 'Tidak Dilanjutkan Asesor Teknis',
+  WITHDRAWN: 'Tidak Melanjutkan',
   NOT_STARTED: 'Belum Dinilai',
   DRAFT: 'Draf',
   SUBMITTED: 'Selesai',
 }
 
 /** Status hasil Asesor Teknis yang menjadi syarat penilaian CMSP-03. */
-export type TechnicalGate = 'PENDING' | 'CONTINUE' | 'NOT_CONTINUE'
+export type TechnicalGate = 'PENDING' | 'CONTINUE' | 'NOT_CONTINUE' | 'WITHDRAWN'
 
 export const TECHNICAL_GATE_MESSAGES: Record<Exclude<TechnicalGate, 'CONTINUE'>, string> = {
   PENDING: 'Penilaian CMSP-03 dapat diisi setelah Asesor Teknis mengirim penilaian CMSP-02.',
   NOT_CONTINUE: 'Asesor Teknis merekomendasikan asesmen peserta ini tidak dapat dilanjutkan.',
+  WITHDRAWN: 'Peserta tidak mengerjakan tes tertulis sampai tahapnya berakhir sehingga tidak melanjutkan asesmen dan tidak perlu dinilai.',
 }

@@ -64,6 +64,7 @@ Legenda: ✅ selesai · 🚧 sedang dikerjakan · ❌ belum ada
 | Fitur | Status | Catatan |
 | --- | --- | --- |
 | Beranda peserta (timeline periode aktif + tombol dinamis per tahap) | ✅ | Beranda serupa untuk Verifikator, Asesor Teknis, & Asesor Kepublikan |
+| Beranda staf: tombol sesuai status tahap nyata (termasuk dibuka manual) + jumlah pekerjaan; Super Admin: Atur Tes Tertulis & Tetapkan Hasil Asesmen | ✅ | Daftar lengkap per role & tahap: docs/05 "Tombol Beranda per Role" (K-24) |
 | Self assessment CMSP-01 | ✅ | Tersimpan di server (draft & submit). Isian awal dari Profil hanya sebelum draft pertama. Dokumen bisa diganti (hanya berlaku untuk CMSP-01) |
 | Self assessment CMSP-02 | ✅ | Evidence file/link per unit, tersimpan di server |
 | Simpan draft & submit gabungan | ✅ | Satu tombol menyimpan keduanya; submit hanya jika keduanya 100% + pernyataan disetujui; terkunci setelah submit |

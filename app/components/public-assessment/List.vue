@@ -10,7 +10,6 @@ import {
   type PublicAssessmentStatus,
 } from '~~/shared/utils/public-assessment'
 import {
-  TECHNICAL_RECOMMENDATION_LABELS,
   type TechnicalRecommendation,
 } from '~~/shared/utils/technical-assessment'
 
@@ -78,8 +77,9 @@ async function load() {
 onMounted(load)
 
 const STATUS_COLORS: Record<PublicAssessmentStatus, 'neutral' | 'warning' | 'secondary' | 'info' | 'error'> = {
-  WAITING: 'info',
+  WAITING: 'warning',
   STOPPED: 'error',
+  WITHDRAWN: 'neutral',
   NOT_STARTED: 'neutral',
   DRAFT: 'warning',
   SUBMITTED: 'secondary',
@@ -139,7 +139,12 @@ function periodStatusColor(status: string) {
 }
 
 /** Ikon pensil hanya untuk penilaian yang dapat diisi asesor; selebihnya lihat. */
-const isEditAction = (item: Item) => !props.showAssessor && (item.status === 'NOT_STARTED' || item.status === 'DRAFT')
+/**
+ * Aksi tabel seragam (docs/05): ada pekerjaan → "Nilai" (pensil, biru solid); selain itu "Lihat" (mata).
+ * Dapat dinilai = tahap dibuka & penilaian belum terkirim (bukan menunggu tahap sebelumnya).
+ */
+const canAssess = (item: Item) =>
+  Boolean(data.value?.stage.open) && (item.status === 'NOT_STARTED' || item.status === 'DRAFT')
 
 /* ---------------- Paginasi tabel ---------------- */
 const { page: tablePage, pageSize: tablePageSize, items: pagedItems, reset: resetTablePage } = useTablePagination(filteredItems)
@@ -238,22 +243,22 @@ watch([activeFilter, searchQuery], resetTablePage)
         </div>
 
         <div v-else class="overflow-x-auto">
-          <table class="w-full table-fixed text-left text-sm" :class="showAssessor ? 'min-w-[900px]' : 'min-w-[760px]'">
+          <table class="w-full table-fixed text-left text-sm" :class="showAssessor ? 'min-w-[1140px]' : 'min-w-[960px]'">
             <colgroup>
-              <col :class="showAssessor ? 'w-[20%]' : 'w-[24%]'" />
-              <col :class="showAssessor ? 'w-[20%]' : 'w-[25%]'" />
-              <col v-if="showAssessor" class="w-[14%]" />
-              <col :class="showAssessor ? 'w-[9%]' : 'w-[10%]'" />
-              <col :class="showAssessor ? 'w-[13%]' : 'w-[16%]'" />
-              <col class="w-[16%]" />
-              <col :class="showAssessor ? 'w-[8%]' : 'w-[9%]'" />
+              <col />
+              <col />
+              <col v-if="showAssessor" class="w-44" />
+              <col class="w-40" />
+              <col class="w-40" />
+              <col class="w-36" />
+              <col class="w-32" />
             </colgroup>
             <thead>
               <tr class="border-b border-blue-100">
                 <th class="px-4 py-3 text-center font-semibold text-blue-600">Peserta</th>
                 <th class="px-4 py-3 text-center font-semibold text-blue-600">Instansi</th>
                 <th v-if="showAssessor" class="px-4 py-3 text-center font-semibold text-blue-600">Asesor Kepublikan</th>
-                <th class="px-4 py-3 text-center font-semibold text-blue-600">Unit K / BK</th>
+                <th class="px-4 py-3 text-center font-semibold text-blue-600">Unit Kompetensi</th>
                 <th class="px-4 py-3 text-center font-semibold text-blue-600">Status</th>
                 <th class="px-4 py-3 text-center font-semibold text-blue-600">Rekomendasi</th>
                 <th class="px-4 py-3 text-center font-semibold text-blue-600">Aksi</th>
@@ -284,27 +289,27 @@ watch([activeFilter, searchQuery], resetTablePage)
                     {{ PUBLIC_ASSESSMENT_STATUS_LABELS[item.status] }}
                   </UBadge>
                 </td>
-                <td class="px-4 py-3 text-center text-xs">
-                  <span
+                <td class="px-4 py-3 text-center">
+                  <UBadge
                     v-if="item.status === 'SUBMITTED' && item.recommendation"
-                    class="font-medium"
-                    :class="item.recommendation === 'CONTINUE' ? 'text-emerald-700' : 'text-rose-700'"
+                    :color="item.recommendation === 'CONTINUE' ? 'success' : 'error'"
+                    variant="subtle"
                   >
-                    {{ TECHNICAL_RECOMMENDATION_LABELS[item.recommendation] }}
-                  </span>
+                    {{ item.recommendation === 'CONTINUE' ? 'Dilanjutkan' : 'Tidak Dilanjutkan' }}
+                  </UBadge>
                   <span v-else class="text-slate-500">-</span>
                 </td>
                 <td class="px-4 py-3 text-center">
                   <UButton
                     :to="`${basePath}/${periodId}/${item.application_id}`"
-                    :icon="isEditAction(item) ? 'i-lucide-pencil' : 'i-lucide-eye'"
-                    color="primary"
-                    variant="solid"
-                    square
-                    size="md"
-                    :aria-label="isEditAction(item) ? 'Nilai peserta' : 'Lihat penilaian'"
-                    :title="isEditAction(item) ? 'Nilai peserta' : 'Lihat penilaian'"
-                  />
+                    :icon="canAssess(item) ? 'i-lucide-pencil' : 'i-lucide-eye'"
+                    :color="canAssess(item) ? 'primary' : 'neutral'"
+                    :variant="canAssess(item) ? 'solid' : 'outline'"
+                    size="sm"
+                    class="inline-flex w-24 justify-center"
+                  >
+                    {{ canAssess(item) ? 'Nilai' : 'Lihat' }}
+                  </UButton>
                 </td>
               </tr>
             </tbody>

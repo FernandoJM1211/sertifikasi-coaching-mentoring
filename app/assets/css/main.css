@@ -33,4 +33,12 @@
   table td + td {
     border-left: 1px solid var(--color-slate-300);
   }
+
+  /*
+   * Judul kolom selalu satu baris. Tabel `table-fixed` wajib memberi lebar kolom yang cukup
+   * (lihat docs/05 "Tabel daftar"); kelebihan lebar ditangani scroller horizontal tabel.
+   */
+  table th {
+    white-space: nowrap;
+  }
 }

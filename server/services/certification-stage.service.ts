@@ -124,6 +124,16 @@ export async function getStageAccess(
 }
 
 /** Melempar 409 jika tahap tidak sedang dibuka. */
+/**
+ * true bila tahap sudah selesai: tidak sedang dibuka DAN jadwal selesainya sudah lewat.
+ * Tahap yang ditutup manual sebelum jadwalnya habis belum dianggap selesai.
+ */
+export async function hasStageEnded(periodId: string, stageCode: string) {
+  const access = await getStageAccess(periodId, stageCode)
+  const end = Date.parse(access.endAt)
+  return !access.open && !Number.isNaN(end) && Date.now() > end
+}
+
 export async function assertStageOpen(
   periodId: string,
   stageCode: string,

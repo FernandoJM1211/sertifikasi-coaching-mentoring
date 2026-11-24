@@ -4,14 +4,23 @@
  * yang relevan, opsional dengan kartu "Tahapan Saat Ini" + tombol dinamis per role.
  *
  * Contoh:
- *   <TimelineStaffHome :tasks-for="(periodId, stage) => [...]" empty-description="..." />
- *   <TimelineStaffHome :show-current-stage="false" />   // Super Admin: progres bar saja
+ *   <TimelineStaffHome :tasks-for="(period, stage) => [...]" empty-description="..." />
+ *
+ * `tasksFor` dipanggil untuk setiap periode, juga bila tidak ada tahap berlangsung menurut jadwal
+ * (`stage` undefined), karena tahap dapat dibuka manual oleh Super Admin — cek `period.insight`.
  */
-import { buildTimelineStages, type TimelineRecord, type TimelineStage, type TimelineTask } from '~/utils/timeline'
+import {
+  buildTimelineStages,
+  type StaffHomePeriod,
+  type TimelineRecord,
+  type TimelineStage,
+  type TimelineTask,
+} from '~/utils/timeline'
+import type { HomeInsight } from '~~/shared/utils/home-insight'
 
 const props = withDefaults(defineProps<{
-  /** Panel tombol untuk tahap yang sedang berlangsung pada sebuah periode. */
-  tasksFor?: (periodId: string, stage: TimelineStage) => TimelineTask[]
+  /** Panel tombol per periode; `stage` = tahap berlangsung menurut jadwal (bisa tidak ada). */
+  tasksFor?: (period: StaffHomePeriod, stage: TimelineStage | undefined) => TimelineTask[]
   showCurrentStage?: boolean
   emptyDescription?: string
 }>(), {
@@ -20,11 +29,11 @@ const props = withDefaults(defineProps<{
   emptyDescription: 'Timeline akan tampil di sini setelah ada periode sertifikasi yang aktif.',
 })
 
-type HomePeriod = { period_id: string, period_name: string, timelines: TimelineRecord[] }
+type HomePeriod = { period_id: string, period_name: string, timelines: TimelineRecord[], insight?: HomeInsight | null }
 
 const loading = ref(true)
 const errorMessage = ref('')
-const periods = ref<(HomePeriod & { stages: TimelineStage[] })[]>([])
+const periods = ref<StaffHomePeriod[]>([])
 
 async function load() {
   loading.value = true
@@ -32,7 +41,12 @@ async function load() {
 
   try {
     const response = await $fetch<{ data: HomePeriod[] }>('/api/home/periods', { credentials: 'include' })
-    periods.value = response.data.map((period) => ({ ...period, stages: buildTimelineStages(period.timelines) }))
+    periods.value = response.data.map((period) => ({
+      period_id: period.period_id,
+      period_name: period.period_name,
+      stages: buildTimelineStages(period.timelines),
+      insight: period.insight ?? null,
+    }))
   } catch (error) {
     errorMessage.value = getApiErrorMessage(error, 'Timeline sertifikasi gagal dimuat. Silakan coba kembali.')
   } finally {
@@ -42,9 +56,9 @@ async function load() {
 
 onMounted(load)
 
-function tasksOf(period: { period_id: string, stages: TimelineStage[] }) {
+function tasksOf(period: StaffHomePeriod) {
   const stage = period.stages.find((item) => item.status === 'active')
-  return stage && props.tasksFor ? props.tasksFor(period.period_id, stage) : []
+  return props.tasksFor ? props.tasksFor(period, stage) : []
 }
 </script>
 

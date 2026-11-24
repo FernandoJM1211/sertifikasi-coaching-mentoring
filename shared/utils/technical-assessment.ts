@@ -37,15 +37,21 @@ export const TECHNICAL_ASSESSMENT_STATUS_LABELS: Record<TechnicalAssessmentStatu
 }
 
 /**
- * Status di daftar peserta Asesor Teknis: `WAITING` = peserta belum mengirim tes tertulis.
- * Urutan wajib (K-22): tes tertulis → Asesor Teknis → Asesor Kepublikan.
+ * Status di daftar peserta Asesor Teknis:
+ * - `WAITING`   : peserta belum mengirim tes tertulis (urutan wajib K-22).
+ * - `WITHDRAWN` : tahap Tes Tertulis berakhir & peserta tidak mengerjakannya → tidak dinilai (K-25).
  */
-export type TechnicalListStatus = TechnicalAssessmentStatus | 'WAITING'
+export type TechnicalListStatus = TechnicalAssessmentStatus | 'WAITING' | 'WITHDRAWN'
 
 export const TECHNICAL_LIST_STATUS_LABELS: Record<TechnicalListStatus, string> = {
   WAITING: 'Menunggu Tes Tertulis',
+  WITHDRAWN: 'Tidak Melanjutkan',
   ...TECHNICAL_ASSESSMENT_STATUS_LABELS,
 }
+
+/** Peserta tidak mengerjakan tes tertulis sampai tahapnya berakhir (K-25). */
+export const WRITTEN_TEST_WITHDRAWN_MESSAGE =
+  'Peserta tidak mengerjakan tes tertulis sampai tahapnya berakhir sehingga tidak melanjutkan asesmen dan tidak perlu dinilai.'
 
 export const WRITTEN_TEST_GATE_MESSAGE =
   'Penilaian CMSP-02 dapat diisi setelah peserta mengirim (menyelesaikan) tes tertulis.'

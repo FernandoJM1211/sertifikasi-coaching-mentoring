@@ -487,3 +487,69 @@ peserta belum mengerjakan tes tertulis. Pemilik proyek menegaskan urutan ini waj
 **Penerapan.** `server/services/technical-assessment.service.ts` (`writtenSubmittedSet`, gate di daftar,
 detail, simpan, buka kunci), `evaluation-admin.service.ts` (`resetAttempt`), `shared/utils/technical-assessment.ts`
 (`TechnicalListStatus`, `WRITTEN_TEST_GATE_MESSAGE`), `app/components/technical-assessment/List.vue` & `Detail.vue`.
+
+## K-23 — Tombol aksi tabel seragam & form CMSP mode tinjau
+
+**Konteks.** Tombol aksi antartabel berbeda (sebagian hanya ikon; ikon mata dipakai juga untuk menilai),
+badge "Menunggu Asesor Teknis" berwarna biru, dan form CMSP di halaman staf masih menampilkan tanda wajib.
+
+**Keputusan.**
+
+- Tombol aksi tabel berlabel + ikon: **pensil, biru solid** untuk pekerjaan (**Verifikasi**, **Nilai**);
+  **mata, outline** untuk **Lihat**. Tombol kerja hanya muncul bila benar-benar dapat dikerjakan.
+- Status "menunggu tahap sebelumnya" (Menunggu Tes Tertulis / Menunggu Asesor Teknis) berwarna kuning (`warning`).
+- Daftar asesor hanya berisi peserta yang ditugaskan kepadanya (sudah dijaga server; Super Admin melihat semua).
+- Form CMSP dalam mode tinjau (Verifikasi SA, penilaian asesor) tidak menampilkan tanda wajib `*`;
+  isi & aturan form peserta tidak berubah.
+
+**Penerapan.** `app/components/{public,technical}-assessment/{List,Detail}.vue`,
+`app/components/verification/SelfAssessmentList.vue`, `participant-verifications/[periodId].vue`,
+`assessment-results/[periodId].vue`, `Cmsp01Form.vue`, `Cmsp02Form.vue`, docs/05.
+
+## K-24 — Tombol beranda staf mengikuti status tahap nyata & progres pekerjaan
+
+**Konteks.** Tombol beranda staf hanya mengikuti jadwal: tahap yang dibuka manual tidak memunculkan
+tombol (asesor melihat "tahap telah berakhir" padahal masih dapat menilai), tombol tidak melihat progres,
+dan Super Admin tidak memiliki tombol walau punya tugas sendiri (tes tertulis, penetapan hasil).
+
+**Keputusan.**
+
+- Tombol staf mengikuti `getStageAccess` (termasuk override); progres timeline tetap mengikuti jadwal.
+- Panel menampilkan jumlah pekerjaan (mis. "3 peserta belum selesai Anda nilai") dan status
+  menunggu (kuning) atau selesai (hijau) dengan tombol **Lihat**.
+- Verifikator mendapat pengingat pendaftar yang belum diverifikasi dan peserta tanpa asesor lengkap.
+- Super Admin kini memiliki kartu Tahapan Saat Ini: **Atur Tes Tertulis** (belum diterapkan/paket berubah),
+  **Pantau Tes Tertulis**, **Tetapkan Hasil Asesmen**, serta pintasan pemantauan tahap lain
+  (menggantikan keputusan sebelumnya "Super Admin: progres bar saja").
+- Daftar lengkap per role, tahap, dan kondisi dicatat di docs/05 "Tombol Beranda per Role" dan wajib
+  diperbarui saat tahap/fitur baru ditambahkan (mis. Pengumuman).
+
+**Penerapan.** `server/services/home.service.ts`, `shared/utils/home-insight.ts`, `app/utils/timeline.ts`,
+`app/components/timeline/{StaffHome,CurrentStage}.vue`, `app/pages/{super-admin,verifikator,asesor-teknis,asesor-kepublikan}/index.vue`.
+
+## K-25 — Peserta yang tidak mengerjakan tes tertulis: "Tidak Melanjutkan"
+
+**Konteks.** Penetapan Hasil Asesmen hanya dapat dilakukan bila semua peserta di tabel lengkap
+(tes tertulis, Asesor Teknis, Asesor Kepublikan bila diperlukan). Peserta yang SA-nya terverifikasi
+tetapi tidak mengerjakan tes tertulis tidak dapat dinilai Asesor Teknis (urutan wajib K-22), sehingga
+tombol Tetapkan terkunci untuk seluruh periode.
+
+**Keputusan.**
+
+- Bila tahap Tes Tertulis **sudah berakhir** (tidak dibuka & jadwal selesai lewat) dan peserta **tidak
+  pernah mengerjakannya**, peserta berstatus **Tidak Melanjutkan**.
+- Remedial hanya untuk peserta yang **sudah menjalani semua tahap** tetapi belum memenuhi nilai.
+  Peserta Tidak Melanjutkan **tidak lulus dan tidak berhak remedial**.
+- Peserta Tidak Melanjutkan tidak dinilai asesor (status "Tidak Melanjutkan" di daftar asesor),
+  dianggap lengkap di penetapan sehingga **tidak menahan tombol Tetapkan**, dan tercatat di
+  `assessment_results` dengan `outcome = WITHDRAWN`, alasan `WRITTEN_NOT_TAKEN`.
+- Peserta yang masih mengerjakan saat tahap berakhir menunggu waktunya habis (terkirim otomatis).
+- Status ini dinamis sampai hasil ditetapkan: bila Super Admin membuka kembali tahap Tes Tertulis,
+  peserta kembali dapat mengerjakan.
+- Kasus lain (peserta belum ditugaskan asesor, asesor belum menilai) tetap menahan penetapan dan
+  diselesaikan dulu oleh Verifikator/asesor.
+
+**Penerapan.** `server/services/written-test-gate.service.ts`, `certification-stage.service.ts`
+(`hasStageEnded`), `technical-assessment.service.ts`, `public-assessment.service.ts`,
+`assessment-result.service.ts`, `shared/utils/{technical-assessment,public-assessment,assessment-result,home-insight}.ts`,
+halaman asesor, Penetapan Hasil Asesmen, dan beranda staf.

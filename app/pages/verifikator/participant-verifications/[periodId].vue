@@ -147,6 +147,7 @@
                     :to="`/verifikator/applications/${application.application_id}`"
                     color="primary"
                     variant="solid"
+                    icon="i-lucide-pencil"
                     size="sm"
                     class="inline-flex w-32 justify-center"
                   >
@@ -157,6 +158,7 @@
                     :to="`/verifikator/applications/${application.application_id}`"
                     color="neutral"
                     variant="outline"
+                    icon="i-lucide-eye"
                     size="sm"
                     class="inline-flex w-32 justify-center"
                   >

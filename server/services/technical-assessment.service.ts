@@ -28,12 +28,12 @@ import { CMSP02_COMPETENCY_UNITS } from '../../shared/utils/cmsp02-units'
 import {
   TECHNICAL_ASSESSMENT_STAGE,
   WRITTEN_TEST_GATE_MESSAGE,
+  WRITTEN_TEST_WITHDRAWN_MESSAGE,
   type TechnicalAssessmentStatus,
   type TechnicalListStatus,
 } from '../../shared/utils/technical-assessment'
-import { evaluationAttempts } from '../repositories/evaluation.repository'
 import { findPublicAssessmentByApplicationId } from '../repositories/public-assessment.repository'
-import { finalizeExpiredAttempts } from './evaluation-attempt.service'
+import { getWrittenTestGate } from './written-test-gate.service'
 import type { TechnicalAssessmentInput } from '../utils/technical-assessment-input'
 import type { AuthenticatedUser } from './auth.service'
 import { getStageAccess, withStageSchedule } from './certification-stage.service'
@@ -99,11 +99,6 @@ async function requireAccess(user: AuthenticatedUser, applicationId: string) {
  * Pengajuan yang tes tertulisnya sudah TERKIRIM (syarat penilaian CMSP-02, K-22).
  * Pengerjaan yang lewat batas waktu ditutup otomatis dulu agar ikut terhitung.
  */
-async function writtenSubmittedSet(filter: (attempt: { period_id: string, application_id: string }) => boolean) {
-  const attempts = await evaluationAttempts.findWhere((item) => item.status !== 'RESET' && filter(item))
-  const finalized = await finalizeExpiredAttempts(attempts)
-  return new Set(finalized.filter((item) => item.status === 'SUBMITTED').map((item) => item.application_id))
-}
 
 /* ------------------------------------------------------------------ */
 /* Daftar periode & peserta                                            */
@@ -140,7 +135,7 @@ export async function listTechnicalAssessments(user: AuthenticatedUser, periodId
     findTechnicalAssessmentsByPeriod(periodId),
     getStageAccess(periodId, TECHNICAL_ASSESSMENT_STAGE),
     findAllUsers(),
-    writtenSubmittedSet((item) => item.period_id === periodId),
+    getWrittenTestGate(periodId),
   ])
 
   const applicationById = new Map(applications.map((item) => [item.application_id, item]))
@@ -159,10 +154,12 @@ export async function listTechnicalAssessments(user: AuthenticatedUser, periodId
       const assessment = assessmentByApplication.get(application.application_id)
       const counts = countResults(assessment)
       const baseStatus = statusOf(assessment)
-      // Belum mengirim tes tertulis → menunggu (kecuali penilaian lama yang sudah terkirim).
-      const status: TechnicalListStatus = baseStatus !== 'SUBMITTED' && !writtenDone.has(application.application_id)
-        ? 'WAITING'
-        : baseStatus
+      // Belum mengirim tes tertulis → menunggu, atau Tidak Melanjutkan bila tahap Tes Tertulis
+      // sudah berakhir (K-25). Penilaian lama yang sudah terkirim tetap ditampilkan apa adanya.
+      const writtenSubmitted = writtenDone.submitted.has(application.application_id)
+      const status: TechnicalListStatus = baseStatus === 'SUBMITTED' || writtenSubmitted
+        ? baseStatus
+        : writtenDone.isWithdrawn(application.application_id) ? 'WITHDRAWN' : 'WAITING'
 
       return {
         application_id: application.application_id,
@@ -171,7 +168,7 @@ export async function listTechnicalAssessments(user: AuthenticatedUser, periodId
         institution_name: cmsp01?.institution_name || application.institution_name,
         assessor_name: userName.get(assignment.technical_assessor_id) || '-',
         status,
-        written_submitted: writtenDone.has(application.application_id),
+        written_submitted: writtenSubmitted,
         recommendation: assessment?.recommendation ?? '',
         k_count: counts.k,
         bk_count: counts.bk,
@@ -196,6 +193,7 @@ export async function listTechnicalAssessments(user: AuthenticatedUser, periodId
       waiting: count('WAITING'),
       draft: count('DRAFT'),
       submitted: count('SUBMITTED'),
+      withdrawn: count('WITHDRAWN'),
       continued: items.filter((item) => item.status === 'SUBMITTED' && item.recommendation === 'CONTINUE').length,
       notContinued: items.filter((item) => item.status === 'SUBMITTED' && item.recommendation === 'NOT_CONTINUE').length,
     },
@@ -217,9 +215,10 @@ export async function getTechnicalAssessment(user: AuthenticatedUser, applicatio
     getStageAccess(application.period_id, TECHNICAL_ASSESSMENT_STAGE),
     findCertificationPeriodById(application.period_id),
     findAllUsers(),
-    writtenSubmittedSet((item) => item.application_id === application.application_id),
+    getWrittenTestGate(application.period_id, (item) => item.application_id === application.application_id),
   ])
-  const writtenSubmitted = writtenDone.has(application.application_id)
+  const writtenSubmitted = writtenDone.submitted.has(application.application_id)
+  const writtenWithdrawn = writtenDone.isWithdrawn(application.application_id)
 
   const userName = new Map(users.map((item) => [item.user_id, item.full_name]))
   const status = statusOf(assessment)
@@ -239,7 +238,11 @@ export async function getTechnicalAssessment(user: AuthenticatedUser, applicatio
     cmsp02: content.cmsp02,
     stage,
     // Syarat urutan (K-22): tes tertulis harus sudah dikirim.
-    written: { submitted: writtenSubmitted, message: writtenSubmitted ? '' : WRITTEN_TEST_GATE_MESSAGE },
+    written: {
+      submitted: writtenSubmitted,
+      withdrawn: writtenWithdrawn,
+      message: writtenSubmitted ? '' : writtenWithdrawn ? WRITTEN_TEST_WITHDRAWN_MESSAGE : WRITTEN_TEST_GATE_MESSAGE,
+    },
     units: CMSP02_COMPETENCY_UNITS.map((unit) => ({ code: unit.code, number: unit.number, title: unit.title })),
     assessment: {
       status,
@@ -282,8 +285,10 @@ export async function saveTechnicalAssessment(
   if (!stage.open) conflict(`Penilaian tidak dapat disimpan: ${stage.message}`)
   if (existing?.status === 'SUBMITTED') conflict('Penilaian sudah dikirim dan terkunci.')
 
-  const writtenDone = await writtenSubmittedSet((item) => item.application_id === application.application_id)
-  if (!writtenDone.has(application.application_id)) conflict(WRITTEN_TEST_GATE_MESSAGE)
+  const writtenDone = await getWrittenTestGate(application.period_id, (item) => item.application_id === application.application_id)
+  if (!writtenDone.submitted.has(application.application_id)) {
+    conflict(writtenDone.isWithdrawn(application.application_id) ? WRITTEN_TEST_WITHDRAWN_MESSAGE : WRITTEN_TEST_GATE_MESSAGE)
+  }
 
   if (input.submit) {
     const missing = UNIT_CODES.filter((code) => !input.unitResults[code])

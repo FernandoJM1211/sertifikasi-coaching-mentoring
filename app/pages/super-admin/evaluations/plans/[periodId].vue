@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { EVALUATION_DURATION_OPTIONS } from '~~/shared/utils/evaluation'
+import type { TableAction } from '~/utils/table-action'
 
 /**
  * Perencanaan tes tertulis satu periode (Super Admin): paket soal, jumlah soal, durasi,
@@ -227,6 +228,35 @@ function formatWorkMinutes(seconds: number | null) {
   if (seconds === null) return '-'
   return seconds < 60 ? '< 1 menit' : `${Math.round(seconds / 60)} menit`
 }
+
+/* ---------------- Pilihan aksi per peserta ---------------- */
+const actionModalOpen = ref(false)
+const actionTarget = ref<PlanItem | null>(null)
+
+function openActions(item: PlanItem) {
+  actionTarget.value = item
+  actionModalOpen.value = true
+}
+
+const targetActions = computed<TableAction[]>(() => {
+  const item = actionTarget.value
+  if (!item) return []
+  return [
+    {
+      label: 'Lihat Hasil Tes Tertulis',
+      description: 'Jawaban, kunci, dan nilai peserta.',
+      icon: 'i-lucide-eye',
+      to: `/super-admin/evaluations/attempts/${item.attempt_id}`,
+    },
+    {
+      label: 'Reset Progres',
+      description: 'Hapus progres agar peserta dapat mengerjakan ulang dari awal.',
+      icon: 'i-lucide-rotate-ccw',
+      tone: 'red',
+      onSelect: () => askReset(item),
+    },
+  ]
+})
 
 /* ---------------- Reset progres peserta ---------------- */
 const resetTarget = ref<PlanItem | null>(null)
@@ -472,11 +502,11 @@ watch([activeFilter, searchQuery], resetTablePage)
         </div>
 
         <div v-else class="overflow-x-auto">
-          <table class="w-full min-w-[760px] table-fixed text-left text-sm">
+          <table class="w-full min-w-[960px] table-fixed text-left text-sm">
             <colgroup>
               <col class="w-[28%]" />
               <col />
-              <col class="w-32" />
+              <col class="w-44" />
               <col class="w-32" />
               <col class="w-24" />
               <col class="w-28" />
@@ -502,7 +532,6 @@ watch([activeFilter, searchQuery], resetTablePage)
                 </td>
                 <td class="px-4 py-3 text-center text-slate-600">
                   {{ formatWorkMinutes(item.work_seconds) }}
-                  <span v-if="item.submit_type === 'AUTO'" class="block text-xs text-amber-600">Waktu habis</span>
                 </td>
                 <td class="px-4 py-3 text-center">
                   <UBadge :color="STATUS_BADGES[item.status].color" variant="subtle">
@@ -510,40 +539,23 @@ watch([activeFilter, searchQuery], resetTablePage)
                   </UBadge>
                 </td>
                 <td class="px-4 py-3 text-center">
-                  <span
-                    v-if="item.score !== null"
-                    class="text-base font-semibold"
-                    :class="item.passed ? 'text-emerald-700' : 'text-rose-700'"
-                  >
+                  <UBadge v-if="item.score !== null" :color="item.passed ? 'success' : 'error'" variant="subtle">
                     {{ formatScore(item.score) }}
-                  </span>
+                  </UBadge>
                   <span v-else class="text-slate-500">-</span>
-
                 </td>
                 <td class="px-4 py-3 text-center">
-                  <div v-if="item.attempt_id" class="inline-flex gap-2">
-                    <UButton
-                      :to="`/super-admin/evaluations/attempts/${item.attempt_id}`"
-                      icon="i-lucide-eye"
-                      color="primary"
-                      variant="solid"
-                      square
-                      size="md"
-                      aria-label="Lihat detail hasil tes tertulis"
-                      title="Lihat detail hasil tes tertulis"
-                    />
-                    <UButton
-                      icon="i-lucide-rotate-ccw"
-                      color="error"
-                      variant="solid"
-                      square
-                      size="md"
-                      class="bg-red-700 hover:bg-red-800"
-                      aria-label="Reset progres tes tertulis peserta"
-                      title="Reset progres tes tertulis peserta"
-                      @click="askReset(item)"
-                    />
-                  </div>
+                  <UButton
+                    v-if="item.attempt_id"
+                    icon="i-lucide-settings-2"
+                    color="primary"
+                    variant="solid"
+                    square
+                    size="md"
+                    aria-label="Pilihan aksi"
+                    title="Pilihan aksi"
+                    @click="openActions(item)"
+                  />
                   <span v-else class="text-slate-500">-</span>
                 </td>
               </tr>
@@ -611,5 +623,29 @@ watch([activeFilter, searchQuery], resetTablePage)
         </div>
       </template>
     </UModal>
+
+    <!-- Pilihan aksi per peserta (gaya Manajemen Akun) -->
+    <TableActionModal
+      v-model:open="actionModalOpen"
+      title="Pilihan Aksi"
+      :description="actionTarget?.full_name"
+      :actions="targetActions"
+    >
+      <template v-if="actionTarget" #summary>
+        <p class="font-semibold text-slate-900">{{ actionTarget.full_name }}</p>
+        <p class="mt-1 text-sm text-slate-600">{{ actionTarget.nip }} · {{ actionTarget.institution_name }}</p>
+        <div class="mt-3 flex flex-wrap items-center gap-2">
+          <UBadge :color="STATUS_BADGES[actionTarget.status].color" variant="subtle">
+            {{ STATUS_BADGES[actionTarget.status].label }}
+          </UBadge>
+          <UBadge v-if="actionTarget.score !== null" :color="actionTarget.passed ? 'success' : 'error'" variant="subtle">
+            Nilai {{ formatScore(actionTarget.score) }}
+          </UBadge>
+          <span v-if="actionTarget.work_seconds !== null" class="text-xs text-slate-600">
+            {{ formatWorkMinutes(actionTarget.work_seconds) }}{{ actionTarget.submit_type === 'AUTO' ? ' · terkirim otomatis (waktu habis)' : '' }}
+          </span>
+        </div>
+      </template>
+    </TableActionModal>
   </div>
 </template>
