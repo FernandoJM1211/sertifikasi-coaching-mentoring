@@ -58,7 +58,7 @@ const REQUIRED_STAGES = [
   {
     stageOrder: 7,
     stageCode: 'ASSESSMENT_VERIFICATION',
-    stageName: 'Verifikasi Penilaian',
+    stageName: 'Penetapan Hasil Asesmen',
   },
   {
     stageOrder: 8,

@@ -9,7 +9,7 @@ const STAGE_INFO: Record<string, string> = {
   SELF_ASSESSMENT: 'Peserta sedang mengisi self assessment. Verifikasi dapat dilakukan pada tahap Verifikasi Self Assessment.',
   EVALUATION: 'Peserta sedang mengerjakan tes tertulis pilihan ganda.',
   ASSESSOR_ASSESSMENT: 'Asesor sedang menilai peserta.',
-  ASSESSMENT_VERIFICATION: 'Hasil penilaian asesor sedang diverifikasi.',
+  ASSESSMENT_VERIFICATION: 'Hasil asesmen peserta sedang ditetapkan oleh Super Admin.',
   ANNOUNCEMENT: 'Hasil sertifikasi sedang diumumkan.',
 }
 

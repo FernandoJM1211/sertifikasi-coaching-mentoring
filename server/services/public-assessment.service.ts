@@ -1,3 +1,4 @@
+import { assertResultNotDecided } from './assessment-result.service'
 import { findApplicationById, findApplicationsByPeriod } from '../repositories/application.repository'
 import {
   findAssessorAssignmentsByPeriod,
@@ -312,6 +313,7 @@ export async function reopenPublicAssessment(user: AuthenticatedUser, applicatio
   const existing = await findPublicAssessmentByApplicationId(applicationId)
 
   if (!existing || existing.status !== 'SUBMITTED') conflict('Penilaian belum dikirim sehingga tidak perlu dibuka.')
+  await assertResultNotDecided(applicationId)
 
   const now = new Date().toISOString()
   await upsertPublicAssessment({

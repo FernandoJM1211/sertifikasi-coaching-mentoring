@@ -52,6 +52,11 @@ const navigation = [
     to: '/super-admin/public-assessments',
   },
   {
+    label: 'Penetapan Hasil Asesmen',
+    icon: 'i-lucide-gavel',
+    to: '/super-admin/assessment-results',
+  },
+  {
     label: 'Manajemen Akun',
     icon: 'i-lucide-users',
     to: '/super-admin/accounts',

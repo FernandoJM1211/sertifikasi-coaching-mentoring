@@ -83,7 +83,7 @@ flowchart TD
     V4 --> P2["Peserta:<br/>Mengerjakan tes tertulis (pilihan ganda)"]
     P2 --> AT["Asesor Teknis:<br/>Menilai CMSP-02 (K/BK per indikator + catatan)"]
     AT --> AK["Asesor Kepublikan:<br/>Menilai dengan form CMSP-03"]
-    AK --> V5["Verifikator / Super Admin:<br/>Verifikasi penilaian & penetapan kelulusan"]
+    AK --> V5["Super Admin:<br/>Penetapan Hasil Asesmen<br/>(lulus / remedial)"]
     V5 --> D3{Lulus?}
     D3 -- Ya --> P3["Peserta:<br/>Informasi kelulusan & sertifikat"]
     P3 --> E2((Selesai))
@@ -103,7 +103,7 @@ flowchart TD
 | 4 | `SELF_ASSESSMENT_VERIFICATION` | Verifikasi CMSP-01 & 02, minta perbaikan, assign ke asesor | Verifikator | ✅ |
 | 5 | `EVALUATION` | Peserta mengerjakan tes tertulis pilihan ganda | Peserta | ✅ |
 | 6 | `ASSESSOR_ASSESSMENT` | Penilaian CMSP-02 (Teknis), lalu CMSP-03 (Kepublikan) | Asesor Teknis, Asesor Kepublikan | ❌ |
-| 7 | `ASSESSMENT_VERIFICATION` | Verifikasi penilaian & penetapan kelulusan | Verifikator / Super Admin | ❌ |
+| 7 | `ASSESSMENT_VERIFICATION` | **Penetapan Hasil Asesmen**: rekap tes tertulis + kedua asesor, tetapkan lulus/remedial | Super Admin | ✅ |
 | 8 | `ANNOUNCEMENT` | Informasi lulus + sertifikat / tidak lulus + remedial | Sistem → Peserta | ❌ |
 
 Akses setiap tahap ditentukan jadwal (`start_at`–`end_at`) kecuali di-override Super Admin
@@ -204,6 +204,10 @@ DRAFT ──► ACTIVE ──► CLOSED ──► COMPLETED
    - Dapat **disimpan sebagai draf**; simpan & kirim hanya saat tahap `ASSESSOR_ASSESSMENT` dibuka.
      Setelah dikirim terkunci; **Super Admin** dapat melihat semua penilaian, **ikut mengisi/mengirim** (tercatat atas nama Asesor Teknis yang ditugaskan), dan **membuka kunci**.
    - Asesor Teknis tidak dapat diganti bila penilaian peserta tersebut sudah dimulai.
+   - **Urutan wajib (K-22):** penilaian CMSP-02 baru dapat diisi setelah peserta **mengirim tes
+     tertulis** (status daftar "Menunggu Tes Tertulis"). Urutan: tes tertulis → Asesor Teknis →
+     Asesor Kepublikan. Perbaikan dibuka dari tahap paling akhir: reset tes tertulis ditolak bila
+     Asesor Teknis sudah mengirim; buka kunci Asesor Teknis ditolak bila Asesor Kepublikan sudah mengirim.
 2. **Asesor Kepublikan — CMSP-03** ✅ (menu Penilaian CMSP-03 di portal `/asesor-kepublikan`)
    - Mengisi form penilaian CMSP-03 secara langsung; tidak ada isian/bukti dari peserta.
    - 3 unit (Orientasi Publik; Pola Pikir Bertumbuh & Kreativitas; Budaya Kerja Transformasional),
@@ -214,9 +218,20 @@ DRAFT ──► ACTIVE ──► CLOSED ──► COMPLETED
      "dapat dilanjutkan" (sebelumnya berstatus "Menunggu Asesor Teknis").
    - Asesor Kepublikan tidak dapat diganti bila penilaian CMSP-03 peserta tersebut sudah dimulai.
 
-**H. Verifikasi penilaian & penetapan kelulusan** ❌
-- Hasil penilaian kedua asesor diverifikasi, lalu peserta ditetapkan **Lulus** atau **Tidak Lulus**
-  (penetapan dapat dilakukan Super Admin).
+**H. Penetapan Hasil Asesmen** ✅ (menu Penetapan Hasil Asesmen, **Super Admin saja**; K-21)
+- Setelah pilih periode, tampil tabel per peserta: nama, NIP, instansi, **nilai tes tertulis**
+  (+ passing grade), **rekomendasi Asesor Teknis**, **rekomendasi Asesor Kepublikan**, dan **hasil**.
+  Setiap penilaian punya tombol **Detail** (membuka halaman detail yang sudah ada di tab baru).
+- Hasil ditentukan **otomatis**, tidak dapat diubah (keputusan diambil lewat diskusi, seperti klasikal):
+  - **Lulus** = nilai tes tertulis ≥ passing grade **dan** Asesor Teknis "dapat dilanjutkan"
+    **dan** Asesor Kepublikan "dapat dilanjutkan".
+  - **Remedial** = salah satu tidak terpenuhi (bukan "gagal"). Bila Asesor Teknis "tidak dapat
+    dilanjutkan", Asesor Kepublikan tidak menilai dan peserta langsung Remedial.
+- Tombol **Tetapkan Keputusan** (sekaligus satu periode) hanya aktif saat tahap dibuka **dan** semua
+  hasil lengkap (tes tertulis terkirim, kedua asesor mengirim). Hasil disimpan sebagai potret di
+  `assessment_results` dan baru disampaikan ke peserta pada tahap Pengumuman.
+- **Batalkan Penetapan** dapat dilakukan selama tahap dibuka. Selama hasil berlaku, buka kunci penilaian
+  asesor dan reset tes tertulis peserta tersebut ditolak.
 
 **I. Pengumuman, sertifikat & remedial** ❌
 - **Lulus** → peserta melihat informasi kelulusan & **sertifikat**. Proses selesai.
@@ -276,10 +291,9 @@ Tidak perlu dijawab sekarang; dibahas saat fitur terkait dikerjakan.
 
 1. **Fitur Verifikator/Asesor mana saja** yang boleh diakses Super Admin? (mis. memverifikasi
    pendaftaran, menilai sebagai asesor, atau hanya melihat?)
-2. **Penetap kelulusan:** Super Admin saja, atau Verifikator juga? Apakah Verifikator memverifikasi
-   dulu lalu Super Admin menetapkan?
-3. **Dasar kelulusan:** kombinasi apa dari nilai tes tertulis, hasil K/BK Asesor Teknis, dan CMSP-03?
-   Mis. harus semua indikator K?
+2. ~~**Penetap kelulusan**~~ — terjawab K-21: Super Admin saja.
+3. ~~**Dasar kelulusan**~~ — terjawab K-21: nilai tes tertulis ≥ passing grade + rekomendasi kedua
+   asesor "dapat dilanjutkan"; selain itu Remedial. (Detail kelulusan/sertifikat dibahas di tahap Pengumuman.)
 4. **Pendaftaran ditolak:** apakah Guest diberi tahu lewat email? Boleh mendaftar ulang di periode yang sama?
 5. **Perbaikan CMSP-01/02:** ada batas jumlah perbaikan, atau cukup dibatasi jadwal tahapnya?
 6. **Bukti dukung CMSP-02:** berupa unggahan file (PDF/gambar) atau link?

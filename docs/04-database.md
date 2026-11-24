@@ -490,6 +490,36 @@ Header siap tempel:
 public_assessment_id	application_id	period_id	assessor_id	unit_results	note	recommendation	status	submitted_at	created_at	updated_at	reopened_by	reopened_at
 ```
 
+### `assessment_results` — ID `HAS-000001` (Penetapan Hasil Asesmen; K-21)
+
+Satu baris per peserta setiap kali hasil satu periode **ditetapkan**. Nilai ketiga penilaian disalin
+(potret) agar hasil tidak berubah walau data penilaian berubah kemudian. Pembatalan tidak menghapus
+baris: `status` menjadi `CANCELLED` (riwayat). Hanya baris `ACTIVE` yang berlaku.
+
+| # | Kolom | Isi |
+| --- | --- | --- |
+| A | `result_id` | ID |
+| B | `application_id` | Relasi |
+| C | `period_id` | Relasi |
+| D | `round` | `1` = penetapan utama (disiapkan untuk remedial nanti) |
+| E | `outcome` | `PASSED` (Lulus) / `REMEDIAL` |
+| F | `written_score` | Nilai tes tertulis 0–100 saat ditetapkan |
+| G | `written_passing_grade` | Passing grade yang dipakai |
+| H | `technical_recommendation` | `CONTINUE` / `NOT_CONTINUE` |
+| I | `public_recommendation` | `CONTINUE` / `NOT_CONTINUE` / `NOT_REQUIRED` (Asesor Teknis tidak melanjutkan) |
+| J | `reasons` | Alasan remedial dipisah koma: `WRITTEN_BELOW_PASSING_GRADE`, `TECHNICAL_NOT_CONTINUE`, `PUBLIC_NOT_CONTINUE` |
+| K | `status` | `ACTIVE` / `CANCELLED` |
+| L | `decided_by` | `user_id` Super Admin |
+| M | `decided_at` | — |
+| N | `cancelled_by` | `user_id` Super Admin yang membatalkan |
+| O | `cancelled_at` | — |
+
+Header siap tempel:
+
+```text
+result_id	application_id	period_id	round	outcome	written_score	written_passing_grade	technical_recommendation	public_recommendation	reasons	status	decided_by	decided_at	cancelled_by	cancelled_at
+```
+
 Berkas KTP, Surat Tugas, evidence, dan dokumen pengganti dicatat di sheet `files`
 (`uploaded_by` = `user_id` peserta). Tipe yang diterima dideteksi dari isi file:
 dokumen pendaftaran PDF; KTP/Surat Tugas PDF/JPG/PNG; evidence PDF/DOC/DOCX; maks. 4 MB (di bawah batas 4,5 MB per request Vercel).

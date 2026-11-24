@@ -1,3 +1,5 @@
+import { findTechnicalAssessmentByApplicationId } from '../repositories/technical-assessment.repository'
+import { assertResultNotDecided } from './assessment-result.service'
 import { randomBytes } from 'node:crypto'
 import { findApplicationById, findApplicationsByPeriod } from '../repositories/application.repository'
 import { findAllCertificationPeriods, findCertificationPeriodById } from '../repositories/certification-period.repository'
@@ -515,6 +517,13 @@ export async function resetAttempt(user: AuthenticatedUser, attemptId: string) {
   const [attempt] = await evaluationAttempts.findWhere((item) => item.attempt_id === attemptId)
   if (!attempt) notFound('Data pengerjaan tidak ditemukan.')
   if (attempt.status === 'RESET') conflict('Progres peserta ini sudah direset.')
+  await assertResultNotDecided(attempt.application_id)
+
+  // Urutan wajib (K-22): perbaikan dibuka dari tahap paling akhir.
+  const technical = await findTechnicalAssessmentByApplicationId(attempt.application_id)
+  if (technical?.status === 'SUBMITTED') {
+    conflict('Penilaian Asesor Teknis peserta ini sudah dikirim. Buka kunci penilaian Asesor Teknis terlebih dahulu.')
+  }
 
   const now = new Date().toISOString()
   await evaluationAttempts.update(attemptId, {

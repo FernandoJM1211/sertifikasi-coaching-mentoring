@@ -1,3 +1,4 @@
+import { assertResultNotDecided } from './assessment-result.service'
 import type { H3Event } from 'h3'
 import { findApplicationById, findApplicationsByPeriod } from '../repositories/application.repository'
 import {
@@ -26,8 +27,13 @@ import { findAllUsers } from '../repositories/user.repository'
 import { CMSP02_COMPETENCY_UNITS } from '../../shared/utils/cmsp02-units'
 import {
   TECHNICAL_ASSESSMENT_STAGE,
+  WRITTEN_TEST_GATE_MESSAGE,
   type TechnicalAssessmentStatus,
+  type TechnicalListStatus,
 } from '../../shared/utils/technical-assessment'
+import { evaluationAttempts } from '../repositories/evaluation.repository'
+import { findPublicAssessmentByApplicationId } from '../repositories/public-assessment.repository'
+import { finalizeExpiredAttempts } from './evaluation-attempt.service'
 import type { TechnicalAssessmentInput } from '../utils/technical-assessment-input'
 import type { AuthenticatedUser } from './auth.service'
 import { getStageAccess, withStageSchedule } from './certification-stage.service'
@@ -89,6 +95,16 @@ async function requireAccess(user: AuthenticatedUser, applicationId: string) {
   return { application, assignment }
 }
 
+/**
+ * Pengajuan yang tes tertulisnya sudah TERKIRIM (syarat penilaian CMSP-02, K-22).
+ * Pengerjaan yang lewat batas waktu ditutup otomatis dulu agar ikut terhitung.
+ */
+async function writtenSubmittedSet(filter: (attempt: { period_id: string, application_id: string }) => boolean) {
+  const attempts = await evaluationAttempts.findWhere((item) => item.status !== 'RESET' && filter(item))
+  const finalized = await finalizeExpiredAttempts(attempts)
+  return new Set(finalized.filter((item) => item.status === 'SUBMITTED').map((item) => item.application_id))
+}
+
 /* ------------------------------------------------------------------ */
 /* Daftar periode & peserta                                            */
 /* ------------------------------------------------------------------ */
@@ -117,13 +133,14 @@ export async function listTechnicalAssessments(user: AuthenticatedUser, periodId
   const period = await findCertificationPeriodById(periodId)
   if (!period) notFound('Periode sertifikasi tidak ditemukan.')
 
-  const [applications, submissions, assignments, assessments, stage, users] = await Promise.all([
+  const [applications, submissions, assignments, assessments, stage, users, writtenDone] = await Promise.all([
     findApplicationsByPeriod(periodId),
     findCmsp01SubmissionsByPeriod(periodId),
     findAssessorAssignmentsByPeriod(periodId),
     findTechnicalAssessmentsByPeriod(periodId),
     getStageAccess(periodId, TECHNICAL_ASSESSMENT_STAGE),
     findAllUsers(),
+    writtenSubmittedSet((item) => item.period_id === periodId),
   ])
 
   const applicationById = new Map(applications.map((item) => [item.application_id, item]))
@@ -141,6 +158,11 @@ export async function listTechnicalAssessments(user: AuthenticatedUser, periodId
       const cmsp01 = submissionByApplication.get(application.application_id)
       const assessment = assessmentByApplication.get(application.application_id)
       const counts = countResults(assessment)
+      const baseStatus = statusOf(assessment)
+      // Belum mengirim tes tertulis → menunggu (kecuali penilaian lama yang sudah terkirim).
+      const status: TechnicalListStatus = baseStatus !== 'SUBMITTED' && !writtenDone.has(application.application_id)
+        ? 'WAITING'
+        : baseStatus
 
       return {
         application_id: application.application_id,
@@ -148,7 +170,8 @@ export async function listTechnicalAssessments(user: AuthenticatedUser, periodId
         nip: cmsp01?.nip || application.nip_snapshot,
         institution_name: cmsp01?.institution_name || application.institution_name,
         assessor_name: userName.get(assignment.technical_assessor_id) || '-',
-        status: statusOf(assessment),
+        status,
+        written_submitted: writtenDone.has(application.application_id),
         recommendation: assessment?.recommendation ?? '',
         k_count: counts.k,
         bk_count: counts.bk,
@@ -160,7 +183,7 @@ export async function listTechnicalAssessments(user: AuthenticatedUser, periodId
     .filter((item): item is NonNullable<typeof item> => item !== null)
     .sort((a, b) => a.full_name.localeCompare(b.full_name, 'id'))
 
-  const count = (status: TechnicalAssessmentStatus) => items.filter((item) => item.status === status).length
+  const count = (status: TechnicalListStatus) => items.filter((item) => item.status === status).length
 
   return {
     period: { period_id: period.period_id, period_name: period.period_name, period_status: period.period_status },
@@ -168,7 +191,9 @@ export async function listTechnicalAssessments(user: AuthenticatedUser, periodId
     total_units: UNIT_CODES.length,
     summary: {
       total: items.length,
-      notStarted: count('NOT_STARTED'),
+      // "Belum Dinilai" mencakup yang masih menunggu tes tertulis.
+      notStarted: count('NOT_STARTED') + count('WAITING'),
+      waiting: count('WAITING'),
       draft: count('DRAFT'),
       submitted: count('SUBMITTED'),
       continued: items.filter((item) => item.status === 'SUBMITTED' && item.recommendation === 'CONTINUE').length,
@@ -185,14 +210,16 @@ export async function listTechnicalAssessments(user: AuthenticatedUser, periodId
 export async function getTechnicalAssessment(user: AuthenticatedUser, applicationId: string) {
   const { application, assignment } = await requireAccess(user, applicationId)
 
-  const [content, cmsp01, assessment, stage, period, users] = await Promise.all([
+  const [content, cmsp01, assessment, stage, period, users, writtenDone] = await Promise.all([
     loadSelfAssessmentContent(application),
     findCmsp01ByApplicationId(application.application_id),
     findTechnicalAssessmentByApplicationId(application.application_id),
     getStageAccess(application.period_id, TECHNICAL_ASSESSMENT_STAGE),
     findCertificationPeriodById(application.period_id),
     findAllUsers(),
+    writtenSubmittedSet((item) => item.application_id === application.application_id),
   ])
+  const writtenSubmitted = writtenDone.has(application.application_id)
 
   const userName = new Map(users.map((item) => [item.user_id, item.full_name]))
   const status = statusOf(assessment)
@@ -211,6 +238,8 @@ export async function getTechnicalAssessment(user: AuthenticatedUser, applicatio
     // Hanya CMSP-02 yang dikirim ke asesor.
     cmsp02: content.cmsp02,
     stage,
+    // Syarat urutan (K-22): tes tertulis harus sudah dikirim.
+    written: { submitted: writtenSubmitted, message: writtenSubmitted ? '' : WRITTEN_TEST_GATE_MESSAGE },
     units: CMSP02_COMPETENCY_UNITS.map((unit) => ({ code: unit.code, number: unit.number, title: unit.title })),
     assessment: {
       status,
@@ -223,7 +252,7 @@ export async function getTechnicalAssessment(user: AuthenticatedUser, applicatio
       reopened_at: assessment?.reopened_at ?? '',
     },
     canEdit: (isAssignedAssessor || (isSuperAdmin(user) && Boolean(assignment?.technical_assessor_id)))
-      && stage.open && status !== 'SUBMITTED',
+      && stage.open && writtenSubmitted && status !== 'SUBMITTED',
     canReopen: isSuperAdmin(user) && status === 'SUBMITTED',
   }
 }
@@ -252,6 +281,9 @@ export async function saveTechnicalAssessment(
 
   if (!stage.open) conflict(`Penilaian tidak dapat disimpan: ${stage.message}`)
   if (existing?.status === 'SUBMITTED') conflict('Penilaian sudah dikirim dan terkunci.')
+
+  const writtenDone = await writtenSubmittedSet((item) => item.application_id === application.application_id)
+  if (!writtenDone.has(application.application_id)) conflict(WRITTEN_TEST_GATE_MESSAGE)
 
   if (input.submit) {
     const missing = UNIT_CODES.filter((code) => !input.unitResults[code])
@@ -288,6 +320,12 @@ export async function reopenTechnicalAssessment(user: AuthenticatedUser, applica
   const existing = await findTechnicalAssessmentByApplicationId(applicationId)
 
   if (!existing || existing.status !== 'SUBMITTED') conflict('Penilaian belum dikirim sehingga tidak perlu dibuka.')
+  await assertResultNotDecided(applicationId)
+
+  const publicAssessment = await findPublicAssessmentByApplicationId(applicationId)
+  if (publicAssessment?.status === 'SUBMITTED') {
+    conflict('Penilaian Asesor Kepublikan sudah dikirim. Buka kunci penilaian Asesor Kepublikan terlebih dahulu.')
+  }
 
   const now = new Date().toISOString()
   await upsertTechnicalAssessment({

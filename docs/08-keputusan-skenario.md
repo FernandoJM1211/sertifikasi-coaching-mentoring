@@ -441,3 +441,49 @@ Jawaban yang sudah "tersimpan" aman di server, tetapi setelah gagal simpan siste
   jawaban, serta versi soal (`snapshot_id`) tercatat di `evaluation_attempts`.
 
 **Penerapan.** `app/pages/peserta/evaluation/[applicationId].vue` (autosave, retry, cadangan).
+
+## K-21 — Tahap 7 menjadi "Penetapan Hasil Asesmen"
+
+**Konteks.** Hasil diskusi pemilik proyek dengan rekan senior: tahap "Verifikasi Penilaian" sebenarnya
+adalah rapat/diskusi untuk menetapkan hasil; pada proses klasikal tidak ada pengubahan keputusan.
+
+**Keputusan.**
+
+- Nama tahap 7 (`ASSESSMENT_VERIFICATION`, kode tetap): **Penetapan Hasil Asesmen**. Nilai `stage_name`
+  di `certification_timelines` diperbarui manual oleh pemilik proyek.
+- Dikerjakan **Super Admin saja** (menu baru Penetapan Hasil Asesmen; pilih periode → tabel).
+- Tabel per peserta: nama, NIP, instansi, nilai tes tertulis, hasil akhir Asesor Teknis (dapat/tidak
+  dapat dilanjutkan), hasil akhir Asesor Kepublikan, tombol **Detail** masing-masing (halaman yang ada).
+- Hasil otomatis, **tanpa fitur mengubah**: Lulus bila nilai ≥ passing grade dan kedua asesor "dapat
+  dilanjutkan"; selain itu **Remedial** (bukan gagal). Asesor Teknis "tidak dapat dilanjutkan" →
+  Asesor Kepublikan tidak menilai → Remedial.
+- Tombol **Tetapkan Keputusan** di bawah tabel, sekaligus satu periode; **dikunci sampai semua hasil
+  lengkap** dan tahap dibuka. Hasil disampaikan ke peserta pada tahap Pengumuman (dibahas nanti,
+  termasuk detail kelulusan & remedial).
+- **Batalkan Penetapan** selama tahap dibuka; riwayat tetap tersimpan (`CANCELLED`). Selama hasil
+  berlaku, buka kunci penilaian asesor dan reset tes tertulis ditolak agar hasil tidak berubah diam-diam.
+- Data di sheet baru `assessment_results` (potret nilai saat ditetapkan; kolom `round` untuk remedial).
+
+**Penerapan.** `server/services/assessment-result.service.ts`, `server/repositories/assessment-result.repository.ts`,
+`server/repositories/sheet-table.ts`, `server/api/assessment-results/*`, `shared/utils/assessment-result.ts`,
+`app/pages/super-admin/assessment-results/*`, menu di `app/layouts/super-admin.vue`; nama tahap di
+`app/utils/timeline.ts`, `certification-timeline.service.ts`, halaman timeline.
+
+## K-22 — Urutan wajib: tes tertulis → Asesor Teknis → Asesor Kepublikan
+
+**Konteks.** Asesor Kepublikan sudah menunggu Asesor Teknis, tetapi Asesor Teknis dapat menilai walau
+peserta belum mengerjakan tes tertulis. Pemilik proyek menegaskan urutan ini wajib.
+
+**Keputusan.**
+
+- Asesor Teknis baru dapat mengisi/menyimpan penilaian CMSP-02 setelah tes tertulis peserta **terkirim**
+  (termasuk terkirim otomatis karena waktu habis). Di daftar berstatus **Menunggu Tes Tertulis**
+  (dihitung dalam kartu "Belum Dinilai"); di detail tampil kotak info.
+- Asesor Kepublikan tetap menunggu Asesor Teknis mengirim dengan "dapat dilanjutkan" (sudah ada).
+- Urutan mundur dijaga: **reset tes tertulis** ditolak bila Asesor Teknis sudah mengirim; **buka kunci
+  Asesor Teknis** ditolak bila Asesor Kepublikan sudah mengirim. Perbaikan dibuka dari tahap paling akhir.
+- Penilaian lama yang sudah terkirim sebelum aturan ini tidak diubah.
+
+**Penerapan.** `server/services/technical-assessment.service.ts` (`writtenSubmittedSet`, gate di daftar,
+detail, simpan, buka kunci), `evaluation-admin.service.ts` (`resetAttempt`), `shared/utils/technical-assessment.ts`
+(`TechnicalListStatus`, `WRITTEN_TEST_GATE_MESSAGE`), `app/components/technical-assessment/List.vue` & `Detail.vue`.

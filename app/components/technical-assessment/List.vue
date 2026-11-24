@@ -6,9 +6,9 @@
  * Contoh: <TechnicalAssessmentList :period-id="id" base-path="/asesor-teknis/assessments" back-path="/asesor-teknis/assessments" />
  */
 import {
-  TECHNICAL_ASSESSMENT_STATUS_LABELS,
+  TECHNICAL_LIST_STATUS_LABELS,
   TECHNICAL_RECOMMENDATION_LABELS,
-  type TechnicalAssessmentStatus,
+  type TechnicalListStatus,
   type TechnicalRecommendation,
 } from '~~/shared/utils/technical-assessment'
 
@@ -27,7 +27,8 @@ type Item = {
   nip: string
   institution_name: string
   assessor_name: string
-  status: TechnicalAssessmentStatus
+  status: TechnicalListStatus
+  written_submitted: boolean
   recommendation: TechnicalRecommendation | ''
   k_count: number
   bk_count: number
@@ -40,7 +41,7 @@ type ListResponse = {
   period: { period_id: string, period_name: string, period_status: string }
   stage: { open: boolean, message: string, startAt: string, endAt: string }
   total_units: number
-  summary: { total: number, notStarted: number, draft: number, submitted: number, continued: number, notContinued: number }
+  summary: { total: number, notStarted: number, waiting: number, draft: number, submitted: number, continued: number, notContinued: number }
   items: Item[]
 }
 
@@ -68,7 +69,8 @@ async function load() {
 onMounted(load)
 
 /** Warna badge = warna card ringkasan terkait (Belum Dinilai abu, Draf kuning, Selesai ungu). */
-const STATUS_COLORS: Record<TechnicalAssessmentStatus, 'neutral' | 'warning' | 'secondary'> = {
+const STATUS_COLORS: Record<TechnicalListStatus, 'neutral' | 'warning' | 'secondary' | 'info'> = {
+  WAITING: 'info',
   NOT_STARTED: 'neutral',
   DRAFT: 'warning',
   SUBMITTED: 'secondary',
@@ -93,6 +95,8 @@ const filteredItems = computed(() => {
     const matchesFilter =
       activeFilter.value === 'ALL' ||
       item.status === activeFilter.value ||
+      // "Belum Dinilai" mencakup yang menunggu tes tertulis.
+      (activeFilter.value === 'NOT_STARTED' && item.status === 'WAITING') ||
       (item.status === 'SUBMITTED' && item.recommendation === activeFilter.value)
     const matchesQuery =
       !query || [item.full_name, item.nip, item.institution_name, item.assessor_name].some((value) => value.toLowerCase().includes(query))
@@ -262,7 +266,7 @@ watch([activeFilter, searchQuery], resetTablePage)
                 </td>
                 <td class="px-4 py-3 text-center">
                   <UBadge :color="STATUS_COLORS[item.status]" variant="subtle">
-                    {{ TECHNICAL_ASSESSMENT_STATUS_LABELS[item.status] }}
+                    {{ TECHNICAL_LIST_STATUS_LABELS[item.status] }}
                   </UBadge>
                 </td>
                 <td class="px-4 py-3 text-center text-xs">

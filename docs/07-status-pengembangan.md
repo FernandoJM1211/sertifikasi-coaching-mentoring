@@ -33,7 +33,7 @@ Legenda: ✅ selesai · 🚧 sedang dikerjakan · ❌ belum ada
 | Kelola master jenis & kategori sertifikasi | ❌ | Diisi manual di sheet |
 | Bank soal, paket soal & perencanaan tes tertulis per periode | ✅ | Menu Bank Soal, Paket Soal, Perencanaan Tes Tertulis (nilai peserta, snapshot soal + Terapkan Ulang, reset progres peserta) |
 | Import soal dari Excel | ✅ | Bank Soal → Import Excel: unduh template, pratinjau per baris (valid/tidak valid/duplikat), maks. 200 soal per import |
-| Penetapan kelulusan | ❌ | |
+| Penetapan Hasil Asesmen (tahap 7) | ✅ | Super Admin; hasil otomatis lulus/remedial, tetapkan/batalkan per periode (K-21) |
 | Akses sebagian fitur Verifikator & Asesor | 🚧 | Sudah bisa verifikasi pendaftaran; cakupan lain menunggu keputusan |
 | Penugasan asesor ke peserta | ✅ | Menu Penugasan Asesor |
 | Laporan/rekap | ❌ | |
@@ -82,7 +82,7 @@ Legenda: ✅ selesai · 🚧 sedang dikerjakan · ❌ belum ada
 | Penilaian CMSP-02 (K/BK per unit + catatan + rekomendasi lanjut/tidak) | Asesor Teknis (Super Admin: lihat, isi, & buka kunci) | ✅ |
 | Penilaian CMSP-03 (K/BK per unit + catatan + rekomendasi; setelah Asesor Teknis "dapat dilanjutkan") | Asesor Kepublikan (Super Admin: lihat, isi, & buka kunci) | ✅ |
 | Layout & halaman asesor (`/asesor-teknis`, `/asesor-kepublikan`) | Asesor | ✅ |
-| Verifikasi penilaian & penetapan kelulusan | Verifikator / Super Admin | ❌ |
+| Penetapan Hasil Asesmen | Super Admin | ✅ |
 | Informasi kelulusan & sertifikat | Peserta | ❌ |
 | Halaman remedial: kirim link bukti dukung (1x) | Peserta | ❌ |
 
@@ -122,4 +122,4 @@ Urutan mengikuti alur probis di [01-gambaran-sistem.md](01-gambaran-sistem.md):
 4. ~~**Bank soal & tes tertulis**~~ ✅ (pencegahan kecurangan ditunda, belum dibutuhkan)
    (deteksi pindah tab/keluar layar penuh, blokir salin & klik kanan).
 5. ~~**Role asesor**~~ ✅ — penilaian CMSP-02 Asesor Teknis dan CMSP-03 Asesor Kepublikan.
-6. **Penetapan kelulusan**, lalu **pengumuman, sertifikat, dan remedial (1x, link bukti)**.
+6. ~~**Penetapan Hasil Asesmen**~~ ✅ — lalu **pengumuman, sertifikat, dan remedial (1x, link bukti)**.

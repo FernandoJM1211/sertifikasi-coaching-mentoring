@@ -66,7 +66,7 @@ const STAGE_INFO: Record<string, string> = {
   DOCUMENT_VERIFICATION: 'Berkas pendaftaran sedang diverifikasi oleh penyelenggara.',
   SELF_ASSESSMENT_VERIFICATION: 'Self assessment Anda sedang diperiksa oleh Verifikator. Jika diminta perbaikan, Anda akan mendapat catatan pada halaman Self Assessment.',
   ASSESSOR_ASSESSMENT: 'Hasil self assessment dan tes tertulis Anda sedang dinilai oleh asesor.',
-  ASSESSMENT_VERIFICATION: 'Hasil penilaian asesor sedang diverifikasi oleh penyelenggara.',
+  ASSESSMENT_VERIFICATION: 'Hasil asesmen Anda sedang ditetapkan oleh penyelenggara. Hasil akan disampaikan pada tahap Pengumuman.',
   ANNOUNCEMENT: 'Hasil sertifikasi akan diumumkan pada tahapan ini.',
 }
 

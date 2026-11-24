@@ -31,6 +31,7 @@ type DetailResponse = {
   selfAssessmentStatus: string
   cmsp02: Cmsp02Initial
   stage: { open: boolean, message: string, startAt: string, endAt: string }
+  written: { submitted: boolean, message: string }
   units: { code: string, number: number, title: string }[]
   assessment: {
     status: TechnicalAssessmentStatus
@@ -242,6 +243,14 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', onBeforeUnload)
           <UButton color="warning" variant="outline" size="sm" icon="i-lucide-lock-open" @click="reopenModalOpen = true">Buka Kunci</UButton>
         </template>
       </UAlert>
+      <UAlert
+        v-else-if="!data.written.submitted"
+        color="info"
+        variant="subtle"
+        icon="i-lucide-hourglass"
+        title="Menunggu tes tertulis peserta"
+        :description="data.written.message"
+      />
       <UAlert
         v-else-if="!data.stage.open"
         color="warning"

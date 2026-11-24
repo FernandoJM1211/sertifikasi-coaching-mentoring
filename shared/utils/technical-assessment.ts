@@ -36,6 +36,20 @@ export const TECHNICAL_ASSESSMENT_STATUS_LABELS: Record<TechnicalAssessmentStatu
   SUBMITTED: 'Selesai',
 }
 
+/**
+ * Status di daftar peserta Asesor Teknis: `WAITING` = peserta belum mengirim tes tertulis.
+ * Urutan wajib (K-22): tes tertulis → Asesor Teknis → Asesor Kepublikan.
+ */
+export type TechnicalListStatus = TechnicalAssessmentStatus | 'WAITING'
+
+export const TECHNICAL_LIST_STATUS_LABELS: Record<TechnicalListStatus, string> = {
+  WAITING: 'Menunggu Tes Tertulis',
+  ...TECHNICAL_ASSESSMENT_STATUS_LABELS,
+}
+
+export const WRITTEN_TEST_GATE_MESSAGE =
+  'Penilaian CMSP-02 dapat diisi setelah peserta mengirim (menyelesaikan) tes tertulis.'
+
 export const TECHNICAL_ASSESSMENT_NOTE_MAX_LENGTH = 3000
 
 export function isUnitResult(value: unknown): value is UnitResult {

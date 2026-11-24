@@ -424,8 +424,8 @@ const REQUIRED_STAGES = [
   {
     stageOrder: 7,
     stageCode: 'ASSESSMENT_VERIFICATION',
-    stageName: 'Verifikasi Penilaian',
-    description: 'Pemeriksaan hasil penilaian assessor sebelum ditetapkan sebagai hasil akhir.',
+    stageName: 'Penetapan Hasil Asesmen',
+    description: 'Rekap tes tertulis dan penilaian kedua asesor, lalu hasil peserta (lulus/remedial) ditetapkan.',
   },
   {
     stageOrder: 8,
