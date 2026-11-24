@@ -4,7 +4,7 @@ Database terdiri dari **dua spreadsheet**:
 
 | Spreadsheet | Env | Isi | Kenapa dipisah |
 | --- | --- | --- | --- |
-| **Auth** | `AUTH_SPREADSHEET_ID` | `users`, `sessions`, `activation_tokens`, `password_reset_tokens` | Berisi hash kata sandi & token; aksesnya dibatasi lebih ketat. |
+| **Auth** | `AUTH_SPREADSHEET_ID` | `users`, `sessions`, `activation_tokens`, `password_reset_tokens` (+ `audit_logs` cadangan, belum dipakai) | Berisi hash kata sandi & token; aksesnya dibatasi lebih ketat. |
 | **Data** | `GOOGLE_SPREADSHEET_ID` | Semua data operasional lainnya | Boleh dibuka tim operasional. |
 
 ## Aturan Umum
@@ -110,6 +110,11 @@ ID: `RST-000001`. Buat tab ini di spreadsheet **Auth** dengan header persis sepe
 ```
 password_reset_tokens  reset_token_id	user_id	token_hash	expires_at	used_at	created_at	request_ip
 ```
+
+### `audit_logs` — cadangan (belum dipakai kode)
+Tab kosong yang sengaja dibiarkan untuk fitur audit log nanti (lihat docs/07). Header saat ini:
+`audit_id, event_time, actor_user_id, action, target_type, target_id, result, ip_address, request_id, details`.
+Jangan diisi manual; kolom dapat disesuaikan saat fiturnya dibuat.
 
 ---
 
