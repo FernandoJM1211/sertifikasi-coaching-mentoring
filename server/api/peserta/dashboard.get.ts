@@ -2,6 +2,7 @@ import { findApplicationsByPersonId } from '../../repositories/application.repos
 import { findCertificationPeriodById } from '../../repositories/certification-period.repository'
 import { findCertificationTimelinesByPeriodId } from '../../repositories/certification-timeline.repository'
 import { getEvaluationProgress } from '../../services/evaluation-attempt.service'
+import { getAnnouncementProgress } from '../../services/final-result.service'
 import { getSelfAssessmentProgress } from '../../services/self-assessment.service'
 
 export default defineEventHandler(async (event) => {
@@ -12,12 +13,13 @@ export default defineEventHandler(async (event) => {
   const dashboardApplications = await Promise.all(
     applications.map(async (application) => {
       const accepted = application.application_status === 'accepted'
-      const [period, timelines, selfAssessment, evaluation] = await Promise.all([
+      const [period, timelines, selfAssessment, evaluation, announcement] = await Promise.all([
         findCertificationPeriodById(application.period_id),
         findCertificationTimelinesByPeriodId(application.period_id),
         // Progres pekerjaan peserta untuk tombol dinamis di beranda.
         accepted ? getSelfAssessmentProgress(application) : null,
         accepted ? getEvaluationProgress(application) : null,
+        accepted ? getAnnouncementProgress(application) : null,
       ])
 
       return {
@@ -36,7 +38,7 @@ export default defineEventHandler(async (event) => {
         timelines: timelines.sort(
           (a, b) => Number(a.stage_order) - Number(b.stage_order),
         ),
-        progress: { self_assessment: selfAssessment, evaluation },
+        progress: { self_assessment: selfAssessment, evaluation, announcement },
       }
     }),
   )

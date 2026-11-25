@@ -35,7 +35,7 @@ type Item = {
 type ResultData = {
   period: { period_id: string, period_name: string, period_status: string }
   stage: { open: boolean, message: string, startAt: string, endAt: string }
-  decision: { decided: boolean, decided_at: string, decided_by_name: string, canDecide: boolean, canCancel: boolean }
+  decision: { decided: boolean, decided_at: string, decided_by_name: string, canDecide: boolean, canCancel: boolean, announced: boolean }
   summary: { total: number, incomplete: number, passed: number, remedial: number, withdrawn: number }
   items: Item[]
 }
@@ -411,7 +411,11 @@ async function cancelDecision() {
           <template v-if="data.decision.decided">
             <p class="font-medium text-slate-800">Hasil periode ini sudah ditetapkan.</p>
             <p class="mt-0.5 text-slate-600">
-              {{ data.decision.canCancel ? 'Penetapan dapat dibatalkan selama tahap masih dibuka, mis. bila ada penilaian yang perlu diperbaiki.' : 'Penetapan tidak dapat dibatalkan karena tahap sedang tidak dibuka.' }}
+              {{ data.decision.canCancel
+                ? 'Penetapan dapat dibatalkan selama tahap masih dibuka, mis. bila ada penilaian yang perlu diperbaiki.'
+                : data.decision.announced
+                  ? 'Hasil sudah diumumkan kepada peserta sehingga penetapan bersifat final.'
+                  : 'Penetapan tidak dapat dibatalkan karena tahap sedang tidak dibuka.' }}
             </p>
           </template>
           <template v-else>

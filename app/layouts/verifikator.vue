@@ -26,6 +26,11 @@ const navigation = [
     icon: 'i-lucide-user-check',
     to: '/verifikator/assessor-assignments',
   },
+  {
+    label: 'Hasil Akhir',
+    icon: 'i-lucide-award',
+    to: '/verifikator/final-results',
+  },
 ]
 </script>
 

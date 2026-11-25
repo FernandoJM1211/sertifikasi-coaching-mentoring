@@ -4,7 +4,7 @@ import {
 } from '../repositories/assessor-assignment.repository'
 import { findAllCertificationPeriods } from '../repositories/certification-period.repository'
 import { findAllCertificationTimelines } from '../repositories/certification-timeline.repository'
-import type { HomeInsight, HomeStageAccess } from '../../shared/utils/home-insight'
+import type { FinalResultHomeInsight, HomeInsight, HomeStageAccess } from '../../shared/utils/home-insight'
 import { ASSESSMENT_RESULT_STAGE } from '../../shared/utils/assessment-result'
 import { getApplicationVerificationSummaryByPeriod } from './application-verification-list.service'
 import { getPeriodAssessmentResults } from './assessment-result.service'
@@ -12,11 +12,30 @@ import { listAssessorAssignments } from './assessor-assignment.service'
 import type { AuthenticatedUser } from './auth.service'
 import { getStageAccess, type StageAccess } from './certification-stage.service'
 import { getPeriodEvaluationPlan } from './evaluation-admin.service'
+import { getAnnouncementState, getPeriodFinalResults } from './final-result.service'
 import { listPublicAssessments } from './public-assessment.service'
 import { listSelfAssessmentVerifications } from './self-assessment-verification.service'
 import { listTechnicalAssessments } from './technical-assessment.service'
 
 const toAccess = (stage: StageAccess): HomeStageAccess => ({ open: stage.open, manual: Boolean(stage.manual) })
+
+/** Ringkasan Hasil Akhir; hanya dibaca bila hasil periode sudah diumumkan. */
+async function buildFinalResultInsight(periodId: string): Promise<FinalResultHomeInsight | null> {
+  const state = await getAnnouncementState(periodId)
+  if (!state.announced) return null
+
+  const final = await getPeriodFinalResults(periodId)
+  if (!final.decided) return null
+
+  return {
+    stage: toAccess(final.stage),
+    total: final.summary.total,
+    passed: final.summary.passed,
+    remedialPending: final.summary.remedialPending,
+    remedialSubmitted: final.summary.remedialSubmitted,
+    failed: final.summary.failed,
+  }
+}
 
 /**
  * Ringkasan pekerjaan role pada satu periode untuk tombol dinamis beranda.
@@ -61,10 +80,11 @@ async function buildInsight(user: AuthenticatedUser, periodId: string): Promise<
     }
 
     case 'VERIFIKATOR': {
-      const [applicants, selfAssessment, assignment] = await Promise.all([
+      const [applicants, selfAssessment, assignment, finalResult] = await Promise.all([
         getApplicationVerificationSummaryByPeriod(periodId),
         listSelfAssessmentVerifications(periodId),
         listAssessorAssignments(periodId),
+        buildFinalResultInsight(periodId),
       ])
       return {
         kind: 'VERIFIKATOR',
@@ -75,15 +95,17 @@ async function buildInsight(user: AuthenticatedUser, periodId: string): Promise<
           unassigned: assignment.summary.unassigned,
           assigned: assignment.summary.assigned,
         },
+        finalResult,
       }
     }
 
     case 'SUPER_ADMIN': {
       const resultStage = await getStageAccess(periodId, ASSESSMENT_RESULT_STAGE)
       // Data penetapan cukup berat; hanya dibaca saat tahapnya dibuka.
-      const [plan, result] = await Promise.all([
+      const [plan, result, finalResult] = await Promise.all([
         getPeriodEvaluationPlan(periodId),
         resultStage.open ? getPeriodAssessmentResults(periodId) : Promise.resolve(null),
+        buildFinalResultInsight(periodId),
       ])
       return {
         kind: 'SUPER_ADMIN',
@@ -105,6 +127,7 @@ async function buildInsight(user: AuthenticatedUser, periodId: string): Promise<
               withdrawn: result.summary.withdrawn,
             }
           : null,
+        finalResult,
       }
     }
 

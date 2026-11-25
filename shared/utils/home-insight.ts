@@ -43,6 +43,18 @@ export type PublicHomeInsight = {
   }
 }
 
+/** Hasil Akhir (tahap Pengumuman); hanya diisi setelah hasil diumumkan (K-26). */
+export type FinalResultHomeInsight = {
+  stage: HomeStageAccess
+  total: number
+  passed: number
+  /** Remedial yang belum mengirim tugas. */
+  remedialPending: number
+  /** Tugas remedial menunggu keputusan Verifikator / Super Admin. */
+  remedialSubmitted: number
+  failed: number
+}
+
 export type VerifikatorHomeInsight = {
   kind: 'VERIFIKATOR'
   applicants: { pending: number }
@@ -59,6 +71,7 @@ export type VerifikatorHomeInsight = {
     unassigned: number
     assigned: number
   }
+  finalResult: FinalResultHomeInsight | null
 }
 
 export type SuperAdminHomeInsight = {
@@ -81,6 +94,7 @@ export type SuperAdminHomeInsight = {
     remedial: number
     withdrawn: number
   } | null
+  finalResult: FinalResultHomeInsight | null
 }
 
 export type HomeInsight = TechnicalHomeInsight | PublicHomeInsight | VerifikatorHomeInsight | SuperAdminHomeInsight

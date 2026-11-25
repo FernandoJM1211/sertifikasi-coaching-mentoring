@@ -520,6 +520,35 @@ Header siap tempel:
 result_id	application_id	period_id	round	outcome	written_score	written_passing_grade	technical_recommendation	public_recommendation	reasons	status	decided_by	decided_at	cancelled_by	cancelled_at
 ```
 
+Penetapan tidak dapat dibatalkan setelah hasil diumumkan (tahap Pengumuman sudah dimulai, K-26).
+
+### `remedial_submissions` — ID `RMD-000001` (tugas remedial; K-26)
+
+Satu baris per pengajuan peserta Remedial. Dibuat saat peserta pertama kali mengirim link; link & catatan
+dapat diubah selama `status = SUBMITTED` dan tahap Pengumuman dibuka. Keputusan Verifikator/Super Admin
+final (tidak dibatalkan). Status akhir peserta dihitung dari `assessment_results` + sheet ini;
+peserta Remedial tanpa baris di sini setelah tahap Pengumuman berakhir = "Tidak Kirim Remedial" (tidak lulus).
+
+| # | Kolom | Isi |
+| --- | --- | --- |
+| A | `remedial_id` | ID |
+| B | `application_id` | Relasi |
+| C | `period_id` | Relasi |
+| D | `result_id` | Baris `assessment_results` yang berlaku saat dikirim |
+| E | `drive_link` | Link Google Drive/Docs (`https://drive.google.com/...`), maks. 500 karakter |
+| F | `note` | Catatan peserta (opsional), maks. 1000 karakter |
+| G | `status` | `SUBMITTED` (menunggu tinjauan) / `PASSED` (lulus remedial) / `FAILED` (tidak lulus) |
+| H | `submitted_at` | Waktu kirim pertama |
+| I | `updated_at` | Waktu perubahan link terakhir |
+| J | `decided_by` | `user_id` Verifikator/Super Admin |
+| K | `decided_at` | — |
+
+Header siap tempel:
+
+```text
+remedial_id	application_id	period_id	result_id	drive_link	note	status	submitted_at	updated_at	decided_by	decided_at
+```
+
 Berkas KTP, Surat Tugas, evidence, dan dokumen pengganti dicatat di sheet `files`
 (`uploaded_by` = `user_id` peserta). Tipe yang diterima dideteksi dari isi file:
 dokumen pendaftaran PDF; KTP/Surat Tugas PDF/JPG/PNG; evidence PDF/DOC/DOCX; maks. 4 MB (di bawah batas 4,5 MB per request Vercel).
@@ -659,6 +688,4 @@ Belum dibuat. Nama dan kolom final ditentukan saat fitur dirancang.
 | --- | --- | --- |
 | `assessments` | Penilaian asesor | `assignment_id`, form (`CMSP_02`/`CMSP_03`), catatan umum, status, waktu submit |
 | `assessment_items` | Nilai per indikator | `assessment_id`, kode indikator, `K`/`BK` (CMSP-02) atau nilai CMSP-03, catatan |
-| `graduation_results` | Penetapan kelulusan | `LULUS`/`TIDAK_LULUS`, `decided_by`, percobaan ke- (awal/remedial) |
-| `remedial_submissions` | Bukti remedial (1x) | `application_id`, link bukti, keterangan, waktu kirim |
 | `certificates` | Sertifikat | nomor sertifikat, `file_id` PDF, tanggal terbit |

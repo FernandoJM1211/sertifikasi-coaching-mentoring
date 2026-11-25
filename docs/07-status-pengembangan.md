@@ -33,7 +33,8 @@ Legenda: ✅ selesai · 🚧 sedang dikerjakan · ❌ belum ada
 | Kelola master jenis & kategori sertifikasi | ❌ | Diisi manual di sheet |
 | Bank soal, paket soal & perencanaan tes tertulis per periode | ✅ | Menu Bank Soal, Paket Soal, Perencanaan Tes Tertulis (nilai peserta, snapshot soal + Terapkan Ulang, reset progres peserta) |
 | Import soal dari Excel | ✅ | Bank Soal → Import Excel: unduh template, pratinjau per baris (valid/tidak valid/duplikat), maks. 200 soal per import |
-| Penetapan Hasil Asesmen (tahap 7) | ✅ | Super Admin; hasil otomatis lulus/remedial, tetapkan/batalkan per periode (K-21) |
+| Penetapan Hasil Asesmen (tahap 7) | ✅ | Super Admin; hasil otomatis lulus/remedial, tetapkan/batalkan per periode (K-21); batal ditolak setelah diumumkan |
+| Hasil Akhir & keputusan remedial (tahap 8) | ✅ | Super Admin & Verifikator; menu Hasil Akhir (K-26) |
 | Akses sebagian fitur Verifikator & Asesor | 🚧 | Sudah bisa verifikasi pendaftaran; cakupan lain menunggu keputusan |
 | Penugasan asesor ke peserta | ✅ | Menu Penugasan Asesor |
 | Laporan/rekap | ❌ | |
@@ -69,7 +70,7 @@ Legenda: ✅ selesai · 🚧 sedang dikerjakan · ❌ belum ada
 | Self assessment CMSP-02 | ✅ | Evidence file/link per unit, tersimpan di server |
 | Simpan draft & submit gabungan | ✅ | Satu tombol menyimpan keduanya; submit hanya jika keduanya 100% + pernyataan disetujui; terkunci setelah submit |
 | Unggah bukti self assessment | ❌ | |
-| Lihat hasil / pengumuman | ❌ | |
+| Lihat hasil / pengumuman | ✅ | Menu Pengumuman Sertifikasi; tampil sejak awal tahap Pengumuman (K-26) |
 
 ### Tahap Lanjutan (sesuai probis)
 
@@ -84,8 +85,10 @@ Legenda: ✅ selesai · 🚧 sedang dikerjakan · ❌ belum ada
 | Penilaian CMSP-03 (K/BK per unit + catatan + rekomendasi; setelah Asesor Teknis "dapat dilanjutkan") | Asesor Kepublikan (Super Admin: lihat, isi, & buka kunci) | ✅ |
 | Layout & halaman asesor (`/asesor-teknis`, `/asesor-kepublikan`) | Asesor | ✅ |
 | Penetapan Hasil Asesmen | Super Admin | ✅ |
-| Informasi kelulusan & sertifikat | Peserta | ❌ |
-| Halaman remedial: kirim link bukti dukung (1x) | Peserta | ❌ |
+| Informasi kelulusan (sertifikat disampaikan panitia di luar sistem) | Peserta | ✅ |
+| Kirim link Google Drive tugas remedial (1x, sampai akhir tahap Pengumuman) | Peserta | ✅ |
+| Keputusan remedial Lulus / Tidak Lulus (final) | Verifikator, Super Admin | ✅ |
+| Pembuatan sertifikat di sistem | — | ❌ (belum dibutuhkan) |
 
 ## Known Issues / Utang Teknis
 
@@ -123,4 +126,5 @@ Urutan mengikuti alur probis di [01-gambaran-sistem.md](01-gambaran-sistem.md):
 4. ~~**Bank soal & tes tertulis**~~ ✅ (pencegahan kecurangan ditunda, belum dibutuhkan)
    (deteksi pindah tab/keluar layar penuh, blokir salin & klik kanan).
 5. ~~**Role asesor**~~ ✅ — penilaian CMSP-02 Asesor Teknis dan CMSP-03 Asesor Kepublikan.
-6. ~~**Penetapan Hasil Asesmen**~~ ✅ — lalu **pengumuman, sertifikat, dan remedial (1x, link bukti)**.
+6. ~~**Penetapan Hasil Asesmen**~~ ✅
+7. ~~**Pengumuman & remedial**~~ ✅ (K-26). Sheet `remedial_submissions` harus dibuat di spreadsheet Data (header di docs/04).

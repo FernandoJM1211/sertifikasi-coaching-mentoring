@@ -14,6 +14,7 @@ import { findAllUsers } from '../repositories/user.repository'
 import type { AuthenticatedUser } from './auth.service'
 import { getStageAccess, hasStageEnded } from './certification-stage.service'
 import { EVALUATION_STAGE, finalizeExpiredAttempts } from './evaluation-attempt.service'
+import { getAnnouncementState } from './final-result.service'
 import {
   ASSESSMENT_RESULT_STAGE,
   type AssessmentOutcome,
@@ -167,10 +168,11 @@ async function buildPeriodResults(periodId: string) {
 
 export async function getPeriodAssessmentResults(periodId: string) {
   const period = await requirePeriod(periodId)
-  const [{ items, activeResults }, stage, users] = await Promise.all([
+  const [{ items, activeResults }, stage, users, announcement] = await Promise.all([
     buildPeriodResults(periodId),
     getStageAccess(periodId, ASSESSMENT_RESULT_STAGE),
     findAllUsers(),
+    getAnnouncementState(periodId),
   ])
 
   const decided = activeResults.length > 0
@@ -199,7 +201,9 @@ export async function getPeriodAssessmentResults(periodId: string) {
       decided_at: latest?.decided_at ?? '',
       decided_by_name: decidedByName,
       canDecide: stage.open && !decided && view.length > 0 && incomplete === 0,
-      canCancel: stage.open && decided,
+      // Hasil yang sudah diumumkan bersifat final (K-26).
+      canCancel: stage.open && decided && !announcement.announced,
+      announced: announcement.announced,
     },
     summary: {
       total: view.length,
@@ -259,8 +263,9 @@ export async function cancelPeriodAssessmentResults(user: AuthenticatedUser, per
   const stage = await getStageAccess(periodId, ASSESSMENT_RESULT_STAGE)
   if (!stage.open) conflict(stage.message || 'Tahap Penetapan Hasil Asesmen sedang tidak dibuka.')
 
-  const active = await findActiveResultsByPeriod(periodId)
+  const [active, announcement] = await Promise.all([findActiveResultsByPeriod(periodId), getAnnouncementState(periodId)])
   if (active.length === 0) conflict('Hasil asesmen periode ini belum ditetapkan.')
+  if (announcement.announced) conflict('Hasil asesmen sudah diumumkan kepada peserta sehingga penetapan tidak dapat dibatalkan.')
 
   const now = new Date().toISOString()
   await assessmentResults.updateMany(active.map((item: AssessmentResult) => ({

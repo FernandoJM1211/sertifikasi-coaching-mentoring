@@ -4,7 +4,7 @@ useHead({ title: 'Kebijakan Privasi' })
 </script>
 
 <template>
-  <LayoutLegalPage title="Kebijakan Privasi" effective-date="23 November 2026">
+  <LayoutLegalPage title="Kebijakan Privasi" effective-date="25 November 2026">
     <p>
       Sistem Sertifikasi Coaching dan Mentoring Sektor Publik ("Sistem") dikelola oleh Direktorat
       Teknologi dan Digitalisasi Pembelajaran, Lembaga Administrasi Negara ("Penyelenggara").
@@ -17,7 +17,7 @@ useHead({ title: 'Kebijakan Privasi' })
       <ul>
         <li><b>Data identitas & kepegawaian:</b> nama lengkap, NIP, email, nomor WhatsApp, instansi, asal daerah, pendidikan terakhir, jabatan, jenis kelamin, tempat dan tanggal lahir.</li>
         <li><b>Berkas pendaftaran dan bukti dukung:</b> dokumen yang diunggah, misalnya KTP, surat tugas, dokumen pendaftaran, serta bukti kompetensi pada self assessment (CMSP-01 dan CMSP-02), termasuk tautan yang Anda cantumkan.</li>
-        <li><b>Data proses sertifikasi:</b> status pengajuan, catatan verifikasi, jawaban dan nilai tes tertulis, serta hasil penilaian asesor.</li>
+        <li><b>Data proses sertifikasi:</b> status pengajuan, catatan verifikasi, jawaban dan nilai tes tertulis, hasil penilaian asesor, hasil akhir sertifikasi, serta tautan tugas remedial dan catatannya (bila Anda mengikuti remedial).</li>
         <li><b>Data akun dan keamanan:</b> email login, kata sandi dalam bentuk hash (tidak disimpan dalam bentuk asli), waktu login, dan alamat IP saat login.</li>
       </ul>
     </div>
@@ -28,7 +28,7 @@ useHead({ title: 'Kebijakan Privasi' })
       <ul>
         <li>memverifikasi pendaftaran dan membuat akun peserta;</li>
         <li>memeriksa self assessment, melaksanakan tes tertulis, dan penilaian oleh asesor;</li>
-        <li>menetapkan dan mengumumkan hasil sertifikasi;</li>
+        <li>menetapkan dan mengumumkan hasil sertifikasi, serta meninjau tugas remedial;</li>
         <li>mengirim email terkait proses sertifikasi, misalnya aktivasi akun dan hasil verifikasi;</li>
         <li>menjaga keamanan akun dan sistem.</li>
       </ul>

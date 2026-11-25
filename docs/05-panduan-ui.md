@@ -311,7 +311,8 @@ tombol dinamis (`TimelineTask`). Sumber kode: `app/pages/<role>/index.vue`; data
 
 ### Peserta
 
-Tunggakan tahap sebelumnya yang masih dapat dikerjakan **diprioritaskan** di atas tugas tahap berjalan.
+Hasil akhir yang **sudah diumumkan** diutamakan di atas semuanya (juga sesudah tahap Pengumuman berakhir).
+Selain itu, tunggakan tahap sebelumnya yang masih dapat dikerjakan **diprioritaskan** di atas tugas tahap berjalan.
 
 | Tahap berlangsung | Kondisi | Yang muncul |
 | --- | --- | --- |
@@ -324,7 +325,13 @@ Tunggakan tahap sebelumnya yang masih dapat dikerjakan **diprioritaskan** di ata
 | | Belum tersedia (SA belum terverifikasi, dll.) | `info` **Buka** |
 | Tahap sesudah Self Assessment | SA masih dapat diisi/diperbaiki | `pending` **Lengkapi / Perbaiki** |
 | Tahap sesudah Tes Tertulis | Tes masih tersedia & belum terkirim | `pending` **Kerjakan / Lanjutkan** |
-| Tahap lain (Pendaftaran, Verifikasi, Penilaian, Penetapan, Pengumuman) | — | `info` keterangan tahap, tanpa tombol |
+| Hasil sudah diumumkan | Lulus / Lulus Remedial | `done` "Selamat, Anda lulus sertifikasi" → **Lihat** |
+| | Remedial, belum kirim & pengiriman dibuka | `pending` "Tugas remedial Anda belum dikirim" → **Kirim** |
+| | Remedial, pengiriman ditutup | `info` → **Lihat** |
+| | Tugas remedial menunggu tinjauan | `waiting` → **Lihat** |
+| | Tidak Lulus / Tidak Kirim Remedial / Tidak Melanjutkan | `info` "Hasil sertifikasi sudah diumumkan" → **Lihat** |
+| Pengumuman | Hasil belum ditetapkan | `info` "Hasil akhir belum diumumkan" → **Buka** |
+| Tahap lain (Pendaftaran, Verifikasi, Penilaian, Penetapan) | — | `info` keterangan tahap, tanpa tombol |
 | Tidak ada tahap berlangsung | Ada pekerjaan yang dibuka manual | Tombol pekerjaan tersebut |
 
 ### Verifikator
@@ -340,6 +347,8 @@ Tunggakan tahap sebelumnya yang masih dapat dikerjakan **diprioritaskan** di ata
 | | Semua sudah ditugaskan | `done` → **Lihat** |
 | | Belum ada SA terverifikasi | `info` tanpa tombol |
 | Tes Tertulis, Penilaian Asesor | Masih ada peserta tanpa asesor lengkap (penugasan terkunci) | `pending` "hubungi Super Admin" → **Lihat** |
+| Hasil sudah diumumkan | Ada tugas remedial menunggu tinjauan | `action` "N tugas remedial menunggu tinjauan" → **Tinjau** |
+| | Tidak ada | `info` (Pengumuman dibuka) / `done` (sesudahnya) jumlah Lulus, belum kirim remedial, Tidak Lulus → **Lihat** |
 | Tahap lain | — | `info` "Tidak ada tindakan Verifikator" + keterangan tahap |
 
 ### Asesor Teknis
@@ -372,10 +381,10 @@ Tunggakan tahap sebelumnya yang masih dapat dikerjakan **diprioritaskan** di ata
 | Tahap Penetapan dibuka, semua penilaian lengkap | `action` "Hasil N peserta siap ditetapkan" → **Tetapkan** |
 | Tahap Penetapan dibuka, ada yang belum lengkap | `waiting` → **Lihat** |
 | Tahap Penetapan dibuka, sudah ditetapkan | `done` jumlah Lulus/Remedial → **Lihat** |
+| Hasil sudah diumumkan | Sama seperti Verifikator (**Tinjau** / **Lihat** Hasil Akhir) |
 | Tahap lain tanpa tugas Super Admin | `info` + pintasan pemantauan: **Lihat Verifikasi Peserta** (Pendaftaran, Verifikasi Peserta), **Lihat** (SA, Verifikasi SA), **Lihat Penilaian Asesor** (Penilaian Asesor) |
 
-Tahap **Pengumuman** belum memiliki tombol (fitur belum dibangun). Saat menambah tahap/fitur baru,
-perbarui tabel di atas.
+Saat menambah tahap/fitur baru, perbarui tabel di atas.
 
 ## Format Data
 

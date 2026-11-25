@@ -57,6 +57,11 @@ const navigation = [
     to: '/super-admin/assessment-results',
   },
   {
+    label: 'Hasil Akhir',
+    icon: 'i-lucide-award',
+    to: '/super-admin/final-results',
+  },
+  {
     label: 'Manajemen Akun',
     icon: 'i-lucide-users',
     to: '/super-admin/accounts',

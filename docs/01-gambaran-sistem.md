@@ -104,7 +104,7 @@ flowchart TD
 | 5 | `EVALUATION` | Peserta mengerjakan tes tertulis pilihan ganda | Peserta | ✅ |
 | 6 | `ASSESSOR_ASSESSMENT` | Penilaian CMSP-02 (Teknis), lalu CMSP-03 (Kepublikan) | Asesor Teknis, Asesor Kepublikan | ❌ |
 | 7 | `ASSESSMENT_VERIFICATION` | **Penetapan Hasil Asesmen**: rekap tes tertulis + kedua asesor, tetapkan lulus/remedial | Super Admin | ✅ |
-| 8 | `ANNOUNCEMENT` | Informasi lulus + sertifikat / tidak lulus + remedial | Sistem → Peserta | ❌ |
+| 8 | `ANNOUNCEMENT` | **Pengumuman Sertifikasi**: informasi lulus / remedial / tidak lulus; peserta remedial kirim link tugas; Verifikator/Super Admin memutuskan remedial | Peserta, Verifikator, Super Admin | ✅ |
 
 Akses setiap tahap ditentukan jadwal (`start_at`–`end_at`) kecuali di-override Super Admin
 (`OPEN` = dibuka manual, `CLOSED` = ditutup manual, `NORMAL` = ikut jadwal).
@@ -233,15 +233,22 @@ DRAFT ──► ACTIVE ──► CLOSED ──► COMPLETED
 - Tombol **Tetapkan Keputusan** (sekaligus satu periode) hanya aktif saat tahap dibuka **dan** semua
   hasil lengkap (tes tertulis terkirim, kedua asesor mengirim). Hasil disimpan sebagai potret di
   `assessment_results` dan baru disampaikan ke peserta pada tahap Pengumuman.
-- **Batalkan Penetapan** dapat dilakukan selama tahap dibuka. Selama hasil berlaku, buka kunci penilaian
+- **Batalkan Penetapan** dapat dilakukan selama tahap dibuka **dan hasil belum diumumkan** (K-26). Selama hasil berlaku, buka kunci penilaian
   asesor dan reset tes tertulis peserta tersebut ditolak.
 
-**I. Pengumuman, sertifikat & remedial** ❌
-- **Lulus** → peserta melihat informasi kelulusan & **sertifikat**. Proses selesai.
-- **Tidak lulus** → di halaman peserta muncul **tombol ke halaman Remedial**.
-  - Tugas remedial disampaikan penyelenggara **secara lisan** (di luar sistem).
-  - Peserta mengisi form remedial berisi **bukti dukung** (mis. link Google Drive).
-  - Remedial hanya **satu kali**. Hasilnya kembali ke tahap verifikasi/penetapan kelulusan (H).
+**I. Pengumuman, sertifikat & remedial** ✅ (K-26)
+- Menu peserta **Pengumuman Sertifikasi**. Hasil tampil sejak **awal** tahap Pengumuman (walau sudah
+  ditetapkan lebih awal) dan **tetap tampil** sesudah tahap berakhir. Sebelumnya: "Hasil Akhir Belum Diumumkan".
+- **Lulus** → informasi lulus; penerimaan sertifikat disampaikan panitia (sertifikat tidak dibuat di sistem).
+- **Remedial** → informasi belum lulus (tanpa rincian penilaian yang kurang; peserta menghubungi panitia)
+  + form **link Google Drive** tugas remedial (tugas disampaikan panitia di luar sistem).
+  - Dikirim selama tahap Pengumuman **dibuka**; **akhir tahap = batas kirim**.
+  - Link dapat diubah selama belum diputuskan. Remedial hanya **satu kali**.
+  - Tidak mengirim sampai batas → **Tidak Lulus** (status "Tidak Kirim Remedial").
+- **Tidak Melanjutkan** → informasi tidak lulus, tanpa remedial.
+- Menu **Hasil Akhir** (Verifikator & Super Admin): tabel Nama, NIP, Instansi, Status; peserta remedial
+  punya aksi Lihat Tugas Remedial / Nyatakan Lulus / Nyatakan Tidak Lulus. Keputusan **final** (tanpa pembatalan)
+  dan langsung tampil di halaman Pengumuman peserta.
 
 ## Status Data
 
@@ -283,7 +290,7 @@ Nama dan jumlah status final ditentukan saat merancang tiap fitur.
 | Penilaian Asesor Teknis | Berdasarkan isian & bukti CMSP-02; K/BK per indikator + catatan |
 | Penilaian Asesor Kepublikan | Form CMSP-03, tanpa input peserta; K/BK per unit (3 unit) + catatan + rekomendasi, seperti Asesor Teknis |
 | Urutan & jumlah asesor | Berurutan: 1 Asesor Teknis (CMSP-02) lalu 1 Asesor Kepublikan (CMSP-03) per peserta |
-| Remedial | Satu kali; peserta mengirim bukti dukung (link Drive) atas tugas yang disampaikan lisan |
+| Remedial | Satu kali; peserta mengirim link Google Drive tugas remedial sampai akhir tahap Pengumuman; diputuskan Verifikator/Super Admin (final) — K-26 |
 | Identitas pendaftar | NIP = identitas orang, email = akun; satu NIP = satu akun. NIP lama + email baru tetap masuk dengan akun lama. Rincian: [08 K-01](08-keputusan-skenario.md#k-01--identitas-pendaftar-nip-vs-email) |
 
 Rincian skenario lain beserta alasannya dicatat di [08-keputusan-skenario.md](08-keputusan-skenario.md).
@@ -301,5 +308,5 @@ Tidak perlu dijawab sekarang; dibahas saat fitur terkait dikerjakan.
 5. **Perbaikan CMSP-01/02:** ada batas jumlah perbaikan, atau cukup dibatasi jadwal tahapnya?
 6. **Bukti dukung CMSP-02:** berupa unggahan file (PDF/gambar) atau link?
 7. **Assign asesor:** satu asesor boleh menangani banyak peserta? Bisa diganti setelah di-assign?
-8. **Remedial:** siapa yang menilai bukti remedial, dan dalam tahap/jadwal apa?
-9. **Sertifikat:** dibuat otomatis oleh sistem (PDF + nomor sertifikat) atau diunggah manual?
+8. ~~**Remedial**~~ — terjawab K-26: Verifikator/Super Admin, selama/sesudah tahap Pengumuman.
+9. **Sertifikat:** untuk sekarang tidak dibuat di sistem (disampaikan panitia, K-26). Otomatisasi dibahas nanti.

@@ -3,6 +3,7 @@
  * Beranda peserta: timeline periode AKTIF yang diikuti peserta (pengajuan diterima)
  * + tombol dinamis sesuai tahap & progres pekerjaan peserta.
  */
+import type { FinalStatus } from '~~/shared/utils/final-result'
 import { buildTimelineStages, getActiveStage, type TimelineRecord, type TimelineStage, type TimelineTask } from '~/utils/timeline'
 
 definePageMeta({ layout: 'peserta' })
@@ -11,6 +12,7 @@ useHead({ title: 'Beranda' })
 type Progress = {
   self_assessment: { status: string, editable: boolean } | null
   evaluation: { status: 'NOT_STARTED' | 'IN_PROGRESS' | 'SUBMITTED', available: boolean } | null
+  announcement: { announced: boolean, status: FinalStatus | null, canSubmitRemedial: boolean } | null
 }
 
 type DashboardApplication = {
@@ -57,6 +59,7 @@ onMounted(load)
 const pathFor = (base: string) => `${base}/${encodeURIComponent(applicationId.value)}`
 const SA_PATH = '/peserta/self-assessment'
 const EVALUATION_PATH = '/peserta/evaluation'
+const ANNOUNCEMENT_PATH = '/peserta/announcement'
 /** Urutan tahap yang memiliki pekerjaan peserta. */
 const ORDER = { SELF_ASSESSMENT: 3, EVALUATION: 5 }
 
@@ -116,7 +119,37 @@ function evaluationTodo(): TimelineTask | null {
   }
 }
 
+/** Hasil akhir yang sudah diumumkan (sejak awal tahap Pengumuman, tetap tampil sesudahnya). */
+function announcementTask(): TimelineTask | null {
+  const announcement = progress.value?.announcement
+  if (!announcement?.announced || !announcement.status) return null
+
+  const view = { label: 'Lihat', icon: 'i-lucide-eye', to: pathFor(ANNOUNCEMENT_PATH) }
+
+  switch (announcement.status) {
+    case 'PASSED':
+    case 'REMEDIAL_PASSED':
+      return { ...view, tone: 'done', title: 'Selamat, Anda lulus sertifikasi', description: 'Informasi penerimaan sertifikat akan disampaikan oleh panitia.' }
+    case 'REMEDIAL_PENDING':
+      return announcement.canSubmitRemedial
+        ? {
+            tone: 'pending',
+            title: 'Tugas remedial Anda belum dikirim',
+            description: 'Ikuti instruksi panitia, lalu kirim link Google Drive tugas remedial sebelum batas waktu.',
+            label: 'Kirim',
+            icon: 'i-lucide-send',
+            to: pathFor(ANNOUNCEMENT_PATH),
+          }
+        : { ...view, tone: 'info', title: 'Anda perlu mengikuti remedial', description: 'Pengiriman tugas remedial sedang ditutup.' }
+    case 'REMEDIAL_SUBMITTED':
+      return { ...view, tone: 'waiting', title: 'Tugas remedial sedang ditinjau', description: 'Hasilnya akan ditampilkan di halaman Pengumuman.' }
+    default:
+      return { ...view, tone: 'info', title: 'Hasil sertifikasi sudah diumumkan', description: 'Buka halaman Pengumuman untuk melihat hasilnya.' }
+  }
+}
+
 /**
+ * 0. Hasil akhir yang sudah diumumkan diutamakan (tahap terakhir).
  * 1. Tunggakan tahap sebelumnya (yang masih dapat dikerjakan) diprioritaskan.
  * 2. Jika tidak ada, tombol/informasi sesuai tahap yang sedang berlangsung.
  * 3. Tidak ada tahap berlangsung menurut jadwal (mis. jadwal sudah lewat, tetapi tahap dibuka
@@ -124,6 +157,9 @@ function evaluationTodo(): TimelineTask | null {
  *    Status `editable`/`available` dari server sudah memperhitungkan override.
  */
 const tasks = computed<TimelineTask[]>(() => {
+  const announced = announcementTask()
+  if (announced) return [announced]
+
   const stage = getActiveStage(stages.value)
   if (!stage) {
     const todo = selfAssessmentTodo() ?? evaluationTodo()
@@ -201,6 +237,17 @@ const tasks = computed<TimelineTask[]>(() => {
       label: 'Buka',
       icon: 'i-lucide-file-pen-line',
       to: pathFor(EVALUATION_PATH),
+    }]
+  }
+
+  if (stage.code === 'ANNOUNCEMENT') {
+    return [{
+      tone: 'info',
+      title: 'Hasil akhir belum diumumkan',
+      description: 'Mohon menunggu keputusan akhir sertifikasi dari panitia.',
+      label: 'Buka',
+      icon: 'i-lucide-megaphone',
+      to: pathFor(ANNOUNCEMENT_PATH),
     }]
   }
 

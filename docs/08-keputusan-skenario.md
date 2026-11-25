@@ -553,3 +553,38 @@ tombol Tetapkan terkunci untuk seluruh periode.
 (`hasStageEnded`), `technical-assessment.service.ts`, `public-assessment.service.ts`,
 `assessment-result.service.ts`, `shared/utils/{technical-assessment,public-assessment,assessment-result,home-insight}.ts`,
 halaman asesor, Penetapan Hasil Asesmen, dan beranda staf.
+
+## K-26 — Pengumuman Sertifikasi, remedial, dan Hasil Akhir
+
+**Konteks.** Tahap 8 (`ANNOUNCEMENT`) menyampaikan hasil Penetapan Hasil Asesmen ke peserta dan
+menangani remedial satu kali. Sertifikat untuk sekarang tidak dibuat di sistem.
+
+**Keputusan.**
+
+- Menu peserta **Pengumuman Sertifikasi**. Informasi kelulusan baru tampil saat tahap Pengumuman
+  **dimulai** (walau hasil sudah ditetapkan lebih awal) dan **tetap tampil** setelah tahap berakhir.
+  Sebelumnya peserta melihat "Hasil Akhir Belum Diumumkan" (tunggu keputusan akhir).
+- **Awal** tahap = kapan pengumuman muncul; **akhir** tahap = batas kirim tugas remedial
+  (ditampilkan sebagai batas waktu di form).
+- Narasi:
+  - **Lulus** → "Selamat, Anda Lulus Sertifikasi"; penerimaan sertifikat disampaikan lebih lanjut oleh panitia.
+  - **Remedial** → belum dapat dinyatakan lulus karena ada penilaian di bawah standar; ikuti instruksi
+    panitia lalu kirim link Google Drive tugas remedial. Peserta **tidak** diberi tahu bagian yang kurang;
+    bila ingin tahu, menghubungi panitia.
+  - **Lulus remedial** → lulus (narasi sama dengan Lulus). **Tidak lulus remedial**, **tidak mengirim
+    sampai batas**, dan **Tidak Melanjutkan** (K-25) → "Anda Belum Lulus Sertifikasi", dapat mendaftar
+    kembali di periode berikutnya.
+- Form remedial: link Google Drive (wajib, `drive.google.com`/`docs.google.com`) + catatan opsional.
+  Dapat dikirim selama tahap Pengumuman **dibuka** dan **diubah** selama belum diputuskan panitia;
+  setelah diputuskan tidak dapat diganti.
+- Menu **Hasil Akhir** untuk Verifikator & Super Admin: tabel Nama, NIP, Instansi, Status; peserta
+  remedial punya aksi (modal `settings-2`) Lihat Tugas Remedial, Nyatakan Lulus, Nyatakan Tidak Lulus.
+  Keputusan **final** (tanpa pembatalan) agar informasi di halaman peserta pasti, dan dapat diambil
+  juga setelah tahap Pengumuman berakhir.
+- Hasil yang sudah diumumkan bersifat final: **Batalkan Penetapan** ditolak setelah tahap Pengumuman dimulai.
+
+**Penerapan.** Sheet baru `remedial_submissions` (docs/04), `server/services/final-result.service.ts`,
+`server/repositories/remedial-submission.repository.ts`, `shared/utils/final-result.ts`,
+`app/pages/peserta/announcement/**`, `app/pages/{verifikator,super-admin}/final-results/**`,
+`app/components/final-result/PeriodResults.vue`, beranda peserta & staf, Kebijakan Privasi dan
+Syarat & Ketentuan (25 November 2026).

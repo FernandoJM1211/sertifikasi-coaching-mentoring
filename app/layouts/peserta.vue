@@ -16,6 +16,11 @@ const navigation = [
     icon: 'i-lucide-file-pen-line',
     to: '/peserta/evaluation',
   },
+  {
+    label: 'Pengumuman Sertifikasi',
+    icon: 'i-lucide-megaphone',
+    to: '/peserta/announcement',
+  },
 ]
 </script>
 

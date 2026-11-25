@@ -127,6 +127,30 @@ function tasksFor(period: StaffHomePeriod, stage: TimelineStage | undefined): Ti
     })
   }
 
+
+  /* Hasil Akhir: setelah hasil diumumkan (tahap Pengumuman, K-26). */
+  const finalResult = insight?.finalResult
+  if (finalResult) {
+    const finalTo = `/verifikator/final-results/${id}`
+    tasks.push(finalResult.remedialSubmitted > 0
+      ? {
+          tone: 'action',
+          title: `${finalResult.remedialSubmitted} tugas remedial menunggu tinjauan`,
+          description: 'Periksa tugas, lalu nyatakan lulus atau tidak lulus.',
+          label: 'Tinjau',
+          icon: 'i-lucide-pencil',
+          to: finalTo,
+        }
+      : {
+          tone: finalResult.stage.open ? 'info' : 'done',
+          title: 'Hasil akhir sudah diumumkan',
+          description: `${finalResult.passed} Lulus${finalResult.remedialPending ? `, ${finalResult.remedialPending} belum mengirim remedial` : ''}${finalResult.failed ? `, ${finalResult.failed} Tidak Lulus` : ''}.`,
+          label: 'Lihat',
+          icon: 'i-lucide-eye',
+          to: finalTo,
+        })
+  }
+
   /* 3. Tidak ada pekerjaan: informasi tahap berlangsung. */
   if (tasks.length === 0 && stage) {
     tasks.push({
