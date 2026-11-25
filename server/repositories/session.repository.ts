@@ -1,8 +1,9 @@
 
 import {
-  appendAuthSheetValues,
+  appendAuthSheetRowsWithIds,
   getAuthSheetValues,
   updateAuthSheetRow,
+  type ReadOptions,
 } from '../utils/google-sheets'
 
 export type AuthSession = {
@@ -29,28 +30,6 @@ function rowToSession(row: string[]): AuthSession {
     last_seen_at: row[6] ?? '',
     ip_address: row[7] ?? '',
   }
-}
-
-function generateNextSessionId(
-  rows: string[][],
-): string {
-  let maxNumber = 0
-
-  for (const row of rows.slice(1)) {
-    const match = (row[0] ?? '').match(/^SES-(\d+)$/)
-
-    if (!match) {
-      continue
-    }
-
-    const number = Number(match[1])
-
-    if (number > maxNumber) {
-      maxNumber = number
-    }
-  }
-
-  return `SES-${String(maxNumber + 1).padStart(6, '0')}`
 }
 
 export async function createSession(input: {
@@ -99,7 +78,7 @@ export async function createSession(input: {
   const now = new Date().toISOString()
 
   const session: AuthSession = {
-    session_id: generateNextSessionId(rows),
+    session_id: '', // ditetapkan saat baris ditulis
     user_id: userId,
     session_token_hash: tokenHash,
     expires_at: expiresAt,
@@ -109,22 +88,29 @@ export async function createSession(input: {
     ip_address: ipAddress,
   }
 
-  await appendAuthSheetValues(SHEET_NAME, [
-    session.session_id,
-    session.user_id,
-    session.session_token_hash,
-    session.expires_at,
-    session.revoked_at,
-    session.created_at,
-    session.last_seen_at,
-    session.ip_address,
-  ])
+  const [created] = await appendAuthSheetRowsWithIds(
+    SHEET_NAME,
+    'SES',
+    1,
+    (id) => ({ ...session, session_id: id }),
+    (session) => [
+      session.session_id,
+      session.user_id,
+      session.session_token_hash,
+      session.expires_at,
+      session.revoked_at,
+      session.created_at,
+      session.last_seen_at,
+      session.ip_address,
+    ],
+  )
 
-  return session
+  return created!
 }
 
 export async function findSessionByTokenHash(
   tokenHash: string,
+  readOptions?: ReadOptions,
 ): Promise<AuthSession | null> {
   const normalizedHash = tokenHash.trim()
 
@@ -132,7 +118,7 @@ export async function findSessionByTokenHash(
     return null
   }
 
-  const rows = await getAuthSheetValues(SHEET_NAME)
+  const rows = await getAuthSheetValues(SHEET_NAME, readOptions)
 
   const rowIndex = rows.slice(1).findIndex(
     (row) => (row[2] ?? '') === normalizedHash,
@@ -258,7 +244,6 @@ export async function updateSessionLastSeen(
     session.ip_address,
   ])
 }
-
 
 export async function revokeAllUserSessions(
   userId: string,

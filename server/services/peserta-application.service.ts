@@ -5,6 +5,7 @@ import {
 import { findCertificationPeriodById } from '../repositories/certification-period.repository'
 import { findAllCertificationCategories } from '../repositories/certification-category.repository'
 import { findAllCertificationTypes } from '../repositories/certification-type.repository'
+import type { ReadOptions } from '../utils/google-sheets'
 import type { AuthenticatedUser } from './auth.service'
 
 /**
@@ -15,8 +16,9 @@ import type { AuthenticatedUser } from './auth.service'
 export async function requireOwnedApplication(
   user: AuthenticatedUser,
   applicationId: string,
+  readOptions?: ReadOptions,
 ): Promise<Application> {
-  const application = await findApplicationById(applicationId)
+  const application = await findApplicationById(applicationId, readOptions)
 
   const isOwner =
     application &&

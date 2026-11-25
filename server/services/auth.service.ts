@@ -28,6 +28,14 @@ const SESSION_DURATION_MS = 8 * 60 * 60 * 1000
 // penulisan ke Google Sheets pada setiap request.
 const SESSION_LAST_SEEN_UPDATE_INTERVAL_MS = 5 * 60 * 1000
 
+/**
+ * Cek sesi pada setiap request (`requireUser`) boleh memakai cache sheet `sessions`/`users`
+ * hingga 20 detik untuk menghemat kuota baca. Konsekuensi: sesi yang dicabut atau akun yang
+ * dinonaktifkan lewat instance server lain baru berlaku paling lambat 20 detik kemudian.
+ * Hasil yang menolak selalu dicek ulang dengan cache normal (3 detik).
+ */
+const AUTH_CHECK_READ = { maxAgeMs: 20_000 }
+
 
 export type AuthenticatedUser = {
   user_id: string
@@ -131,7 +139,10 @@ export async function getAuthenticatedUser(
   }
 
   const tokenHash = hashAuthToken(token)
-  const session = await findSessionByTokenHash(tokenHash)
+  let session = await findSessionByTokenHash(tokenHash, AUTH_CHECK_READ)
+
+  // Tidak ada di cache (mis. baru login lewat instance server lain): cek ulang dengan cache normal.
+  if (!session) session = await findSessionByTokenHash(tokenHash)
 
   if (!session) {
     throw createError({
@@ -159,7 +170,10 @@ export async function getAuthenticatedUser(
     })
   }
 
-  const user = await findUserById(session.user_id)
+  let user = await findUserById(session.user_id, AUTH_CHECK_READ)
+
+  // Hasil "ditolak" dari cache dicek ulang agar tidak salah tolak karena data lama.
+  if (!user || user.account_status !== 'ACTIVE') user = await findUserById(session.user_id)
 
   if (!user || user.account_status !== 'ACTIVE') {
     throw createError({

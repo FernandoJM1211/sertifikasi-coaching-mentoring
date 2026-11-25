@@ -1,7 +1,7 @@
 
 import {
   getSheetValues,
-  appendSheetValues,
+  appendSheetRowsWithIds,
   updateSheetRow,
 } from "../utils/google-sheets";
 
@@ -31,26 +31,6 @@ function rowToCertificationPeriod(
     created_at: row[6] ?? "",
     updated_at: row[7] ?? "",
   };
-}
-
-function generatePeriodId(rows: string[][]): string {
-  let maxNumber = 0;
-
-  for (const row of rows.slice(1)) {
-    const periodId = (row[0] ?? "").trim();
-
-    const match = periodId.match(/^PER-(\d+)$/);
-
-    if (!match) continue;
-
-    const number = Number(match[1]);
-
-    if (number > maxNumber) {
-      maxNumber = number;
-    }
-  }
-
-  return `PER-${String(maxNumber + 1).padStart(6, "0")}`;
 }
 
 export async function findCertificationPeriodById(
@@ -98,13 +78,10 @@ export async function createCertificationPeriod(
     "period_id" | "created_at" | "updated_at"
   >,
 ): Promise<CertificationPeriod> {
-  const rows = await getSheetValues(SHEET_NAME);
-
-  const periodId = generatePeriodId(rows);
   const now = new Date().toISOString();
 
   const period: CertificationPeriod = {
-    period_id: periodId,
+    period_id: '', // ditetapkan saat baris ditulis
     certification_type_id: data.certification_type_id,
     category_id: data.category_id,
     period_name: data.period_name,
@@ -114,18 +91,24 @@ export async function createCertificationPeriod(
     updated_at: now,
   };
 
-  await appendSheetValues(SHEET_NAME, [
-    period.period_id,
-    period.certification_type_id,
-    period.category_id,
-    period.period_name,
-    period.period_status,
-    period.created_by,
-    period.created_at,
-    period.updated_at,
-  ]);
+  const [created] = await appendSheetRowsWithIds(
+    SHEET_NAME,
+    'PER',
+    1,
+    (id) => ({ ...period, period_id: id }),
+    (period) => [
+      period.period_id,
+      period.certification_type_id,
+      period.category_id,
+      period.period_name,
+      period.period_status,
+      period.created_by,
+      period.created_at,
+      period.updated_at,
+    ],
+  );
 
-  return period;
+  return created!;
 }
 
 export async function updateCertificationPeriod(

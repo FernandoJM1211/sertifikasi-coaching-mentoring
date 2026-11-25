@@ -174,7 +174,7 @@ Untuk role baru (mis. asesor), buat layout tipis serupa yang memakai `LayoutDash
 | `/peserta/evaluation` | `evaluation/index.vue` | Pilih pengajuan untuk tes tertulis. |
 | `/peserta/announcement` | `announcement/index.vue` | Pilih pengajuan untuk Pengumuman Sertifikasi. |
 | `/peserta/announcement/:applicationId` | `announcement/[applicationId].vue` | Hasil akhir (tampil sejak awal tahap Pengumuman) + form link Google Drive tugas remedial. |
-| `/peserta/evaluation/:applicationId` | `evaluation/[applicationId].vue` | Petunjuk & mulai, pengerjaan (timer, navigasi soal, autosave), status terkirim. |
+| `/peserta/evaluation/:applicationId` | `evaluation/[applicationId].vue` | Petunjuk & mulai, pengerjaan (timer, navigasi soal, autosave maks. sekali per 60 detik + cadangan perangkat), status terkirim. |
 | `/peserta/profile`, `/peserta/change-password` | `profile.vue`, `change-password.vue` | Akun sendiri. |
 
 > Halaman periode/pengajuan Super Admin dan Verifikator saat ini **duplikat** dengan sedikit
@@ -199,7 +199,7 @@ Alur: **`api/` → `services/` → `repositories/` → Google Sheets/Drive.**
 | `rate-limit.ts` | `assertRateLimit()` / `resetRateLimit()` — pembatas percobaan in-memory. |
 | `password.ts` | `hashPassword()`, `verifyPassword()`, `validateNewPassword()` (12–128 karakter). |
 | `auth-token.ts` | `generateAuthToken()` (token acak) dan `hashAuthToken()` (SHA-256). |
-| `google-sheets.ts` | Klien Sheets: `getSheetValues/appendSheetValues/updateSheetRow` (data) dan versi `...Auth...` (autentikasi). Hemat kuota: cache baca 3 detik per sheet (dihapus saat sheet ditulis) + gabung pembacaan bersamaan; coba ulang otomatis saat 429 (baca juga saat 5xx). |
+| `google-sheets.ts` | Klien Sheets: `getSheetValues/appendSheetValues/updateSheetRow` (data) dan versi `...Auth...` (autentikasi). Baris baru ber-ID: `appendSheetRowsWithIds` / `appendAuthSheetRowsWithIds` (ID unik walau ditulis serentak). Hemat kuota: cache baca 3 detik per sheet (opsi `maxAgeMs` untuk menerima cache lebih lama, maks. 30 detik; `fresh` untuk baca langsung) + gabung pembacaan bersamaan; update memakai write-through (baris di cache diganti nilai baru), append menghapus cache sheet; coba ulang otomatis saat 429 (baca juga saat 5xx). |
 | `email.ts` | Email via Gmail: `sendAccountActivationEmail()`, `sendApplicationAcceptedEmail()` (akun sudah aktif), `sendApplicationAcceptedNoticeEmail()` (email pengajuan ≠ email akun), `sendApplicationRejectedEmail()`. Kapan dipakai: docs/08 K-09. |
 | `account-response.ts` | `toPublicAccount()` — data akun tanpa `password_hash`. |
 | `pdf-file.ts` | `assertValidPdfFile()` (MIME, ukuran, signature), `sanitizeFileNamePart()`, `multipartPartToFile()`. |

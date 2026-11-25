@@ -1,6 +1,6 @@
 import { createError } from 'h3'
 import {
-  appendSheetRows,
+  appendSheetRowsWithIds,
   getSheetValues,
   updateSheetRows,
 } from '../utils/google-sheets'
@@ -42,18 +42,6 @@ export function createTable<C extends readonly string[]>(sheetName: string, colu
     }
   }
 
-  function nextIdGenerator(rows: string[][]) {
-    let maxNumber = 0
-    const pattern = new RegExp(`^${idPrefix}-(\\d+)$`)
-
-    for (const row of rows.slice(1)) {
-      const match = (row[0] ?? '').match(pattern)
-      if (match) maxNumber = Math.max(maxNumber, Number(match[1]))
-    }
-
-    return () => `${idPrefix}-${String(++maxNumber).padStart(6, '0')}`
-  }
-
   return {
     async findAll(): Promise<Row[]> {
       return (await readAll()).records.map((item) => item.record)
@@ -63,27 +51,27 @@ export function createTable<C extends readonly string[]>(sheetName: string, colu
       return (await readAll()).records.map((item) => item.record).filter(predicate)
     },
 
-    /** Menambah satu baris; ID dibuat otomatis. */
+    /** Menambah satu baris; ID unik dibuat otomatis. */
     async create(record: Omit<Row, C[0]>): Promise<Row> {
-      const { rows } = await readAll()
-      const created = { ...record, [columns[0] as string]: nextIdGenerator(rows)() } as Row
-
-      await appendSheetRows(sheetName, [toRow(created)])
-
-      return created
+      await readAll()
+      const [created] = await appendSheetRowsWithIds(sheetName, idPrefix, 1, (id) => ({ ...record, [columns[0] as string]: id }) as Row, toRow)
+      return created as Row
     },
 
-    /** Menambah banyak baris sekaligus (satu kali tulis); ID dibuat otomatis. */
+    /** Menambah banyak baris sekaligus (satu kali tulis); ID unik dibuat otomatis. */
     async createMany(records: Omit<Row, C[0]>[]): Promise<Row[]> {
       if (records.length === 0) return []
 
-      const { rows } = await readAll()
-      const nextId = nextIdGenerator(rows)
-      const created = records.map((record) => ({ ...record, [columns[0] as string]: nextId() }) as Row)
+      // Memastikan sheet ada (pesan error yang jelas bila belum dibuat).
+      await readAll()
 
-      await appendSheetRows(sheetName, created.map(toRow))
-
-      return created
+      return appendSheetRowsWithIds(
+        sheetName,
+        idPrefix,
+        records.length,
+        (id, index) => ({ ...records[index], [columns[0] as string]: id }) as Row,
+        toRow,
+      )
     },
 
     /** Memperbarui baris berdasarkan ID (kolom A). Mengembalikan null bila tidak ada. */

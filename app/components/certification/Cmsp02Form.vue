@@ -95,6 +95,9 @@ const evidenceErrors = ref<Record<string, { name?: string, file?: string, url?: 
 const evidenceNameTouched = ref<Record<string, boolean>>({})
 const evidenceSourceTouched = ref<Record<string, boolean>>({})
 
+// Disimpan sebagai konstanta: atribut statis ini membuat vue-tsc salah membaca scope v-for.
+const EVIDENCE_LINK_PLACEHOLDER = 'https://drive.google.com/... atau https://youtu.be/...'
+
 const isValidUrl = (value: string) => {
   try {
     const url = new URL(value)
@@ -552,7 +555,7 @@ defineExpose({
                         v-model="evidence.url"
                         :disabled="readonly"
                         type="url"
-                        placeholder="https://drive.google.com/... atau https://youtu.be/..."
+                        :placeholder="EVIDENCE_LINK_PLACEHOLDER"
                         class="min-w-0 flex-1"
                         @blur="markEvidenceSourceTouched(unit.number, evidenceIndex)"
                       />

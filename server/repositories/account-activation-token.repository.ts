@@ -1,6 +1,6 @@
 
 import {
-  appendAuthSheetValues,
+  appendAuthSheetRowsWithIds,
   getAuthSheetValues,
   updateAuthSheetRow,
 } from '../utils/google-sheets'
@@ -33,24 +33,6 @@ function rowToToken(row: string[]): AccountActivationToken {
     revoked_at: '',
     created_at: row[5] ?? '',
   }
-}
-
-function generateNextTokenId(rows: string[][]): string {
-  let maxNumber = 0
-
-  for (const row of rows.slice(1)) {
-    const match = (row[0] ?? '').match(/^ACT-(\d+)$/)
-
-    if (!match) continue
-
-    const number = Number(match[1])
-
-    if (number > maxNumber) {
-      maxNumber = number
-    }
-  }
-
-  return `ACT-${String(maxNumber + 1).padStart(6, '0')}`
 }
 
 function normalizeTokenRow(
@@ -120,7 +102,7 @@ export async function createAccountActivationToken(
   }
 
   const token: AccountActivationToken = {
-    activation_token_id: generateNextTokenId(rows),
+    activation_token_id: '', // ditetapkan saat baris ditulis
     user_id: userId,
     token_hash: tokenHash,
     expires_at: expiresAt,
@@ -129,12 +111,15 @@ export async function createAccountActivationToken(
     created_at: new Date().toISOString(),
   }
 
-  await appendAuthSheetValues(
+  const [created] = await appendAuthSheetRowsWithIds(
     SHEET_NAME,
-    normalizeTokenRow(token),
+    'ACT',
+    1,
+    (id) => ({ ...token, activation_token_id: id }),
+    (token) => normalizeTokenRow(token),
   )
 
-  return token
+  return created!
 }
 
 export async function revokeActiveTokensForUser(

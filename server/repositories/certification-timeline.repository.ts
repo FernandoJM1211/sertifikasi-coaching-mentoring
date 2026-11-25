@@ -1,6 +1,6 @@
 import {
   getSheetValues,
-  appendSheetValues,
+  appendSheetRowsWithIds,
   updateSheetRow,
 } from "../utils/google-sheets";
 
@@ -19,28 +19,6 @@ export interface CertificationTimeline {
   override_at: string;
   created_at: string;
   updated_at: string;
-}
-
-function generateTimelineId(rows: string[][]): string {
-  let maxNumber = 0;
-
-  for (const row of rows) {
-    const timelineId = row[0];
-
-    if (!timelineId) continue;
-
-    const match = timelineId.match(/^TL-(\d+)$/);
-
-    if (match) {
-      const number = Number(match[1]);
-
-      if (number > maxNumber) {
-        maxNumber = number;
-      }
-    }
-  }
-
-  return `TL-${String(maxNumber + 1).padStart(6, "0")}`;
 }
 
 export async function findCertificationTimelineById(
@@ -135,14 +113,10 @@ export async function createCertificationTimeline(
     "timeline_id" | "created_at" | "updated_at"
   >,
 ): Promise<CertificationTimeline> {
-  const rows = await getSheetValues(SHEET_NAME);
-
-  const timelineId = generateTimelineId(rows);
-
   const now = new Date().toISOString();
 
   const timeline: CertificationTimeline = {
-    timeline_id: timelineId,
+    timeline_id: '', // ditetapkan saat baris ditulis
     period_id: data.period_id,
     stage_order: data.stage_order,
     stage_code: data.stage_code,
@@ -156,24 +130,29 @@ export async function createCertificationTimeline(
     updated_at: now,
   };
 
-  await appendSheetValues(SHEET_NAME, [
-    timeline.timeline_id,
-    timeline.period_id,
-    timeline.stage_order,
-    timeline.stage_code,
-    timeline.stage_name,
-    timeline.start_at,
-    timeline.end_at,
-    timeline.is_override_open,
-    timeline.override_by,
-    timeline.override_at,
-    timeline.created_at,
-    timeline.updated_at,
-  ]);
+  const [created] = await appendSheetRowsWithIds(
+    SHEET_NAME,
+    'TL',
+    1,
+    (id) => ({ ...timeline, timeline_id: id }),
+    (timeline) => [
+      timeline.timeline_id,
+      timeline.period_id,
+      timeline.stage_order,
+      timeline.stage_code,
+      timeline.stage_name,
+      timeline.start_at,
+      timeline.end_at,
+      timeline.is_override_open,
+      timeline.override_by,
+      timeline.override_at,
+      timeline.created_at,
+      timeline.updated_at,
+    ],
+  );
 
-  return timeline;
+  return created!;
 }
-
 
 export async function updateCertificationTimeline(
   timelineId: string,
@@ -196,7 +175,6 @@ export async function updateCertificationTimeline(
     return null;
   }
 
-
 const existing = rows[rowIndex];
 
 if (!existing) {
@@ -204,7 +182,6 @@ if (!existing) {
 }
 
 const now = new Date().toISOString();
-
 
   const timeline: CertificationTimeline = {
     timeline_id: existing[0] || "",
@@ -241,7 +218,6 @@ const now = new Date().toISOString();
 
   return timeline;
 }
-
 
 export async function updateCertificationTimelineOverride(
   timelineId: string,

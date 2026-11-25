@@ -592,3 +592,38 @@ Syarat & Ketentuan (25 November 2026).
 **Pembaruan (25 Nov 2026).** Teks halaman Pengumuman dipersingkat atas permintaan pemilik proyek.
 Daftar lengkap kondisi dan teks final ada di docs/05 bagian "Teks Pengumuman Sertifikasi (Peserta)";
 narasi di atas adalah maksudnya, teks persisnya mengikuti docs/05.
+
+## K-27 — Kapasitas tes tertulis serentak (30 peserta) dan hemat kuota Google Sheets
+
+**Konteks.** Target pemilik proyek: ±20–30 peserta per periode yang mengerjakan tes tertulis **serentak di
+jam yang sama**, serta 3 Asesor Teknis + 3 Asesor Kepublikan yang bekerja bersamaan. Kuota Google Sheets
+untuk satu service account ±60 baca + 60 tulis per menit. Simulasi kode lama (30 peserta + 6 asesor,
+2 instance server, Google Sheets tiruan) menghasilkan puncak ±116–184 baca/menit dan ±82 tulis/menit, sehingga
+autosave akan sering tertunda (429) saat tes. Pada sesi yang sama ID ganda juga diperbaiki
+(`appendSheetRowsWithIds`, lihat docs/04).
+
+**Keputusan.**
+
+- **Autosave maksimal sekali per 60 detik per peserta** (simpan pertama 1,5 detik setelah memilih jawaban).
+  Jawaban langsung dikirim saat tab ditinggalkan, internet kembali, atau tombol Kirim (yang mengirim seluruh
+  jawaban). Di antaranya jawaban aman di cadangan perangkat (K-20). Status di halaman:
+  "Menyimpan..." (sedang dikirim), **"Tersimpan di perangkat"** (menunggu jadwal kirim), "Jawaban tersimpan".
+  Risiko yang diterima: bila perangkat rusak total, jawaban ≤ 60 detik terakhir perlu diisi ulang.
+- **Write-through cache**: setelah update baris berhasil, cache sheet diperbarui (tidak dihapus), sehingga
+  simpan beruntun tidak memicu baca ulang seluruh sheet. Append tetap menghapus cache.
+- **Cek sesi** (`requireUser`) memakai cache `sessions`/`users` hingga 20 detik; cek kepemilikan pengajuan
+  saat autosave memakai cache `applications` hingga 20 detik. Hasil yang menolak (sesi tidak ada, akun tidak
+  aktif) selalu dicek ulang dengan cache normal agar login baru di instance lain tidak ditolak.
+  Konsekuensi: sesi yang dicabut/akun yang dinonaktifkan lewat instance server lain berlaku ≤ 20 detik kemudian.
+- Data pengerjaan (`evaluation_attempts`) dan pembacaan untuk update tetap memakai cache normal 3 detik
+  agar status terbaru (mis. sudah dikirim) tidak tertimpa data lama.
+- Hasil simulasi kode baru (4 menit, 30 peserta + 6 asesor, 2 instance): peserta cepat (1 soal/10–40 detik)
+  baca rata-rata 36/menit (puncak 48), tulis puncak 35/menit; peserta realistis (1 soal/30–120 detik) baca
+  rata-rata 38/menit (puncak 61 saat semua mulai bersamaan, diserap coba ulang otomatis), tulis puncak 35/menit;
+  0 simpan gagal, waktu simpan median ±0,2 detik (lama ±0,45 detik).
+- Disarankan tetap mengajukan kenaikan kuota Sheets API di Google Cloud Console sebagai cadangan.
+
+**Penerapan.** `server/utils/google-sheets.ts` (`maxAgeMs`, write-through), `server/services/auth.service.ts`
+(`AUTH_CHECK_READ`), `server/repositories/{session,user,application}.repository.ts` (opsi baca),
+`server/services/{peserta-application,evaluation-attempt}.service.ts`,
+`app/pages/peserta/evaluation/[applicationId].vue` (`AUTOSAVE_INTERVAL_MS`, status "Tersimpan di perangkat").

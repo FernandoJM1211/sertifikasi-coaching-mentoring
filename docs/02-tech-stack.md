@@ -27,8 +27,10 @@ Konsekuensinya (perlu diingat saat mengembangkan):
 - **Tidak ada index.** Setiap pencarian membaca seluruh sheet. Hindari memanggil repository
   di dalam loop besar; ambil sekali lalu olah di memori.
 - **Kuota API** Google Sheets ±60 request baca/menit/user. Kurangi pemanggilan berulang.
-- **ID dibuat oleh aplikasi** (mis. `APP-000001`) dengan membaca nomor terbesar, sehingga
-  dua penulisan bersamaan berpotensi menghasilkan ID kembar.
+- **ID dibuat oleh aplikasi** (mis. `APP-000001`), nomor terbesar + 1. Agar penulisan bersamaan
+  tidak menghasilkan ID kembar, baris baru **selalu** ditulis lewat `appendSheetRowsWithIds` /
+  `appendAuthSheetRowsWithIds` (atau `createTable().create/createMany`): ID diverifikasi setelah
+  ditulis dan dinomori ulang bila bentrok (lihat [04-database.md](04-database.md)).
 - Semua nilai disimpan sebagai **string**. Boolean = `'TRUE'`/`'FALSE'`, tanggal = ISO 8601 UTC.
 - Ada **dua spreadsheet**: data operasional dan data autentikasi (lihat [04-database.md](04-database.md)).
 

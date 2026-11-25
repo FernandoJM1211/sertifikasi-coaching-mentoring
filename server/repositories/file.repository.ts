@@ -1,6 +1,6 @@
 import {
   getSheetValues,
-  appendSheetValues,
+  appendSheetRowsWithIds,
 } from '../utils/google-sheets'
 
 const SHEET_NAME = 'files'
@@ -30,49 +30,12 @@ export interface CreateFileInput {
   status?: string
 }
 
-function generateFileId(
-  rows: string[][],
-): string {
-  let maxNumber = 0
-
-  for (const row of rows.slice(1)) {
-    const id = row[0]
-
-    if (!id) {
-      continue
-    }
-
-    const match = id.match(
-      /^FILE-(\d+)$/,
-    )
-
-    if (!match) {
-      continue
-    }
-
-    const number = Number(match[1])
-
-    if (number > maxNumber) {
-      maxNumber = number
-    }
-  }
-
-  return `FILE-${String(
-    maxNumber + 1,
-  ).padStart(6, '0')}`
-}
-
 export async function createFile(
   input: CreateFileInput,
 ): Promise<FileRecord> {
-  const rows =
-    await getSheetValues(SHEET_NAME)
-
   const now =
     new Date().toISOString()
 
-  const fileId =
-    generateFileId(rows)
 
   const uploadedAt =
     input.uploaded_at ?? now
@@ -81,8 +44,7 @@ export async function createFile(
     input.status ?? 'active'
 
   const file: FileRecord = {
-    file_id:
-      fileId,
+    file_id: '', // ditetapkan saat baris ditulis
 
     original_file_name:
       input.original_file_name.trim(),
@@ -111,23 +73,26 @@ export async function createFile(
     status,
   }
 
-  await appendSheetValues(
+  const [created] = await appendSheetRowsWithIds(
     SHEET_NAME,
-    [
-      file.file_id,
-      file.original_file_name,
-      file.storage_provider,
-      file.storage_file_id,
-      file.file_url,
-      file.mime_type,
-      file.file_size_bytes,
-      file.uploaded_by,
-      file.uploaded_at,
-      file.status,
-    ],
+    'FILE',
+    1,
+    (id) => ({ ...file, file_id: id }),
+    (file) => [
+        file.file_id,
+        file.original_file_name,
+        file.storage_provider,
+        file.storage_file_id,
+        file.file_url,
+        file.mime_type,
+        file.file_size_bytes,
+        file.uploaded_by,
+        file.uploaded_at,
+        file.status,
+      ],
   )
 
-  return file
+  return created!
 }
 
 export async function findFileById(

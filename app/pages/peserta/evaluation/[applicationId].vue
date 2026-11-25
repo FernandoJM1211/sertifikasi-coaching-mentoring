@@ -225,6 +225,16 @@ function restoreBackup() {
 const saveState = ref<'saved' | 'saving' | 'error'>('saved')
 const lastSavedSnapshot = ref('')
 let saveTimer: ReturnType<typeof setTimeout> | null = null
+let saveInFlight = false
+let lastSaveStartedAt = 0
+
+/**
+ * Jawaban dikirim ke server paling sering sekali per 60 detik per peserta (hemat kuota Google
+ * Sheets saat tes serentak). Di antaranya jawaban aman di cadangan perangkat, dan langsung dikirim
+ * saat tab ditinggalkan, koneksi kembali, atau jawaban dikirim (Kirim mengirim seluruh jawaban).
+ */
+const AUTOSAVE_INTERVAL_MS = 60_000
+const AUTOSAVE_MIN_DELAY_MS = 1_500
 
 /** Jeda simpan ulang setelah gagal: 5 → 10 → 20 → 30 detik (maks), kembali normal setelah berhasil. */
 const RETRY_DELAYS_MS = [5_000, 10_000, 20_000, 30_000]
@@ -233,9 +243,11 @@ let retryCount = 0
 const hasUnsaved = computed(() => JSON.stringify(answers.value) !== lastSavedSnapshot.value)
 
 async function saveAnswers() {
-  if (!inProgress.value || !hasUnsaved.value || submitting.value) return
+  if (!inProgress.value || !hasUnsaved.value || submitting.value || saveInFlight) return
   const snapshot = JSON.stringify(answers.value)
   saveState.value = 'saving'
+  saveInFlight = true
+  lastSaveStartedAt = Date.now()
 
   try {
     await $fetch(`${apiPath.value}/answers`, { method: 'PUT', body: { answers: answers.value }, credentials: 'include' })
@@ -243,9 +255,9 @@ async function saveAnswers() {
     retryCount = 0
 
     if (hasUnsaved.value) {
-      saveState.value = 'saving'
+      saveState.value = 'saved'
       writeBackup()
-      scheduleSave()
+      queueSave()
     } else {
       saveState.value = 'saved'
       clearBackup()
@@ -261,14 +273,26 @@ async function saveAnswers() {
     }
 
     // Gagal karena jaringan/server: coba lagi otomatis dengan jeda bertahap.
-    scheduleSave(RETRY_DELAYS_MS[Math.min(retryCount, RETRY_DELAYS_MS.length - 1)])
+    scheduleSave(RETRY_DELAYS_MS[Math.min(retryCount, RETRY_DELAYS_MS.length - 1)] ?? AUTOSAVE_INTERVAL_MS)
     retryCount++
+  } finally {
+    saveInFlight = false
   }
 }
 
-function scheduleSave(delay = 1500) {
+/** Menjadwalkan simpan pada waktu tertentu (mengganti jadwal sebelumnya). */
+function scheduleSave(delay: number) {
   if (saveTimer) clearTimeout(saveTimer)
-  saveTimer = setTimeout(saveAnswers, delay)
+  saveTimer = setTimeout(() => {
+    saveTimer = null
+    void saveAnswers()
+  }, delay)
+}
+
+/** Simpan berkala: bila sudah ada jadwal, jadwal itu dipakai (tidak diundur). */
+function queueSave() {
+  if (saveTimer) return
+  scheduleSave(Math.max(AUTOSAVE_MIN_DELAY_MS, AUTOSAVE_INTERVAL_MS - (Date.now() - lastSaveStartedAt)))
 }
 
 /** Internet kembali tersambung / tab ditinggalkan: segera kirim jawaban yang belum tersimpan. */
@@ -284,7 +308,7 @@ function choose(key: string) {
   if (!inProgress.value || remainingMs.value <= 0) return
   answers.value[currentIndex.value] = answers.value[currentIndex.value] === key ? '' : key
   writeBackup()
-  scheduleSave()
+  queueSave()
 }
 
 function goTo(index: number) {
@@ -368,7 +392,7 @@ onBeforeUnmount(() => {
         <p class="mt-2 text-sm text-slate-600">
           {{ answeredCount }} dari {{ questions.length }} soal dijawab ·
           <span :class="saveState === 'error' ? 'text-red-600' : ''">
-            {{ saveState === 'error' ? 'Belum tersimpan (koneksi bermasalah), dicoba lagi otomatis' : saveState === 'saving' || hasUnsaved ? 'Menyimpan...' : 'Jawaban tersimpan' }}
+            {{ saveState === 'error' ? 'Belum tersimpan (koneksi bermasalah), dicoba lagi otomatis' : saveState === 'saving' ? 'Menyimpan...' : hasUnsaved ? 'Tersimpan di perangkat' : 'Jawaban tersimpan' }}
           </span>
         </p>
       </div>

@@ -1,7 +1,7 @@
 
 import { createError } from 'h3'
 import {
-  appendSheetValues,
+  appendSheetRowsWithIds,
   getSheetValues,
   updateSheetRow,
 } from '../utils/google-sheets'
@@ -103,29 +103,6 @@ function personToRow(person: Person): string[] {
   ]
 }
 
-function generateNextPersonId(
-  rows: string[][],
-): string {
-  let maxNumber = 0
-
-  for (const row of rows.slice(1)) {
-    const personId = row[0] ?? ''
-    const match = personId.match(/^PER-(\d+)$/)
-
-    if (!match) {
-      continue
-    }
-
-    const number = Number(match[1])
-
-    if (number > maxNumber) {
-      maxNumber = number
-    }
-  }
-
-  return `PER-${String(maxNumber + 1).padStart(6, '0')}`
-}
-
 export async function findPersonByNip(
   nip: string,
 ): Promise<Person | null> {
@@ -147,7 +124,6 @@ export async function findPersonByNip(
 
   return foundRow ? rowToPerson(foundRow) : null
 }
-
 
 export async function findPersonByEmail(
   email: string,
@@ -204,13 +180,10 @@ export async function findPersonById(
 export async function createPerson(
   payload: CreatePersonPayload,
 ): Promise<Person> {
-  const rows = await getSheetValues(SHEET_NAME)
-
-  const personId = generateNextPersonId(rows)
   const now = new Date().toISOString()
 
   const person: Person = {
-    person_id: personId,
+    person_id: '', // ditetapkan saat baris ditulis
     full_name: payload.full_name.trim(),
     nip: payload.nip.trim(),
     email: payload.email.trim().toLowerCase(),
@@ -226,9 +199,15 @@ export async function createPerson(
     birth_date: '',
   }
 
-  await appendSheetValues(SHEET_NAME, personToRow(person))
+  const [created] = await appendSheetRowsWithIds(
+    SHEET_NAME,
+    'PER',
+    1,
+    (id) => ({ ...person, person_id: id }),
+    (person) => personToRow(person),
+  )
 
-  return person
+  return created!
 }
 
 export async function updatePerson(

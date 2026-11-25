@@ -1,6 +1,6 @@
 import { createError } from 'h3'
 import {
-  appendSheetRows,
+  appendSheetRowsWithIds,
   getSheetValues,
   updateSheetRows,
 } from '../utils/google-sheets'
@@ -23,16 +23,9 @@ function recordToRow<C extends readonly string[]>(columns: C, record: Record_<C>
   return columns.map((column) => (record as Record<string, string>)[column] ?? '')
 }
 
-function nextIdGenerator(rows: string[][], prefix: string) {
-  let maxNumber = 0
-  const pattern = new RegExp(`^${prefix}-(\\d+)$`)
-
-  for (const row of rows.slice(1)) {
-    const match = (row[0] ?? '').match(pattern)
-    if (match) maxNumber = Math.max(maxNumber, Number(match[1]))
-  }
-
-  return () => `${prefix}-${String(++maxNumber).padStart(6, '0')}`
+/** Menambah baris yang kolom A-nya (ID) masih kosong; ID unik ditetapkan saat ditulis. */
+function appendWithNewIds(sheetName: string, prefix: string, rows: string[][]) {
+  return appendSheetRowsWithIds(sheetName, prefix, rows.length, (id, index) => [id, ...(rows[index] ?? []).slice(1)], (row) => row)
 }
 
 /* ------------------------------------------------------------------ */
@@ -73,7 +66,6 @@ export async function setPeriodAssessors(input: {
   const rows = await getSheetValues(PERIOD_ASSESSOR_SHEET)
   const now = new Date().toISOString()
   const selected = new Set(input.userIds)
-  const nextId = nextIdGenerator(rows, 'PAS')
 
   const updates: { rowNumber: number, values: string[] }[] = []
   const existingUserIds = new Set<string>()
@@ -102,7 +94,7 @@ export async function setPeriodAssessors(input: {
     .filter((userId) => !existingUserIds.has(userId))
     .map((userId) =>
       recordToRow(PERIOD_ASSESSOR_COLUMNS, {
-        period_assessor_id: nextId(),
+        period_assessor_id: '',
         period_id: input.periodId,
         user_id: userId,
         assessor_role: input.role,
@@ -115,7 +107,7 @@ export async function setPeriodAssessors(input: {
     )
 
   await updateSheetRows(PERIOD_ASSESSOR_SHEET, updates)
-  await appendSheetRows(PERIOD_ASSESSOR_SHEET, appends)
+  await appendWithNewIds(PERIOD_ASSESSOR_SHEET, 'PAS', appends)
 }
 
 /* ------------------------------------------------------------------ */
@@ -182,7 +174,6 @@ export async function upsertAssessorAssignments(input: {
 }) {
   const rows = await getSheetValues(ASSIGNMENT_SHEET)
   const now = new Date().toISOString()
-  const nextId = nextIdGenerator(rows, 'ASG')
 
   const rowIndexByApplication = new Map<string, number>()
   rows.forEach((row, index) => {
@@ -224,7 +215,7 @@ export async function upsertAssessorAssignments(input: {
 
     collectChanges(applicationId, '', '')
     appends.push(recordToRow(ASSIGNMENT_COLUMNS, {
-      assignment_id: nextId(),
+      assignment_id: '',
       application_id: applicationId,
       period_id: input.periodId,
       technical_assessor_id: input.technicalAssessorId ?? '',
@@ -237,7 +228,7 @@ export async function upsertAssessorAssignments(input: {
   }
 
   await updateSheetRows(ASSIGNMENT_SHEET, updates)
-  await appendSheetRows(ASSIGNMENT_SHEET, appends)
+  await appendWithNewIds(ASSIGNMENT_SHEET, 'ASG', appends)
 
   return changes
 }
@@ -277,13 +268,11 @@ export async function appendAssignmentLogs(input: {
 }) {
   if (input.changes.length === 0) return
 
-  const rows = await getSheetValues(LOG_SHEET)
-  const nextId = nextIdGenerator(rows, 'AAL')
   const now = new Date().toISOString()
 
-  await appendSheetRows(LOG_SHEET, input.changes.map((change) =>
+  await appendWithNewIds(LOG_SHEET, 'AAL', input.changes.map((change) =>
     recordToRow(LOG_COLUMNS, {
-      log_id: nextId(),
+      log_id: '',
       application_id: change.application_id,
       period_id: input.periodId,
       assessor_role: change.assessor_role,

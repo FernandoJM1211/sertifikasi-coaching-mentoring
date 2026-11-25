@@ -1,6 +1,6 @@
 import { createError } from 'h3'
 import {
-  appendSheetRows,
+  appendSheetRowsWithIds,
   getSheetValues,
   updateSheetRows,
 } from '../utils/google-sheets'
@@ -70,16 +70,10 @@ export async function upsertTechnicalAssessment(
     return updated
   }
 
-  let maxNumber = 0
-  const pattern = new RegExp(`^${ID_PREFIX}-(\\d+)$`)
-  for (const row of rows.slice(1)) {
-    const match = (row[0] ?? '').match(pattern)
-    if (match) maxNumber = Math.max(maxNumber, Number(match[1]))
-  }
-
-  const created = { ...record, technical_assessment_id: `${ID_PREFIX}-${String(maxNumber + 1).padStart(6, '0')}` }
-  await appendSheetRows(SHEET, [toRow(created)])
-  return created
+  const [created] = await appendSheetRowsWithIds(
+    SHEET, ID_PREFIX, 1, (id) => ({ ...record, technical_assessment_id: id }), toRow,
+  )
+  return created!
 }
 
 /** Format kolom `unit_results` ⇄ objek { kodeUnit: 'K' | 'BK' }. */

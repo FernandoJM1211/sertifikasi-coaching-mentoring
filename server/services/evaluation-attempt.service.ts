@@ -11,6 +11,7 @@ import {
 } from '../repositories/evaluation.repository'
 import { findCmsp01ByApplicationId } from '../repositories/self-assessment.repository'
 import { EVALUATION_OPTION_KEYS } from '../../shared/utils/evaluation'
+import type { ReadOptions } from '../utils/google-sheets'
 import type { AuthenticatedUser } from './auth.service'
 import { getStageAccess } from './certification-stage.service'
 import { requireOwnedApplication } from './peserta-application.service'
@@ -366,8 +367,8 @@ export async function startEvaluation(user: AuthenticatedUser, applicationId: st
 }
 
 /** Pengerjaan yang sedang berjalan milik peserta (untuk simpan/submit). */
-async function requireActiveAttempt(user: AuthenticatedUser, applicationId: string) {
-  const application = await requireOwnedApplication(user, applicationId)
+async function requireActiveAttempt(user: AuthenticatedUser, applicationId: string, applicationRead?: ReadOptions) {
+  const application = await requireOwnedApplication(user, applicationId, applicationRead)
   const attempt = await findAttempt(application.application_id)
 
   if (!attempt) throw createError({ statusCode: 404, statusMessage: 'Tes tertulis belum dimulai.' })
@@ -398,7 +399,9 @@ function toStoredAnswers(attempt: EvaluationAttempt, displayedAnswers: string[])
 }
 
 export async function saveEvaluationAnswers(user: AuthenticatedUser, applicationId: string, answers: string[]) {
-  const attempt = await requireActiveAttempt(user, applicationId)
+  // Autosave sering dipanggil: pemilik pengajuan tidak berubah, jadi boleh memakai cache 20 detik.
+  // Data pengerjaan tetap dibaca dengan cache normal agar status terbaru selalu dipakai.
+  const attempt = await requireActiveAttempt(user, applicationId, { maxAgeMs: 20_000 })
 
   if (isExpired(attempt, DEADLINE_GRACE_MS)) {
     await finalizeAttempt(attempt, 'AUTO')

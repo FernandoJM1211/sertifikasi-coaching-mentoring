@@ -1,6 +1,6 @@
 import {
   getSheetValues,
-  appendSheetValues,
+  appendSheetRowsWithIds,
 } from '../utils/google-sheets'
 
 const SHEET_NAME =
@@ -25,56 +25,18 @@ export interface CreateApplicationVerificationInput {
   verified_at?: string
 }
 
-function generateApplicationVerificationId(
-  rows: string[][],
-): string {
-  let maxNumber = 0
-
-  for (const row of rows.slice(1)) {
-    const id = row[0]
-
-    if (!id) {
-      continue
-    }
-
-    const match = id.match(
-      /^APP-VER-(\d+)$/,
-    )
-
-    if (!match) {
-      continue
-    }
-
-    const number = Number(match[1])
-
-    if (number > maxNumber) {
-      maxNumber = number
-    }
-  }
-
-  return `APP-VER-${String(
-    maxNumber + 1,
-  ).padStart(6, '0')}`
-}
-
 export async function createApplicationVerification(
   input: CreateApplicationVerificationInput,
 ): Promise<ApplicationVerification> {
-  const rows =
-    await getSheetValues(SHEET_NAME)
-
   const now =
     new Date().toISOString()
 
-  const applicationVerificationId =
-    generateApplicationVerificationId(rows)
 
   const verifiedAt =
     input.verified_at ?? now
 
   const verification: ApplicationVerification = {
-    application_verification_id:
-      applicationVerificationId,
+    application_verification_id: '', // ditetapkan saat baris ditulis
 
     application_id:
       input.application_id,
@@ -98,21 +60,24 @@ export async function createApplicationVerification(
       now,
   }
 
-  await appendSheetValues(
+  const [created] = await appendSheetRowsWithIds(
     SHEET_NAME,
-    [
-      verification.application_verification_id,
-      verification.application_id,
-      verification.verified_by,
-      verification.verification_status,
-      verification.verification_note,
-      verification.verified_at,
-      verification.created_at,
-      verification.updated_at,
-    ],
+    'APP-VER',
+    1,
+    (id) => ({ ...verification, application_verification_id: id }),
+    (verification) => [
+        verification.application_verification_id,
+        verification.application_id,
+        verification.verified_by,
+        verification.verification_status,
+        verification.verification_note,
+        verification.verified_at,
+        verification.created_at,
+        verification.updated_at,
+      ],
   )
 
-  return verification
+  return created!
 }
 
 export async function findApplicationVerificationsByApplicationId(

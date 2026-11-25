@@ -1,5 +1,5 @@
 import {
-  appendAuthSheetValues,
+  appendAuthSheetRowsWithIds,
   getAuthSheetValues,
   updateAuthSheetRow,
 } from '../utils/google-sheets'
@@ -42,27 +42,16 @@ async function readRows(): Promise<string[][]> {
   }
 }
 
-function nextId(rows: string[][]): string {
-  let max = 0
-
-  for (const row of rows.slice(1)) {
-    const match = (row[0] ?? '').match(new RegExp(`^${ID_PREFIX}-(\\d+)$`))
-    if (match) max = Math.max(max, Number(match[1]))
-  }
-
-  return `${ID_PREFIX}-${String(max + 1).padStart(6, '0')}`
-}
-
 export async function createPasswordResetToken(input: {
   user_id: string
   token_hash: string
   expires_at: string
   request_ip: string
 }): Promise<PasswordResetToken> {
-  const rows = await readRows()
+  await readRows() // pesan jelas bila sheet belum dibuat (dibaca dari cache)
 
   const token: PasswordResetToken = {
-    reset_token_id: nextId(rows),
+    reset_token_id: '', // ditetapkan saat baris ditulis
     user_id: input.user_id.trim().toUpperCase(),
     token_hash: input.token_hash.trim(),
     expires_at: input.expires_at,
@@ -71,9 +60,15 @@ export async function createPasswordResetToken(input: {
     request_ip: input.request_ip.slice(0, 64),
   }
 
-  await appendAuthSheetValues(SHEET_NAME, toRow(token))
+  const [created] = await appendAuthSheetRowsWithIds(
+    SHEET_NAME,
+    ID_PREFIX,
+    1,
+    (id) => ({ ...token, reset_token_id: id }),
+    (token) => toRow(token),
+  )
 
-  return token
+  return created!
 }
 
 export async function findPasswordResetTokenByHash(tokenHash: string): Promise<PasswordResetToken | null> {

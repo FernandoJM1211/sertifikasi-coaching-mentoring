@@ -7,9 +7,10 @@ import {
   type UserRole,
 } from '../../shared/utils/roles'
 import {
-  appendAuthSheetValues,
+  appendAuthSheetRowsWithIds,
   getAuthSheetValues,
   updateAuthSheetRow,
+  type ReadOptions,
 } from '../utils/google-sheets'
 
 export type { UserRole, AccountStatus as UserAccountStatus }
@@ -74,26 +75,6 @@ function userToRow(user: User): string[] {
   ]
 }
 
-function generateNextUserId(rows: string[][]): string {
-  let maxNumber = 0
-
-  for (const row of rows.slice(1)) {
-    const match = (row[0] ?? '').match(/^USR-(\d+)$/)
-
-    if (!match) {
-      continue
-    }
-
-    const number = Number(match[1])
-
-    if (number > maxNumber) {
-      maxNumber = number
-    }
-  }
-
-  return `USR-${String(maxNumber + 1).padStart(6, '0')}`
-}
-
 export async function findUserByEmail(
   email: string,
 ): Promise<User | null> {
@@ -115,6 +96,7 @@ export async function findUserByEmail(
 
 export async function findUserById(
   userId: string,
+  readOptions?: ReadOptions,
 ): Promise<User | null> {
   const normalizedUserId = userId.trim().toUpperCase()
 
@@ -122,7 +104,7 @@ export async function findUserById(
     return null
   }
 
-  const rows = await getAuthSheetValues(SHEET_NAME)
+  const rows = await getAuthSheetValues(SHEET_NAME, readOptions)
 
   const foundRow = rows.slice(1).find(
     (row) =>
@@ -131,7 +113,6 @@ export async function findUserById(
 
   return foundRow ? rowToUser(foundRow) : null
 }
-
 
 export async function findUsersByPersonId(
   personId: string,
@@ -153,7 +134,6 @@ export async function findUsersByPersonId(
     )
     .map((row) => rowToUser(row))
 }
-
 
 /**
  * Mengambil seluruh akun dari sheet users.
@@ -246,7 +226,7 @@ export async function createUser(
   const now = new Date().toISOString()
 
   const user: User = {
-    user_id: generateNextUserId(rows),
+    user_id: '', // ditetapkan saat baris ditulis
     person_id: personId,
     full_name: fullName,
     username_email: email,
@@ -263,9 +243,15 @@ export async function createUser(
     last_login_at: '',
   }
 
-  await appendAuthSheetValues(SHEET_NAME, userToRow(user))
+  const [created] = await appendAuthSheetRowsWithIds(
+    SHEET_NAME,
+    'USR',
+    1,
+    (id) => ({ ...user, user_id: id }),
+    (user) => userToRow(user),
+  )
 
-  return user
+  return created!
 }
 
 /**
@@ -415,7 +401,6 @@ export async function updateUserPassword(
 
   return updatedUser
 }
-
 
 /**
  * Memperbarui status akun pengguna.

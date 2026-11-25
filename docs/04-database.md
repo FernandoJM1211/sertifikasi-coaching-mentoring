@@ -16,6 +16,13 @@ Database terdiri dari **dua spreadsheet**:
 - Semua nilai disimpan sebagai teks. Tanggal = ISO 8601 UTC (`2026-11-13T02:30:00.000Z`).
   Boolean = `TRUE` / `FALSE`.
 - **ID** dibuat aplikasi: `PREFIX-` + 6 digit (mis. `APP-000012`), nomor terbesar + 1.
+  Baris baru wajib ditulis lewat `appendSheetRowsWithIds` / `appendAuthSheetRowsWithIds`
+  (`server/utils/google-sheets.ts`) atau `createTable().create/createMany`, **jangan** menghitung
+  ID sendiri. Helper ini mengantrekan pembuatan ID per sheet dalam satu server, lalu membaca ulang
+  sheet setelah menulis: bila ID bentrok dengan baris lain (penulisan serentak dari instance lain),
+  baris yang belakangan dinomori ulang. Karena itu nomor ID bisa tidak urut sesuai posisi baris.
+- **Jangan menghapus atau mengurutkan baris** sheet saat aplikasi dipakai: pembaruan ditulis
+  berdasarkan nomor baris, sehingga baris yang bergeser bisa tertimpa data lain.
 - Jangan mengedit manual kolom hash/token. Edit manual lain sebaiknya hanya saat darurat.
 - Spreadsheet harus dibagikan ke email Service Account sebagai **Editor**.
 

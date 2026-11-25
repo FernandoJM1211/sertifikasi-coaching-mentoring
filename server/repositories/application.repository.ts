@@ -1,7 +1,8 @@
 import {
-  appendSheetValues,
+  appendSheetRowsWithIds,
   getSheetValues,
   updateSheetRow,
+  type ReadOptions,
 } from '../utils/google-sheets'
 
 export type Application = {
@@ -64,44 +65,12 @@ function rowToApplication(row: string[]): Application {
   }
 }
 
-function generateNextApplicationId(
-  rows: string[][],
-) {
-  let maxNumber = 0
-
-  for (const row of rows.slice(1)) {
-    const applicationId = row[0] ?? ''
-
-    const match = applicationId.match(
-      /^APP-(\d+)$/,
-    )
-
-    if (!match) {
-      continue
-    }
-
-    const number = Number(match[1])
-
-    if (number > maxNumber) {
-      maxNumber = number
-    }
-  }
-
-  return `APP-${String(maxNumber + 1).padStart(6, '0')}`
-}
-
 export async function createApplication(
   payload: CreateApplicationPayload,
 ): Promise<Application> {
-  const rows = await getSheetValues(SHEET_NAME)
-
-  const applicationId =
-    generateNextApplicationId(rows)
-
   const now = new Date().toISOString()
 
-  const application: Application = {
-    application_id: applicationId,
+  const draft: Omit<Application, 'application_id'> = {
     person_id: payload.person_id.trim(),
     period_id: payload.period_id.trim(),
     category_id: payload.category_id.trim(),
@@ -126,27 +95,33 @@ export async function createApplication(
     updated_at: now,
   }
 
-  await appendSheetValues(SHEET_NAME, [
-    application.application_id,
-    application.person_id,
-    application.period_id,
-    application.category_id,
-    application.full_name_snapshot,
-    application.nip_snapshot,
-    application.institution_name,
-    application.region,
-    application.email_snapshot,
-    application.phone_snapshot,
-    application.last_education,
-    application.position,
-    application.application_status,
-    application.verification_note,
-    application.submitted_at,
-    application.created_at,
-    application.updated_at,
-  ])
+  const [application] = await appendSheetRowsWithIds(
+    SHEET_NAME,
+    'APP',
+    1,
+    (id): Application => ({ application_id: id, ...draft }),
+    (item) => [
+      item.application_id,
+      item.person_id,
+      item.period_id,
+      item.category_id,
+      item.full_name_snapshot,
+      item.nip_snapshot,
+      item.institution_name,
+      item.region,
+      item.email_snapshot,
+      item.phone_snapshot,
+      item.last_education,
+      item.position,
+      item.application_status,
+      item.verification_note,
+      item.submitted_at,
+      item.created_at,
+      item.updated_at,
+    ],
+  )
 
-  return application
+  return application!
 }
 
 export async function findApplicationsByPeriod(
@@ -186,8 +161,9 @@ export async function findApplicationsByPeriod(
 
 export async function findApplicationById(
   applicationId: string,
+  readOptions?: ReadOptions,
 ): Promise<Application | null> {
-  const rows = await getSheetValues(SHEET_NAME)
+  const rows = await getSheetValues(SHEET_NAME, readOptions)
 
   if (rows.length <= 1) {
     return null

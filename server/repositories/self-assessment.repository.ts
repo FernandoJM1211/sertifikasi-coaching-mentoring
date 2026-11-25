@@ -1,5 +1,5 @@
 import {
-  appendSheetValues,
+  appendSheetRowsWithIds,
   getSheetValues,
   replaceChildRows,
   updateSheetRow,
@@ -119,21 +119,14 @@ async function upsertByApplicationId<C extends readonly string[]>(
     return merged as Record_<C>
   }
 
-  let maxNumber = 0
-  const idPattern = new RegExp(`^${idPrefix}-(\\d+)$`)
-
-  for (const row of rows.slice(1)) {
-    const match = (row[0] ?? '').match(idPattern)
-    if (match) maxNumber = Math.max(maxNumber, Number(match[1]))
-  }
-
-  const created = {
-    ...record,
-    [columns[0] as string]: `${idPrefix}-${String(maxNumber + 1).padStart(6, '0')}`,
-  }
-
-  await appendSheetValues(sheetName, recordToRow(columns, created))
-  return rowToRecord(columns, recordToRow(columns, created))
+  const [created] = await appendSheetRowsWithIds(
+    sheetName,
+    idPrefix,
+    1,
+    (id) => recordToRow(columns, { ...record, [columns[0] as string]: id } as Record_<C>),
+    (row) => row,
+  )
+  return rowToRecord(columns, created!)
 }
 
 async function replaceChildren<C extends readonly string[]>(
@@ -247,21 +240,14 @@ export async function findSelfAssessmentReviews(applicationId: string) {
 export async function createSelfAssessmentReview(
   record: Omit<SelfAssessmentReview, 'review_id'>,
 ): Promise<SelfAssessmentReview> {
-  const rows = await getSheetValues('self_assessment_reviews')
-  let maxNumber = 0
-
-  for (const row of rows.slice(1)) {
-    const match = (row[0] ?? '').match(/^SAR-(\d+)$/)
-    if (match) maxNumber = Math.max(maxNumber, Number(match[1]))
-  }
-
-  const created: SelfAssessmentReview = {
-    ...record,
-    review_id: `SAR-${String(maxNumber + 1).padStart(6, '0')}`,
-  }
-
-  await appendSheetValues('self_assessment_reviews', recordToRow(REVIEW_COLUMNS, created))
-  return created
+  const [created] = await appendSheetRowsWithIds(
+    'self_assessment_reviews',
+    'SAR',
+    1,
+    (id): SelfAssessmentReview => ({ ...record, review_id: id }),
+    (item) => recordToRow(REVIEW_COLUMNS, item),
+  )
+  return created!
 }
 
 /* ---------------------------- Daftar per periode ---------------------------- */
