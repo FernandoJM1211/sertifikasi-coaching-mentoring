@@ -64,8 +64,7 @@ const notice = computed<Notice | null>(() => {
       iconTone: 'border-blue-300 bg-white text-blue-500',
       title: 'Hasil Akhir Belum Diumumkan',
       paragraphs: [
-        'Mohon menunggu keputusan akhir sertifikasi dari panitia.',
-        value.stage.startAt ? `Hasil akan diumumkan mulai ${formatDateTimeId(value.stage.startAt)}.` : 'Hasil akan diumumkan pada tahap Pengumuman.',
+        value.stage.startAt ? `Hasil diumumkan mulai ${formatDateTimeId(value.stage.startAt)}.` : 'Hasil diumumkan pada tahap Pengumuman.',
       ],
     }
   }
@@ -76,7 +75,7 @@ const notice = computed<Notice | null>(() => {
       tone: 'border-blue-300 bg-blue-50',
       iconTone: 'border-blue-300 bg-white text-blue-500',
       title: 'Hasil Akhir Sedang Ditetapkan',
-      paragraphs: ['Hasil akhir sertifikasi Anda belum ditetapkan panitia. Silakan periksa kembali halaman ini secara berkala.'],
+      paragraphs: ['Mohon menunggu keputusan akhir dari panitia.'],
     }
   }
 
@@ -94,14 +93,14 @@ const notice = computed<Notice | null>(() => {
     title: 'Anda Belum Lulus Sertifikasi',
     paragraphs: [],
   }
-  const certificateInfo = 'Informasi penerimaan sertifikat akan disampaikan lebih lanjut oleh panitia.'
-  const nextPeriod = 'Terima kasih atas partisipasi Anda. Anda dapat mendaftar kembali pada periode sertifikasi berikutnya.'
+  const certificateInfo = 'Info penerimaan sertifikat akan disampaikan panitia.'
+  const nextPeriod = 'Terima kasih atas partisipasi Anda. Silakan mendaftar kembali pada periode berikutnya.'
 
   switch (value.status) {
     case 'PASSED':
-      return { ...passed, paragraphs: [`Anda dinyatakan lulus Sertifikasi Coaching dan Mentoring Sektor Publik ${period}.`, certificateInfo] }
+      return { ...passed, paragraphs: [`Anda lulus sertifikasi ${period}.`, certificateInfo] }
     case 'REMEDIAL_PASSED':
-      return { ...passed, paragraphs: [`Tugas remedial Anda dinyatakan memenuhi standar. Anda dinyatakan lulus Sertifikasi Coaching dan Mentoring Sektor Publik ${period}.`, certificateInfo] }
+      return { ...passed, paragraphs: ['Tugas remedial Anda memenuhi standar.', certificateInfo] }
     case 'REMEDIAL_PENDING':
       return {
         icon: 'i-lucide-rotate-ccw',
@@ -109,8 +108,8 @@ const notice = computed<Notice | null>(() => {
         iconTone: 'border-amber-300 bg-white text-amber-600',
         title: 'Anda Belum Dapat Dinyatakan Lulus',
         paragraphs: [
-          'Terdapat penilaian Anda yang belum memenuhi standar. Ikuti instruksi panitia terkait tugas remedial, lalu kirim link Google Drive berisi tugas tersebut melalui form di bawah.',
-          'Remedial hanya dapat dilakukan satu kali. Untuk mengetahui bagian yang perlu diperbaiki, silakan hubungi panitia.',
+          'Ada penilaian Anda yang belum memenuhi standar. Kerjakan tugas remedial sesuai instruksi panitia, lalu kirim link Google Drive-nya di bawah.',
+          'Remedial hanya satu kali. Hubungi panitia untuk detail kekurangan.',
         ],
       }
     case 'REMEDIAL_SUBMITTED':
@@ -119,14 +118,14 @@ const notice = computed<Notice | null>(() => {
         tone: 'border-sky-300 bg-sky-50',
         iconTone: 'border-sky-300 bg-white text-sky-600',
         title: 'Tugas Remedial Terkirim',
-        paragraphs: ['Tugas remedial Anda sedang ditinjau panitia. Hasilnya akan ditampilkan di halaman ini.'],
+        paragraphs: ['Tugas remedial Anda sedang ditinjau panitia.'],
       }
     case 'REMEDIAL_FAILED':
-      return { ...notPassed, paragraphs: [`Berdasarkan hasil peninjauan tugas remedial, Anda belum dapat dinyatakan lulus pada ${period}.`, nextPeriod] }
+      return { ...notPassed, paragraphs: ['Tugas remedial Anda belum memenuhi standar.', nextPeriod] }
     case 'REMEDIAL_EXPIRED':
-      return { ...notPassed, paragraphs: [`Anda tidak mengirim tugas remedial sampai batas waktu yang ditentukan, sehingga belum dapat dinyatakan lulus pada ${period}.`, nextPeriod] }
+      return { ...notPassed, paragraphs: ['Anda tidak mengirim tugas remedial sampai batas waktu.', nextPeriod] }
     case 'WITHDRAWN':
-      return { ...notPassed, paragraphs: [`Anda tidak mengikuti seluruh tahapan asesmen, sehingga belum dapat dinyatakan lulus pada ${period}.`, nextPeriod] }
+      return { ...notPassed, paragraphs: ['Anda tidak mengikuti seluruh tahapan asesmen.', nextPeriod] }
     default:
       return null
   }

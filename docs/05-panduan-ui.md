@@ -386,6 +386,28 @@ Selain itu, tunggakan tahap sebelumnya yang masih dapat dikerjakan **diprioritas
 
 Saat menambah tahap/fitur baru, perbarui tabel di atas.
 
+## Teks Pengumuman Sertifikasi (Peserta)
+
+Halaman `/peserta/announcement/:applicationId` (K-26). Teks dibuat singkat; ubah di
+`app/pages/peserta/announcement/[applicationId].vue` (computed `notice`) dan perbarui tabel ini.
+
+| Kondisi | Status | Warna/ikon | Judul | Teks |
+| --- | --- | --- | --- | --- |
+| Tahap Pengumuman belum dimulai | — | biru, `hourglass` | Hasil Akhir Belum Diumumkan | Hasil diumumkan mulai {tanggal mulai}. |
+| Pengumuman dimulai, hasil belum ditetapkan | — | biru, `hourglass` | Hasil Akhir Sedang Ditetapkan | Mohon menunggu keputusan akhir dari panitia. |
+| Lulus | `PASSED` | hijau, `award` | Selamat, Anda Lulus Sertifikasi | Anda lulus sertifikasi {nama periode}. Info penerimaan sertifikat akan disampaikan panitia. |
+| Remedial, belum kirim | `REMEDIAL_PENDING` | kuning, `rotate-ccw` | Anda Belum Dapat Dinyatakan Lulus | Ada penilaian Anda yang belum memenuhi standar. Kerjakan tugas remedial sesuai instruksi panitia, lalu kirim link Google Drive-nya di bawah. / Remedial hanya satu kali. Hubungi panitia untuk detail kekurangan. |
+| Tugas remedial terkirim | `REMEDIAL_SUBMITTED` | biru muda, `send` | Tugas Remedial Terkirim | Tugas remedial Anda sedang ditinjau panitia. |
+| Lulus remedial | `REMEDIAL_PASSED` | hijau, `award` | Selamat, Anda Lulus Sertifikasi | Tugas remedial Anda memenuhi standar. Info penerimaan sertifikat akan disampaikan panitia. |
+| Tidak lulus remedial | `REMEDIAL_FAILED` | merah, `circle-x` | Anda Belum Lulus Sertifikasi | Tugas remedial Anda belum memenuhi standar. Terima kasih atas partisipasi Anda. Silakan mendaftar kembali pada periode berikutnya. |
+| Tidak kirim remedial sampai batas | `REMEDIAL_EXPIRED` | merah, `circle-x` | Anda Belum Lulus Sertifikasi | Anda tidak mengirim tugas remedial sampai batas waktu. Terima kasih atas partisipasi Anda. Silakan mendaftar kembali pada periode berikutnya. |
+| Tidak Melanjutkan (K-25) | `WITHDRAWN` | merah, `circle-x` | Anda Belum Lulus Sertifikasi | Anda tidak mengikuti seluruh tahapan asesmen. Terima kasih atas partisipasi Anda. Silakan mendaftar kembali pada periode berikutnya. |
+
+Form **Tugas Remedial** tampil untuk `REMEDIAL_PENDING` & `REMEDIAL_SUBMITTED`: badge "Batas: {akhir
+tahap Pengumuman}", field Link Google Drive (wajib; bantuan "Pastikan akses link diatur ke 'Siapa saja yang
+memiliki link'") dan Catatan (opsional), tombol **Kirim** / **Perbarui** dan **Buka Link**. Saat pengiriman
+ditutup: alert "Pengiriman tugas remedial sedang ditutup" dan field nonaktif.
+
 ## Format Data
 
 | Data | Format | Cara |

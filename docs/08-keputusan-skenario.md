@@ -588,3 +588,7 @@ menangani remedial satu kali. Sertifikat untuk sekarang tidak dibuat di sistem.
 `app/pages/peserta/announcement/**`, `app/pages/{verifikator,super-admin}/final-results/**`,
 `app/components/final-result/PeriodResults.vue`, beranda peserta & staf, Kebijakan Privasi dan
 Syarat & Ketentuan (25 November 2026).
+
+**Pembaruan (25 Nov 2026).** Teks halaman Pengumuman dipersingkat atas permintaan pemilik proyek.
+Daftar lengkap kondisi dan teks final ada di docs/05 bagian "Teks Pengumuman Sertifikasi (Peserta)";
+narasi di atas adalah maksudnya, teks persisnya mengikuti docs/05.
