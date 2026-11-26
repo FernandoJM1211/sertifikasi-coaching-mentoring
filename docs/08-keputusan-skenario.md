@@ -82,6 +82,9 @@ ikut berganti mengikuti pendaftaran, siapa pun yang tahu NIP seseorang bisa meng
 Bila peserta sudah tidak dapat mengakses email lama, penggantian email dilakukan Super Admin setelah
 memastikan identitas (fitur "Ubah Email Akun" **belum ada** — lihat 07).
 
+**Pembaruan (26 Nov 2026).** Fitur **Ubah Email** untuk akun peserta sudah tersedia di Manajemen Akun
+(lihat K-28). Tautan aktivasi untuk kasus 2 & 3 tidak lagi mencabut tautan sebelumnya.
+
 **Penerapan.**
 
 - `server/services/application.service.ts` → `createApplication()` (aturan kasus 1–5, `notice` untuk pendaftar).
