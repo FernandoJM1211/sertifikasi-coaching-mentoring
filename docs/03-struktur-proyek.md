@@ -102,7 +102,7 @@ Untuk role baru (mis. asesor), buat layout tipis serupa yang memakai `LayoutDash
 | `/` | `index.vue` | Landing page. |
 | `/login` | `login.vue` | Login; redirect ke halaman sesuai role (`ROLE_HOME_PATHS`). |
 | `/pendaftaran` | `pendaftaran.vue` | Membungkus `GuestRegistrationForm`. |
-| `/aktivasi-akun?token=` | `aktivasi-akun.vue` | Peserta membuat kata sandi dari tautan email. |
+| `/aktivasi-akun?token=` | `aktivasi-akun.vue` | Peserta membuat kata sandi dari tautan email. Status tautan dicek saat dibuka (berlaku / akun sudah aktif / kedaluwarsa / tidak valid) dan email untuk masuk ditampilkan (K-28). |
 | `/lupa-kata-sandi` | `lupa-kata-sandi.vue` | Lupa kata sandi (khusus peserta): minta tautan atur ulang via email. |
 | `/atur-ulang-kata-sandi?token=` | `atur-ulang-kata-sandi.vue` | Buat kata sandi baru dari tautan email (berlaku 1 jam). |
 | `/kebijakan-privasi` | `kebijakan-privasi.vue` | Kebijakan Privasi (publik; ditautkan di footer & Branding Google OAuth). |
@@ -217,7 +217,8 @@ Alur: **`api/` → `services/` → `repositories/` → Google Sheets/Drive.**
 | `POST /api/auth/change-password` | `auth/change-password.post.ts` | Login | Ganti kata sandi, cabut semua sesi. |
 | `GET /api/auth/google` | `auth/google.get.ts` | Super Admin | Mulai OAuth untuk menghubungkan Google Drive. |
 | `GET /api/auth/google/callback` | `auth/google/callback.get.ts` | Super Admin | Simpan refresh token Drive. |
-| `POST /api/account-activation` | `account-activation.post.ts` | Publik (token) | Aktivasi akun peserta. |
+| `GET /api/account-activation?token=` | `account-activation.get.ts` | Publik (token) | Status tautan aktivasi + email akun (K-28). |
+| `POST /api/account-activation` | `account-activation.post.ts` | Publik (token) | Aktivasi akun peserta; tautan aktivasi lain milik akun dicabut setelah berhasil. |
 | `POST /api/password-reset/request` | `password-reset/request.post.ts` | Publik | Minta tautan atur ulang kata sandi peserta; respons selalu sama; rate limit per IP & per email. |
 | `POST /api/password-reset/confirm` | `password-reset/confirm.post.ts` | Publik (token) | Simpan kata sandi baru, cabut token & semua sesi. |
 | `GET /api/certification-info` | `certification-info/index.get.ts` | Publik | Info periode aktif untuk form pendaftaran. |
@@ -262,7 +263,8 @@ Alur: **`api/` → `services/` → `repositories/` → Google Sheets/Drive.**
 | `POST /api/admin/accounts` | `admin/accounts/index.post.ts` | Super Admin | Buat akun pegawai. |
 | `GET /api/admin/accounts/:id` | `admin/accounts/[id].get.ts` | Super Admin | Detail akun. |
 | `POST /api/admin/accounts/:id/reset-password` | `admin/accounts/[id]/reset-password.post.ts` | Super Admin | Atur ulang kata sandi akun lain. |
-| `POST /api/admin/accounts/:id/resend-activation` | `admin/accounts/[id]/resend-activation.post.ts` | Super Admin | Kirim ulang tautan aktivasi ke akun peserta berstatus menunggu aktivasi (token lama dicabut). |
+| `POST /api/admin/accounts/:id/resend-activation` | `admin/accounts/[id]/resend-activation.post.ts` | Super Admin | Kirim ulang tautan aktivasi ke akun peserta berstatus menunggu aktivasi (tautan lama tetap berlaku sampai kedaluwarsa, K-28). |
+| `PATCH /api/admin/accounts/:id/email` | `admin/accounts/[id]/email.patch.ts` | Super Admin | Ubah email login akun peserta (`{ email }`); sesi & tautan aktivasi lama dicabut, akun belum aktif dikirimi tautan baru (K-28). |
 | `PATCH /api/admin/accounts/:id/status` | `admin/accounts/[id]/status.patch.ts` | Super Admin | `ACTIVE` / `DISABLED`. |
 | `GET /api/peserta/dashboard` | `peserta/dashboard.get.ts` | Peserta | Pengajuan milik peserta + periode + timeline + `progress` (status self assessment & tes tertulis, apakah masih dapat dikerjakan). |
 | `GET /api/home/periods` | `home/periods.get.ts` | Super Admin, Verifikator, Asesor Teknis, Asesor Kepublikan | Periode aktif (Asesor: yang memiliki peserta ditugaskan) + timeline + `insight` (status tahap nyata & jumlah pekerjaan role) untuk beranda. |
@@ -295,7 +297,7 @@ Alur: **`api/` → `services/` → `repositories/` → Google Sheets/Drive.**
 | File | Fungsi |
 | --- | --- |
 | `auth.service.ts` | Login, validasi sesi (`getAuthenticatedUser`), ganti kata sandi. |
-| `account-activation.service.ts` | Aktivasi akun peserta dengan token. |
+| `account-activation.service.ts` | Aktivasi akun peserta dengan token; `getActivationLinkStatus()` untuk halaman aktivasi. |
 | `password-reset.service.ts` | Lupa kata sandi peserta: terbitkan token 1 jam + email (akun menunggu aktivasi → kirim ulang aktivasi), simpan kata sandi baru. |
 | `registration.service.ts` | Pendaftaran dua langkah: `uploadRegistrationDocument` (validasi PDF → unggah Drive → catat berkas, token = ID file Drive) lalu `processRegistration` (validasi data & token: berkas guest, belum tertaut, < 24 jam → simpan pengajuan, tautkan dokumen, ganti nama berkas di Drive). |
 | `application.service.ts` | Validasi data pendaftaran, cek tahap Pendaftaran dibuka, cek konflik NIP/email, buat person & application. |

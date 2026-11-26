@@ -51,7 +51,8 @@ Legenda: ✅ selesai · 🚧 sedang dikerjakan · ❌ belum ada
 | Terima / tolak pengajuan | ✅ | |
 | Pembuatan akun peserta + email aktivasi | ✅ | |
 | Aktivasi akun peserta | ✅ | |
-| Kirim ulang tautan aktivasi | ✅ | Manajemen Akun → Pengaturan Akun (peserta berstatus menunggu aktivasi) |
+| Kirim ulang tautan aktivasi | ✅ | Manajemen Akun → Pengaturan Akun (peserta berstatus menunggu aktivasi); tautan lama tetap berlaku (K-28) |
+| Ubah email login peserta | ✅ | Manajemen Akun → Pengaturan Akun → Ubah Email (email lama tidak dapat diakses, K-28) |
 | Kirim ulang email aktivasi | ❌ | Bisa dengan memproses ulang keputusan "Diterima" |
 | Email pemberitahuan penolakan | ✅ | Umum, tanpa catatan Verifikator (K-09) |
 | Email "pendaftaran diterima" untuk peserta yang sudah punya akun aktif | ✅ | + pemberitahuan ke email pengajuan bila berbeda dari email akun (K-09) |

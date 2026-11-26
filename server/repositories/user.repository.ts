@@ -552,3 +552,45 @@ export async function updateUserFullName(
     userToRow(updatedUser),
   )
 }
+
+/**
+ * Mengganti email login akun (dipakai Super Admin, docs/08 K-28).
+ * Pemeriksaan keunikan email dilakukan di service.
+ */
+export async function updateUserEmail(
+  userId: string,
+  email: string,
+): Promise<User> {
+  const normalizedUserId = userId.trim().toUpperCase()
+  const normalizedEmail = email.trim().toLowerCase()
+
+  const rows = await getAuthSheetValues(SHEET_NAME)
+
+  const rowIndex = rows.slice(1).findIndex(
+    (row) =>
+      (row[0] ?? '').trim().toUpperCase() === normalizedUserId,
+  )
+
+  const row = rowIndex === -1 ? undefined : rows[rowIndex + 1]
+
+  if (!row || !normalizedEmail) {
+    throw createError({
+      statusCode: 404,
+      statusMessage: 'Akun pengguna tidak ditemukan.',
+    })
+  }
+
+  const updatedUser: User = {
+    ...rowToUser(row),
+    username_email: normalizedEmail,
+    updated_at: new Date().toISOString(),
+  }
+
+  await updateAuthSheetRow(
+    SHEET_NAME,
+    rowIndex + 2,
+    userToRow(updatedUser),
+  )
+
+  return updatedUser
+}

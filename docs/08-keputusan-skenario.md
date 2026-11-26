@@ -30,6 +30,20 @@ dibahas ulang dari nol.
 | K-12 | [Sumber identitas peserta di halaman staf](#k-12--sumber-identitas-peserta-di-halaman-staf) | 22 Nov 2026 |
 | K-13 | [Badge "Perlu Perbaikan" per form](#k-13--badge-perlu-perbaikan-per-form) | 22 Nov 2026 |
 | K-14 | [Dispensasi penugasan asesor](#k-14--dispensasi-penugasan-asesor) | 22 Nov 2026 |
+| K-15 | [Aksesibilitas dasar (hasil PageSpeed Insights)](#k-15--aksesibilitas-dasar-hasil-pagespeed-insights) | Nov 2026 |
+| K-16 | [Verifikasi Peserta menjadi menu tersendiri](#k-16--verifikasi-peserta-menjadi-menu-tersendiri) | Nov 2026 |
+| K-17 | [Tahap "Evaluasi" berganti nama menjadi "Tes Tertulis"](#k-17--tahap-evaluasi-berganti-nama-menjadi-tes-tertulis) | Nov 2026 |
+| K-18 | [Halaman Kebijakan Privasi & Syarat Ketentuan untuk publish OAuth Google](#k-18--halaman-kebijakan-privasi--syarat-ketentuan-untuk-publish-oauth-google) | Nov 2026 |
+| K-19 | [Lupa Kata Sandi khusus akun peserta](#k-19--lupa-kata-sandi-khusus-akun-peserta) | Nov 2026 |
+| K-20 | [Ketahanan penyimpanan jawaban tes tertulis](#k-20--ketahanan-penyimpanan-jawaban-tes-tertulis) | Nov 2026 |
+| K-21 | [Tahap 7 menjadi "Penetapan Hasil Asesmen"](#k-21--tahap-7-menjadi-penetapan-hasil-asesmen) | Nov 2026 |
+| K-22 | [Urutan wajib: tes tertulis → Asesor Teknis → Asesor Kepublikan](#k-22--urutan-wajib-tes-tertulis--asesor-teknis--asesor-kepublikan) | Nov 2026 |
+| K-23 | [Tombol aksi tabel seragam & form CMSP mode tinjau](#k-23--tombol-aksi-tabel-seragam--form-cmsp-mode-tinjau) | Nov 2026 |
+| K-24 | [Tombol beranda staf mengikuti status tahap nyata & progres pekerjaan](#k-24--tombol-beranda-staf-mengikuti-status-tahap-nyata--progres-pekerjaan) | Nov 2026 |
+| K-25 | [Peserta yang tidak mengerjakan tes tertulis: "Tidak Melanjutkan"](#k-25--peserta-yang-tidak-mengerjakan-tes-tertulis-tidak-melanjutkan) | Nov 2026 |
+| K-26 | [Pengumuman Sertifikasi, remedial, dan Hasil Akhir](#k-26--pengumuman-sertifikasi-remedial-dan-hasil-akhir) | Nov 2026 |
+| K-27 | [Kapasitas tes tertulis serentak (30 peserta) dan hemat kuota Google Sheets](#k-27--kapasitas-tes-tertulis-serentak-30-peserta-dan-hemat-kuota-google-sheets) | 25 Nov 2026 |
+| K-28 | [Tautan aktivasi ganda, halaman aktivasi, dan ubah email akun](#k-28--tautan-aktivasi-ganda-halaman-aktivasi-dan-ubah-email-akun) | 26 Nov 2026 |
 
 ---
 
@@ -107,6 +121,9 @@ memastikan identitas (fitur "Ubah Email Akun" **belum ada** — lihat 07).
   berisi URL publik dan perlu redeploy setelah diubah.
 - Super Admin dapat **Kirim Ulang Tautan Aktivasi** untuk akun peserta berstatus menunggu aktivasi;
   tautan lama otomatis tidak berlaku. Masa berlaku tautan 24 jam.
+
+**Pembaruan (26 Nov 2026).** Tautan lama **tidak lagi dicabut** saat tautan baru terbit; semua tautan
+tetap berlaku 24 jam sampai akun aktif (lihat K-28).
 
 **Penerapan.** `resendPesertaActivation()`, `POST /api/admin/accounts/:id/resend-activation`,
 Manajemen Akun → Pengaturan Akun.
@@ -627,3 +644,41 @@ autosave akan sering tertunda (429) saat tes. Pada sesi yang sama ID ganda juga 
 (`AUTH_CHECK_READ`), `server/repositories/{session,user,application}.repository.ts` (opsi baca),
 `server/services/{peserta-application,evaluation-attempt}.service.ts`,
 `app/pages/peserta/evaluation/[applicationId].vue` (`AUTOSAVE_INTERVAL_MS`, status "Tersimpan di perangkat").
+
+## K-28 — Tautan aktivasi ganda, halaman aktivasi, dan ubah email akun
+
+**Konteks.** Uji coba 25 Nov 2026: NIP yang akunnya belum pernah aktif (sejak 4 Nov) mendaftar lagi dengan
+email berbeda (K-01 kasus 3). Setelah diterima, tautan aktivasi dikirim ke email akun lama, lalu dalam 3 menit
+terbit dua tautan lagi (Lupa Kata Sandi / Kirim Ulang Aktivasi). Setiap tautan baru mencabut tautan sebelumnya,
+sehingga tautan yang diklik menampilkan "Token aktivasi sudah digunakan atau dicabut" saat kata sandi dikirim.
+Selain itu: halaman aktivasi tidak memberi tahu email mana yang dipakai untuk masuk, peserta yang belum aktivasi
+hanya melihat "Email atau kata sandi tidak sesuai" saat login, dan pesan "hubungi admin" bila email lama tidak dapat
+diakses tidak dapat ditindaklanjuti karena Super Admin belum bisa mengganti email akun.
+
+**Keputusan.**
+
+- **Semua tautan aktivasi yang belum kedaluwarsa tetap berlaku** (24 jam) walau ada tautan yang lebih baru.
+  Setelah aktivasi berhasil, tautan lain milik akun itu dicabut. Pengecualian: saat email akun diganti admin,
+  tautan lama dicabut (akses lewat email lama ditutup).
+- **Halaman aktivasi memeriksa tautan saat dibuka** dan menampilkan:
+  berlaku → form kata sandi + "Email untuk masuk"; akun sudah aktif → tombol Masuk & Lupa Sandi;
+  kedaluwarsa/dicabut → "Minta Tautan" (ke Lupa Kata Sandi, email terisi otomatis); akun nonaktif → hubungi
+  admin; tidak valid → minta tautan baru. Email akun ditampilkan karena pemegang tautan adalah penerima email itu.
+- **Email aktivasi** mencantumkan "Email untuk masuk: …" dan mengarahkan ke "Lupa kata sandi?" bila kedaluwarsa
+  (sebelumnya "hubungi admin"). Lupa Kata Sandi untuk akun belum aktif tetap mengirim tautan aktivasi baru (K-19).
+- **Pesan gagal login** sama untuk semua penyebab: "Email atau kata sandi tidak sesuai. Belum aktivasi akun?
+  Gunakan "Lupa kata sandi?"." (tidak membocorkan email terdaftar/belum aktif).
+- **Pesan pendaftaran kasus 3** (NIP lama + email baru): informasi masuk **atau aktivasi** dikirim ke email akun
+  (disamarkan), masuk memakai email itu; bila tidak dapat diakses, hubungi admin untuk mengganti email akun.
+  Status akun (aktif/belum) tetap tidak disebut (K-10).
+- **Super Admin → Ubah Email** (khusus akun peserta), dipakai setelah panitia memeriksa identitas di luar sistem:
+  email baru tidak boleh dipakai akun/peserta lain; email akun & data induk diganti; semua sesi dan tautan aktivasi
+  lama dicabut; akun belum aktif dikirimi tautan aktivasi baru ke email baru; pemberitahuan dikirim ke email baru
+  dan email lama. Tetap tidak ada penggantian email otomatis dari pendaftaran (K-01).
+
+**Penerapan.** `server/services/account-activation.service.ts` (`getActivationLinkStatus`), `GET /api/account-activation`,
+`server/services/peserta-account-provisioning.service.ts` (`issueActivationUrl` tanpa pencabutan,
+`changePesertaLoginEmail`), `PATCH /api/admin/accounts/:id/email`, `updateUserEmail()` (user.repository),
+`server/utils/email.ts` (`sendLoginEmailChangedEmail`, isi email aktivasi), `app/pages/aktivasi-akun.vue`,
+`app/pages/lupa-kata-sandi.vue` (`?email=`), `app/pages/super-admin/accounts/index.vue` (Ubah Email),
+pesan di `auth.service.ts` & `application.service.ts`. Diuji dengan Sheets tiruan + email dicegat: 16/16 lulus.

@@ -7,6 +7,7 @@ import nodemailer from 'nodemailer'
  * - `sendApplicationAcceptedNoticeEmail`: email pengajuan ≠ email akun (kasus 3) → pemberitahuan singkat
  *                                         TANPA tautan login/aktivasi.
  * - `sendApplicationRejectedEmail`      : pendaftaran tidak diterima (umum, tanpa catatan Verifikator).
+ * - `sendLoginEmailChangedEmail`        : email login peserta diganti Super Admin (K-28).
  */
 
 const SENDER_NAME = 'Sertifikasi Coaching dan Mentoring'
@@ -121,7 +122,7 @@ const periodPhrase = (periodName?: string) => (periodName ? ` pada ${periodName}
 export async function sendAccountActivationEmail(
   recipientEmail: string,
   activationUrl: string,
-  options: { periodName?: string } = {},
+  options: { periodName?: string, reason?: 'ACCEPTED' | 'RESEND' } = {},
 ): Promise<void> {
   const { appBaseUrl } = getEmailConfig()
 
@@ -144,12 +145,15 @@ export async function sendAccountActivationEmail(
     subject: 'Aktivasi Akun Sertifikasi CMSP',
     title: 'Aktivasi Akun Sertifikasi CMSP',
     paragraphs: [
-      `Pendaftaran sertifikasi Anda${periodPhrase(options.periodName)} telah diterima.`,
-      'Silakan aktifkan akun Sertifikasi CMSP Anda dengan membuat kata sandi melalui tombol berikut. Akun ini digunakan untuk melanjutkan tahapan sertifikasi.',
+      options.reason === 'RESEND'
+        ? 'Berikut tautan aktivasi akun Sertifikasi CMSP Anda.'
+        : `Pendaftaran sertifikasi Anda${periodPhrase(options.periodName)} telah diterima.`,
+      'Silakan aktifkan akun dengan membuat kata sandi melalui tombol berikut. Akun ini digunakan untuk melanjutkan tahapan sertifikasi.',
+      `Email untuk masuk: ${recipientEmail}`,
     ],
     button: { label: 'Aktifkan Akun', url: activationUrl },
     footnotes: [
-      'Tautan ini bersifat pribadi dan berlaku 24 jam. Jika tautan kedaluwarsa, hubungi admin untuk meminta tautan baru.',
+      'Tautan ini bersifat pribadi dan berlaku 24 jam. Jika kedaluwarsa, minta tautan baru melalui "Lupa kata sandi?" di halaman masuk menggunakan email di atas.',
       'Jika Anda tidak merasa melakukan pendaftaran, abaikan email ini.',
     ],
   })
@@ -223,10 +227,51 @@ export async function sendApplicationAcceptedNoticeEmail(
     title: 'Pendaftaran Diterima',
     paragraphs: [
       `Pendaftaran sertifikasi Anda${periodPhrase(options.periodName)} telah diterima.`,
-      'NIP Anda sudah terdaftar dengan akun Sertifikasi CMSP menggunakan email lain. Silakan masuk menggunakan akun yang sudah terdaftar tersebut; informasi akun telah dikirim ke email akun Anda.',
+      'NIP Anda sudah terdaftar dengan akun Sertifikasi CMSP menggunakan email lain. Informasi masuk atau aktivasi akun telah dikirim ke email akun tersebut.',
     ],
     footnotes: [
       'Jika email akun tersebut sudah tidak dapat Anda akses, hubungi admin melalui menu Butuh Bantuan di aplikasi.',
+    ],
+  })
+}
+
+/**
+ * Email login peserta diganti Super Admin (docs/08 K-28).
+ * - Ke email BARU: informasi email masuk (tautan aktivasi dikirim terpisah bila akun belum aktif).
+ * - Ke email LAMA: pemberitahuan keamanan, tanpa tautan.
+ */
+export async function sendLoginEmailChangedEmail(
+  recipientEmail: string,
+  options: { target: 'NEW' | 'OLD', newEmail: string, activationPending: boolean },
+): Promise<void> {
+  const { appBaseUrl } = getEmailConfig()
+
+  if (options.target === 'OLD') {
+    await sendSystemEmail(recipientEmail, {
+      subject: 'Email Akun Sertifikasi CMSP Diubah',
+      title: 'Email Akun Diubah',
+      paragraphs: [
+        'Email untuk masuk ke akun Sertifikasi CMSP Anda telah diubah oleh admin. Email ini tidak dapat digunakan lagi untuk masuk.',
+      ],
+      footnotes: [
+        'Jika Anda tidak meminta perubahan ini, segera hubungi admin melalui kontak di aplikasi.',
+      ],
+    })
+    return
+  }
+
+  await sendSystemEmail(recipientEmail, {
+    subject: 'Email Akun Sertifikasi CMSP Diubah',
+    title: 'Email Akun Diubah',
+    paragraphs: [
+      `Email untuk masuk ke akun Sertifikasi CMSP Anda telah diubah oleh admin menjadi ${options.newEmail}.`,
+      options.activationPending
+        ? 'Akun Anda belum aktif. Tautan aktivasi dikirim dalam email terpisah.'
+        : 'Silakan masuk menggunakan email ini dan kata sandi Anda.',
+    ],
+    ...(options.activationPending ? {} : { button: { label: 'Masuk ke Sertifikasi CMSP', url: `${appBaseUrl}/login` } }),
+    footnotes: [
+      'Lupa kata sandi? Gunakan "Lupa kata sandi?" di halaman masuk.',
     ],
   })
 }

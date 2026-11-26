@@ -88,7 +88,8 @@ export async function loginWithPassword(input: {
   if (!user || !passwordMatches) {
     throw createError({
       statusCode: 401,
-      statusMessage: 'Email atau kata sandi tidak sesuai.',
+      // Sama untuk semua penyebab (tidak membocorkan email terdaftar/belum aktif).
+      statusMessage: 'Email atau kata sandi tidak sesuai. Belum aktivasi akun? Gunakan "Lupa kata sandi?".',
     })
   }
 

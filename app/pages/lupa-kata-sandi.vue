@@ -3,7 +3,9 @@
 definePageMeta({ layout: 'guest' })
 useHead({ title: 'Lupa Kata Sandi' })
 
-const email = ref('')
+const route = useRoute()
+// Diisi otomatis dari tautan halaman aktivasi (`?email=`).
+const email = ref(typeof route.query.email === 'string' ? route.query.email.slice(0, 254) : '')
 const isSubmitting = ref(false)
 const sentMessage = ref('')
 const errorMessage = ref('')
@@ -43,7 +45,8 @@ async function submit() {
         </h1>
 
         <p class="mt-3 text-sm leading-6 text-slate-600">
-          Masukkan email akun peserta Anda. Kami akan mengirim tautan untuk membuat kata sandi baru.
+          Masukkan email akun peserta Anda. Kami akan mengirim tautan untuk membuat kata sandi baru,
+          atau tautan aktivasi baru bila akun belum diaktifkan.
         </p>
       </div>
 
@@ -58,8 +61,8 @@ async function submit() {
           />
 
           <p class="text-sm leading-6 text-slate-600">
-            Tautan berlaku 1 jam. Belum menerima email setelah beberapa menit? Periksa kembali alamat
-            email yang Anda masukkan, lalu kirim ulang.
+            Belum menerima email setelah beberapa menit? Periksa folder Spam/Promosi dan alamat email
+            yang Anda masukkan, lalu kirim ulang. Gunakan email akun, bukan email pendaftaran lain.
           </p>
 
           <div class="flex flex-col gap-2 sm:flex-row">

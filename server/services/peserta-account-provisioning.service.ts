@@ -1,6 +1,7 @@
 
 import { randomBytes } from 'node:crypto'
 import {
+  findPersonByEmail,
   findPersonById,
   updatePerson,
 } from '../repositories/person.repository'
@@ -9,8 +10,10 @@ import {
   findUserByEmail,
   findUserById,
   findUsersByPersonId,
+  updateUserEmail,
   updateUserFullName,
 } from '../repositories/user.repository'
+import { revokeAllUserSessions } from '../repositories/session.repository'
 import {
   createAccountActivationToken,
   revokeActiveTokensForUser,
@@ -21,6 +24,7 @@ import {
   sendAccountActivationEmail,
   sendApplicationAcceptedEmail,
   sendApplicationAcceptedNoticeEmail,
+  sendLoginEmailChangedEmail,
 } from '../utils/email'
 
 const ACTIVATION_TOKEN_DURATION_MS = 24 * 60 * 60 * 1000
@@ -178,7 +182,9 @@ export async function preparePesertaAccount(
 }
 
 /**
- * Menerbitkan token aktivasi baru (token lama dicabut) dan mengembalikan tautannya.
+ * Menerbitkan token aktivasi baru dan mengembalikan tautannya.
+ * Token lama TIDAK dicabut (docs/08 K-28): semua tautan yang masih berlaku 24 jam tetap bisa dipakai,
+ * sehingga peserta yang membuka email lama tidak gagal. Setelah aktivasi berhasil, token lain dicabut.
  * Tautan selalu memakai APP_BASE_URL — di hosting harus berisi URL publik, bukan localhost.
  */
 async function issueActivationUrl(userId: string): Promise<string> {
@@ -187,9 +193,6 @@ async function issueActivationUrl(userId: string): Promise<string> {
   if (!appBaseUrl) {
     throw new Error('APP_BASE_URL belum dikonfigurasi.')
   }
-
-  // Token sebelumnya dicabut sebelum token baru diterbitkan.
-  await revokeActiveTokensForUser(userId)
 
   const rawToken = generateAuthToken()
   const expiresAt = new Date(
@@ -235,9 +238,82 @@ export async function resendPesertaActivation(userId: string): Promise<{ recipie
   }
 
   const activationUrl = await issueActivationUrl(user.user_id)
-  await sendAccountActivationEmail(recipientEmail, activationUrl)
+  await sendAccountActivationEmail(recipientEmail, activationUrl, { reason: 'RESEND' })
 
   return { recipientEmail }
+}
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+/**
+ * Super Admin mengganti email login akun peserta (docs/08 K-28), mis. email lama sudah tidak
+ * dapat diakses. Identitas peserta diperiksa panitia di luar sistem sebelum perubahan.
+ * - Email baru tidak boleh dipakai akun lain atau data peserta lain.
+ * - Email akun & email data induk (person) diganti; sesi & tautan aktivasi lama dicabut.
+ * - Akun belum aktif → tautan aktivasi baru ke email baru. Pemberitahuan juga ke email lama.
+ */
+export async function changePesertaLoginEmail(userId: string, rawEmail: string): Promise<{
+  email: string
+  activationSent: boolean
+}> {
+  const email = rawEmail.trim().toLowerCase()
+
+  if (!email || email.length > 254 || !EMAIL_PATTERN.test(email)) {
+    throw createError({ statusCode: 400, statusMessage: 'Format email tidak valid.' })
+  }
+
+  const user = await findUserById(userId)
+
+  if (!user) {
+    throw createError({ statusCode: 404, statusMessage: 'Akun tidak ditemukan.' })
+  }
+
+  if (user.role !== 'PESERTA') {
+    conflict('Ubah email hanya untuk akun peserta.')
+  }
+
+  const oldEmail = user.username_email.trim().toLowerCase()
+
+  if (email === oldEmail) {
+    conflict('Email baru sama dengan email saat ini.')
+  }
+
+  const [accountByEmail, personByEmail] = await Promise.all([
+    findUserByEmail(email),
+    findPersonByEmail(email),
+  ])
+
+  if (accountByEmail || (personByEmail && personByEmail.person_id !== user.person_id)) {
+    conflict('Email tersebut sudah digunakan akun atau peserta lain.')
+  }
+
+  await updateUserEmail(user.user_id, email)
+
+  if (user.person_id.trim()) {
+    await updatePerson(user.person_id, { email })
+  }
+
+  // Akses lewat email lama ditutup: sesi login & tautan aktivasi lama dicabut.
+  await revokeAllUserSessions(user.user_id)
+  await revokeActiveTokensForUser(user.user_id)
+
+  const activationPending = user.account_status === 'PENDING_ACTIVATION'
+
+  if (activationPending) {
+    const activationUrl = await issueActivationUrl(user.user_id)
+    await sendAccountActivationEmail(email, activationUrl, { reason: 'RESEND' })
+  }
+
+  // Email informasi: kegagalan hanya dicatat agar perubahan tetap tersimpan.
+  await sendLoginEmailChangedEmail(email, { target: 'NEW', newEmail: email, activationPending })
+    .catch((error) => console.error('Gagal mengirim info email baru:', error))
+
+  if (oldEmail) {
+    await sendLoginEmailChangedEmail(oldEmail, { target: 'OLD', newEmail: email, activationPending })
+      .catch((error) => console.error('Gagal mengirim pemberitahuan ke email lama:', error))
+  }
+
+  return { email, activationSent: activationPending }
 }
 
 export async function sendPesertaActivationEmail(

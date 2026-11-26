@@ -303,8 +303,9 @@ export async function createApplication(payload: ApplicationPayload) {
     if (accountEmail) {
       notice =
         `NIP Anda sudah terdaftar dengan email lain (${maskEmail(accountEmail)}). ` +
-        'Setelah pendaftaran diterima, masuk menggunakan akun tersebut. ' +
-        'Bila email itu sudah tidak dapat diakses, hubungi admin.'
+        'Setelah pendaftaran diterima, informasi masuk atau aktivasi akun dikirim ke email tersebut, ' +
+        'dan Anda masuk menggunakan email itu. ' +
+        'Bila email itu sudah tidak dapat diakses, hubungi admin untuk mengganti email akun.'
     }
   }
 

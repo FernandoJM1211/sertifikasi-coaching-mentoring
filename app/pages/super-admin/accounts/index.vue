@@ -311,6 +311,27 @@
             <UIcon name="i-lucide-chevron-right" class="size-4 text-slate-500" />
           </button>
 
+          <!-- Ubah email login (khusus peserta, mis. email lama tidak dapat diakses) -->
+          <button
+            v-if="selectedAccount.role === 'PESERTA'"
+            type="button"
+            class="flex w-full items-center gap-3 rounded-xl border border-slate-300 p-4 text-left transition hover:border-violet-300 hover:bg-violet-50"
+            @click="openChangeEmail"
+          >
+            <div class="flex size-10 shrink-0 items-center justify-center rounded-lg border border-violet-300 bg-violet-50 text-violet-600">
+              <UIcon name="i-lucide-at-sign" class="size-5" />
+            </div>
+            <div class="min-w-0 flex-1">
+              <p class="font-medium text-slate-900">
+                Ubah Email
+              </p>
+              <p class="mt-1 text-xs text-slate-600">
+                Ganti email masuk bila email lama tidak dapat diakses.
+              </p>
+            </div>
+            <UIcon name="i-lucide-chevron-right" class="size-4 text-slate-500" />
+          </button>
+
           <!-- Kirim ulang tautan aktivasi (peserta yang belum aktivasi) -->
           <button
             v-if="selectedAccount.status === 'PENDING_ACTIVATION' && selectedAccount.role === 'PESERTA'"
@@ -331,7 +352,7 @@
                 {{ isResendingActivation ? 'Mengirim Tautan...' : 'Kirim Ulang Tautan Aktivasi' }}
               </p>
               <p class="mt-1 text-xs text-slate-600">
-                Kirim tautan aktivasi baru ke email peserta. Tautan sebelumnya tidak berlaku lagi.
+                Kirim tautan aktivasi baru ke email peserta.
               </p>
             </div>
             <UIcon name="i-lucide-chevron-right" class="size-4 text-slate-500" />
@@ -508,6 +529,58 @@
   </div>
 </div>
 
+    <!-- Modal Ubah Email -->
+    <UModal
+      v-model:open="isChangeEmailModalOpen"
+      title="Ubah Email"
+      :description="selectedAccount?.name ?? ''"
+      :dismissible="!isChangingEmail"
+    >
+      <template #body>
+        <form v-if="selectedAccount" class="space-y-4" @submit.prevent="submitChangeEmail">
+          <div class="rounded-xl border border-slate-300 bg-slate-50 p-4 text-sm">
+            <p class="text-slate-600">Email saat ini</p>
+            <p class="mt-0.5 break-all font-medium text-slate-900">{{ selectedAccount.email }}</p>
+          </div>
+
+          <div class="space-y-1.5">
+            <label for="new-account-email" class="block text-sm font-medium text-slate-700">Email baru</label>
+            <UInput
+              id="new-account-email"
+              v-model="newEmail"
+              type="email"
+              maxlength="254"
+              autocomplete="off"
+              required
+              placeholder="nama@gmail.com"
+              icon="i-lucide-mail"
+              :disabled="isChangingEmail"
+              class="w-full"
+            />
+          </div>
+
+          <UAlert
+            color="warning"
+            variant="soft"
+            icon="i-lucide-shield-alert"
+            title="Pastikan identitas peserta sudah dicek."
+            :description="selectedAccount.status === 'PENDING_ACTIVATION'
+              ? 'Tautan aktivasi lama tidak berlaku; tautan baru dikirim ke email baru.'
+              : 'Peserta keluar dari semua perangkat dan masuk dengan email baru.'"
+          />
+
+          <div class="flex justify-end gap-2 border-t border-slate-200 pt-4">
+            <UButton color="neutral" variant="outline" :disabled="isChangingEmail" @click="isChangeEmailModalOpen = false">
+              Batal
+            </UButton>
+            <UButton type="submit" icon="i-lucide-save" :loading="isChangingEmail" :disabled="isChangingEmail || !newEmail.trim()">
+              Simpan
+            </UButton>
+          </div>
+        </form>
+      </template>
+    </UModal>
+
     <!-- Modal Tambah Akun Staf -->
     <UModal
       v-model:open="isAddAccountModalOpen"
@@ -663,6 +736,9 @@ const newPassword = ref('')
 const isResettingPassword = ref(false)
 const isChangingAccountStatus = ref(false)
 const isResendingActivation = ref(false)
+const isChangeEmailModalOpen = ref(false)
+const newEmail = ref('')
+const isChangingEmail = ref(false)
 
 const isAddAccountModalOpen = ref(false)
 const isSubmittingAccount = ref(false)
@@ -988,7 +1064,7 @@ async function resendActivation() {
   const account = selectedAccount.value
 
   if (!window.confirm(
-    `Kirim ulang tautan aktivasi ke ${account.email}? Tautan aktivasi sebelumnya tidak akan berlaku lagi.`,
+    `Kirim ulang tautan aktivasi ke ${account.email}?`,
   )) return
 
   isResendingActivation.value = true
@@ -1022,6 +1098,48 @@ async function resendActivation() {
     })
   } finally {
     isResendingActivation.value = false
+  }
+}
+
+function openChangeEmail() {
+  if (!selectedAccount.value) return
+
+  newEmail.value = ''
+  isActionModalOpen.value = false
+  isChangeEmailModalOpen.value = true
+}
+
+async function submitChangeEmail() {
+  if (!selectedAccount.value || isChangingEmail.value) return
+
+  const account = selectedAccount.value
+  isChangingEmail.value = true
+
+  try {
+    const response = await $fetch<{ success: boolean, email: string, message: string }>(
+      `/api/admin/accounts/${encodeURIComponent(account.id)}/email`,
+      { method: 'PATCH', credentials: 'include', body: { email: newEmail.value.trim().toLowerCase() } },
+    )
+
+    accounts.value = accounts.value.map((item) =>
+      item.id === account.id ? { ...item, email: response.email } : item,
+    )
+
+    toast.add({ title: 'Email akun diubah', description: response.message, color: 'success', icon: 'i-lucide-mail-check' })
+
+    isChangeEmailModalOpen.value = false
+    selectedAccount.value = null
+  } catch (error: unknown) {
+    const fetchError = error as { data?: { statusMessage?: string, message?: string } }
+
+    toast.add({
+      title: 'Gagal mengubah email',
+      description: fetchError.data?.statusMessage || fetchError.data?.message || 'Terjadi kesalahan saat mengubah email.',
+      color: 'error',
+      icon: 'i-lucide-circle-alert',
+    })
+  } finally {
+    isChangingEmail.value = false
   }
 }
 
