@@ -46,6 +46,13 @@ const RING_50: Record<Color, string> = {
 /** Netral: setara `bg-elevated/50` (alert soft/subtle). */
 const NEUTRAL_BG_50 = 'bg-[color:color-mix(in_oklab,var(--ui-bg-elevated)_50%,white)]'
 
+/**
+ * Latar muda selalu bergaris tepi (docs/05). Varian `soft` bawaan Nuxt UI tidak punya garis tepi,
+ * sehingga menyatu dengan latar halaman; di sini diberi garis tepi yang sama dengan varian `subtle`.
+ */
+const RING = 'ring ring-inset'
+const NEUTRAL_RING = 'ring ring-inset ring-slate-300'
+
 export default defineAppConfig({
   ui: {
     colors: {
@@ -57,19 +64,20 @@ export default defineAppConfig({
     badge: {
       compoundVariants: COLORS.flatMap((color) => [
         { color, variant: 'subtle' as const, class: `${BG_10[color]} ${RING_25[color]}` },
-        { color, variant: 'soft' as const, class: BG_10[color] },
+        { color, variant: 'soft' as const, class: `${BG_10[color]} ${RING} ${RING_25[color]}` },
         { color, variant: 'outline' as const, class: RING_50[color] },
       ]),
+      ...(['soft', 'subtle'] as const).map((variant) => ({ color: 'neutral' as const, variant, class: NEUTRAL_RING })),
     },
     alert: {
       compoundVariants: [
         ...COLORS.flatMap((color) => [
           { color, variant: 'subtle' as const, class: { root: `${BG_10[color]} ${RING_25[color]}` } },
-          { color, variant: 'soft' as const, class: { root: BG_10[color] } },
+          { color, variant: 'soft' as const, class: { root: `${BG_10[color]} ${RING} ${RING_25[color]}` } },
           { color, variant: 'outline' as const, class: { root: RING_25[color] } },
         ]),
-        { color: 'neutral' as const, variant: 'subtle' as const, class: { root: NEUTRAL_BG_50 } },
-        { color: 'neutral' as const, variant: 'soft' as const, class: { root: NEUTRAL_BG_50 } },
+        { color: 'neutral' as const, variant: 'subtle' as const, class: { root: `${NEUTRAL_BG_50} ${NEUTRAL_RING}` } },
+        { color: 'neutral' as const, variant: 'soft' as const, class: { root: `${NEUTRAL_BG_50} ${NEUTRAL_RING}` } },
       ],
     },
   }

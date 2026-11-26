@@ -134,7 +134,7 @@ onBeforeUnmount(() => {
             class="relative flex size-8 items-center justify-center rounded-lg border text-xs font-semibold transition hover:scale-105 focus-visible:outline-2 focus-visible:outline-primary"
             :class="activeNumber === unit.number
               ? 'border-primary bg-primary text-white'
-              : 'border-blue-200 bg-blue-100 text-primary hover:bg-blue-200'"
+              : 'border-blue-300 bg-blue-100 text-primary hover:bg-blue-200'"
             :title="`Unit ${unit.number} · ${unit.code} — ${unit.title}`"
             :aria-label="`Ke Unit ${unit.number} (${unit.code})${unit.complete ? ', lengkap' : ''}`"
             @click="goToUnit(unit.number)"

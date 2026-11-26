@@ -377,9 +377,9 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', onBeforeUnload)
           <div
             class="rounded-lg border p-3 text-slate-700"
             :class="form.recommendation === 'CONTINUE'
-              ? 'border-emerald-200 bg-emerald-50'
+              ? 'border-emerald-300 bg-emerald-50'
               : form.recommendation === 'NOT_CONTINUE'
-                ? 'border-rose-200 bg-rose-50'
+                ? 'border-rose-300 bg-rose-50'
                 : 'border-slate-300 bg-slate-50'"
           >
             <p>{{ kCount }} unit Kompeten · {{ bkCount }} unit Belum Kompeten</p>

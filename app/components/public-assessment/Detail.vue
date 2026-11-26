@@ -312,7 +312,7 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', onBeforeUnload)
               <ol class="mt-3 list-decimal space-y-4 pl-5 text-sm leading-6 text-slate-700">
                 <li v-for="element in unit.elements" :key="element.title">
                   <p class="font-medium text-slate-800">{{ element.title }}</p>
-                  <div class="mt-2 rounded-xl border border-blue-200 bg-blue-50 p-4">
+                  <div class="mt-2 rounded-xl border border-blue-300 bg-blue-50 p-4">
                     <p class="text-xs font-semibold uppercase tracking-wide text-primary">Indikator penilaian</p>
                     <ul class="mt-2 space-y-1.5 text-slate-600">
                       <li v-for="indicator in element.indicators" :key="indicator" class="flex gap-2">
@@ -399,9 +399,9 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', onBeforeUnload)
           <div
             class="rounded-lg border p-3 text-slate-700"
             :class="form.recommendation === 'CONTINUE'
-              ? 'border-emerald-200 bg-emerald-50'
+              ? 'border-emerald-300 bg-emerald-50'
               : form.recommendation === 'NOT_CONTINUE'
-                ? 'border-rose-200 bg-rose-50'
+                ? 'border-rose-300 bg-rose-50'
                 : 'border-slate-300 bg-slate-50'"
           >
             <p>{{ kCount }} unit Kompeten · {{ bkCount }} unit Belum Kompeten</p>

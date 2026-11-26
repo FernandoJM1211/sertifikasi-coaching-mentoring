@@ -283,7 +283,7 @@ async function confirmToggleStatus() {
                 </p>
               </div>
             </div>
-            <div class="flex flex-col gap-3 rounded-lg border border-blue-100 bg-blue-50 p-3 sm:flex-row">
+            <div class="flex flex-col gap-3 rounded-lg border border-blue-300 bg-blue-50 p-3 sm:flex-row">
               <UInput v-model="searchQuery" icon="i-lucide-search" placeholder="Cari teks soal..." class="w-full" />
               <USelect v-model="topicFilter" :items="topicItems" value-key="value" label-key="label" class="w-full sm:w-56" />
               <USelect v-model="selectionFilter" :items="SELECTION_FILTERS" value-key="value" label-key="label" class="w-full sm:w-44" />

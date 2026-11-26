@@ -412,7 +412,7 @@ onBeforeUnmount(() => {
         description="CMSP-01 dan CMSP-02 akan dikirim bersamaan untuk diverifikasi."
       >
         <template #body>
-          <div class="flex items-start gap-3 rounded-xl border border-blue-100 bg-blue-50 p-4">
+          <div class="flex items-start gap-3 rounded-xl border border-blue-300 bg-blue-50 p-4">
             <UIcon name="i-lucide-info" class="mt-0.5 size-5 shrink-0 text-blue-600" />
             <p class="text-sm leading-6 text-slate-600">
               Setelah dikirim, formulir tidak dapat diubah lagi kecuali Verifikator

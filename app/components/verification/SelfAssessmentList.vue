@@ -92,9 +92,9 @@ const filteredItems = computed(() => {
 })
 
 const summaryCards = computed(() => [
-  { key: 'SUBMITTED', label: 'Menunggu Verifikasi', value: data.value?.summary.submitted ?? 0, icon: 'i-lucide-inbox', tone: 'border-blue-200 bg-blue-50 text-blue-700' },
-  { key: 'REVISION_REQUESTED', label: 'Perlu Perbaikan', value: data.value?.summary.revision ?? 0, icon: 'i-lucide-pencil-line', tone: 'border-amber-200 bg-amber-50 text-amber-700' },
-  { key: 'VERIFIED', label: 'Terverifikasi', value: data.value?.summary.verified ?? 0, icon: 'i-lucide-circle-check', tone: 'border-emerald-200 bg-emerald-50 text-emerald-700' },
+  { key: 'SUBMITTED', label: 'Menunggu Verifikasi', value: data.value?.summary.submitted ?? 0, icon: 'i-lucide-inbox', tone: 'border-blue-300 bg-blue-50 text-blue-700' },
+  { key: 'REVISION_REQUESTED', label: 'Perlu Perbaikan', value: data.value?.summary.revision ?? 0, icon: 'i-lucide-pencil-line', tone: 'border-amber-300 bg-amber-50 text-amber-700' },
+  { key: 'VERIFIED', label: 'Terverifikasi', value: data.value?.summary.verified ?? 0, icon: 'i-lucide-circle-check', tone: 'border-emerald-300 bg-emerald-50 text-emerald-700' },
   { key: 'NOT_SUBMITTED', label: 'Belum Dikirim', value: data.value?.summary.notSubmitted ?? 0, icon: 'i-lucide-clock', tone: 'border-slate-300 bg-slate-50 text-slate-600' },
 ])
 
@@ -227,7 +227,7 @@ watch([activeFilter, searchQuery], resetTablePage)
                 Muat Ulang
               </UButton>
             </div>
-            <div class="flex flex-col gap-3 rounded-lg border border-blue-100 bg-blue-50 p-3 sm:flex-row">
+            <div class="flex flex-col gap-3 rounded-lg border border-blue-300 bg-blue-50 p-3 sm:flex-row">
               <UInput
                 v-model="searchQuery"
                 icon="i-lucide-search"

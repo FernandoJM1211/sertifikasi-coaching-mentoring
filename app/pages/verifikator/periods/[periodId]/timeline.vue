@@ -92,7 +92,7 @@
 
           <div class="flex items-center gap-2">
             <span
-              class="inline-flex items-center rounded-md border border-blue-200 bg-blue-50 px-3 py-1.5 text-sm font-medium text-primary"
+              class="inline-flex items-center rounded-md border border-blue-300 bg-blue-50 px-3 py-1.5 text-sm font-medium text-primary"
             >
               {{ stages.length }}/8 tahap
             </span>
@@ -117,7 +117,7 @@
           >
             <div class="flex items-start gap-3">
               <div
-                class="flex size-11 shrink-0 items-center justify-center rounded-xl border border-blue-200 bg-blue-50 text-sm font-semibold text-primary"
+                class="flex size-11 shrink-0 items-center justify-center rounded-xl border border-blue-300 bg-blue-50 text-sm font-semibold text-primary"
               >
                 {{ stage.stageOrder }}
               </div>
@@ -356,8 +356,8 @@ const notificationHeaderClass = computed(() => {
 
 const notificationBodyClass = computed(() => {
   return notificationType.value === 'success'
-    ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
-    : 'border-red-200 bg-red-50 text-red-800'
+    ? 'border-emerald-300 bg-emerald-50 text-emerald-800'
+    : 'border-red-300 bg-red-50 text-red-800'
 })
 
 const notificationIcon = computed(() => {

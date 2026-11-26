@@ -141,7 +141,7 @@ async function submitImport() {
     <template #body>
       <div class="space-y-5">
         <!-- Langkah 1: template -->
-        <div class="flex flex-col gap-3 rounded-xl border border-blue-100 bg-blue-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div class="flex flex-col gap-3 rounded-xl border border-blue-300 bg-blue-50 p-4 sm:flex-row sm:items-center sm:justify-between">
           <div class="flex gap-3">
             <UIcon name="i-lucide-file-spreadsheet" class="mt-0.5 size-5 shrink-0 text-blue-600" />
             <div class="text-sm text-slate-700">
@@ -193,15 +193,15 @@ async function submitImport() {
         <!-- Langkah 3: pratinjau -->
         <template v-if="preview.length">
           <div class="grid grid-cols-3 gap-3 text-center">
-            <div class="rounded-xl border border-emerald-200 bg-emerald-50 p-3">
+            <div class="rounded-xl border border-emerald-300 bg-emerald-50 p-3">
               <p class="text-2xl font-semibold text-emerald-700">{{ validRows.length }}</p>
               <p class="text-xs text-emerald-700">Valid</p>
             </div>
-            <div class="rounded-xl border border-rose-200 bg-rose-50 p-3">
+            <div class="rounded-xl border border-rose-300 bg-rose-50 p-3">
               <p class="text-2xl font-semibold text-rose-700">{{ invalidCount }}</p>
               <p class="text-xs text-rose-700">Tidak valid (dilewati)</p>
             </div>
-            <div class="rounded-xl border border-amber-200 bg-amber-50 p-3">
+            <div class="rounded-xl border border-amber-300 bg-amber-50 p-3">
               <p class="text-2xl font-semibold text-amber-700">{{ duplicateCount }}</p>
               <p class="text-xs text-amber-700">Duplikat</p>
             </div>

@@ -53,12 +53,15 @@ biru = `info`/`primary`).
 **Warna solid, bukan transparan.** Latar & garis tepi `UBadge` dan `UAlert` (varian `subtle`, `soft`,
 `outline`) sudah dibuat **solid** di `app/app.config.ts` (campuran warna tema dengan putih), agar tidak
 tercampur dengan latar halaman yang bergradasi. Untuk elemen buatan sendiri di atas latar berwarna,
-pakai warna solid (mis. `bg-amber-50`, `border-amber-200`), **jangan** opacity seperti `bg-warning/10`
+pakai warna solid (mis. `bg-amber-50`, `border-amber-300`), **jangan** opacity seperti `bg-warning/10`
 atau `bg-primary/5`.
 
 **Latar muda selalu bergaris tepi.** Elemen berlatar hampir putih (`bg-{warna}-50/100`, mis. kotak ikon,
-kotak ringkasan, kotak info, tab tidak aktif) wajib diberi `border` senada: abu-abu → `border-slate-400`,
-warna lain → `border-{warna}-300` (mis. `border border-blue-300 bg-blue-50`). Garis tepi kartu/tabel umum tetap `slate-300`.
+kotak ringkasan, kotak info, tab tidak aktif) wajib diberi `border` senada: abu-abu → `border-slate-300`/`-400`,
+warna lain → `border-{warna}-300` (mis. `border border-blue-300 bg-blue-50`); **jangan** `-100`/`-200` karena
+menyatu dengan latar halaman. Garis tepi kartu/tabel umum tetap `slate-300`; garis pemisah baris tabel boleh lebih tipis.
+`UAlert` dan `UBadge` varian `soft` juga otomatis bergaris tepi lewat `app.config.ts` (sama dengan `subtle`;
+netral = `ring-slate-300`), jadi tidak perlu menambah kelas border sendiri.
 
 **Form CMSP dalam mode tinjau** (`review-mode`: Verifikasi SA, penilaian asesor) bukan form isian:
 tanda wajib (`*`), petunjuk format/ukuran file, dan tombol tambah/hapus tidak ditampilkan.

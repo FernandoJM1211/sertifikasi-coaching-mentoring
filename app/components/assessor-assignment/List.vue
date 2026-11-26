@@ -172,9 +172,9 @@ const filteredItems = computed(() => {
 })
 
 const summaryCards = computed(() => [
-  { key: 'ALL', label: 'Total Peserta', value: data.value?.summary.total ?? 0, icon: 'i-lucide-users', tone: 'border-blue-200 bg-blue-50 text-blue-700' },
-  { key: 'ASSIGNED', label: 'Sudah Ditugaskan', value: data.value?.summary.assigned ?? 0, icon: 'i-lucide-user-check', tone: 'border-emerald-200 bg-emerald-50 text-emerald-700' },
-  { key: 'NOT_ASSIGNED', label: 'Belum Ditugaskan', value: data.value?.summary.unassigned ?? 0, icon: 'i-lucide-user-x', tone: 'border-amber-200 bg-amber-50 text-amber-700' },
+  { key: 'ALL', label: 'Total Peserta', value: data.value?.summary.total ?? 0, icon: 'i-lucide-users', tone: 'border-blue-300 bg-blue-50 text-blue-700' },
+  { key: 'ASSIGNED', label: 'Sudah Ditugaskan', value: data.value?.summary.assigned ?? 0, icon: 'i-lucide-user-check', tone: 'border-emerald-300 bg-emerald-50 text-emerald-700' },
+  { key: 'NOT_ASSIGNED', label: 'Belum Ditugaskan', value: data.value?.summary.unassigned ?? 0, icon: 'i-lucide-user-x', tone: 'border-amber-300 bg-amber-50 text-amber-700' },
   { key: 'NOT_VERIFIED', label: 'SA Belum Terverifikasi', value: data.value?.summary.notVerified ?? 0, icon: 'i-lucide-clock', tone: 'border-slate-300 bg-slate-50 text-slate-600' },
 ])
 
@@ -539,7 +539,7 @@ watch([activeFilter, searchQuery], resetTablePage)
                 Muat Ulang
               </UButton>
             </div>
-            <div class="flex flex-col gap-3 rounded-lg border border-blue-100 bg-blue-50 p-3 sm:flex-row">
+            <div class="flex flex-col gap-3 rounded-lg border border-blue-300 bg-blue-50 p-3 sm:flex-row">
               <UInput
                 v-model="searchQuery"
                 icon="i-lucide-search"
@@ -558,7 +558,7 @@ watch([activeFilter, searchQuery], resetTablePage)
             <!-- Aksi untuk peserta terpilih -->
             <div
               v-if="selectedIds.length > 0"
-              class="flex flex-col gap-3 rounded-lg border border-blue-200 bg-blue-50 p-3 sm:flex-row sm:items-center sm:justify-between"
+              class="flex flex-col gap-3 rounded-lg border border-blue-300 bg-blue-50 p-3 sm:flex-row sm:items-center sm:justify-between"
             >
               <p class="text-sm font-medium text-slate-700">
                 {{ selectedIds.length }} peserta dipilih

@@ -511,7 +511,7 @@ function resetForm() {
           />
 
           <!-- Langkah selanjutnya: sengaja sama untuk semua pendaftar (docs/08 K-09) -->
-          <div class="mt-5 w-full max-w-md rounded-xl border border-blue-100 bg-blue-50 p-5 text-left">
+          <div class="mt-5 w-full max-w-md rounded-xl border border-blue-300 bg-blue-50 p-5 text-left">
             <p class="text-sm font-semibold text-slate-900">Langkah Selanjutnya</p>
             <ol class="mt-3 space-y-3 text-sm leading-6 text-slate-700">
               <li v-for="(step, index) in nextSteps" :key="step" class="flex gap-3">
@@ -523,7 +523,7 @@ function resetForm() {
             </ol>
           </div>
 
-          <div class="mt-4 flex w-full max-w-md gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-left text-sm leading-6 text-amber-900">
+          <div class="mt-4 flex w-full max-w-md gap-3 rounded-xl border border-amber-300 bg-amber-50 p-4 text-left text-sm leading-6 text-amber-900">
             <UIcon name="i-lucide-mail-search" class="mt-0.5 size-5 shrink-0" />
             <p>
               Email dari sistem terkadang masuk ke folder <strong>Spam</strong> atau <strong>Promosi</strong>.
@@ -597,7 +597,7 @@ function resetForm() {
 
             <div
               v-if="periodLoadError"
-              class="rounded-lg border border-amber-200 bg-amber-50 p-3"
+              class="rounded-lg border border-amber-300 bg-amber-50 p-3"
             >
               <p class="text-sm leading-5 text-amber-800">
                 {{ periodLoadError }}
@@ -903,7 +903,7 @@ function resetForm() {
               </p>
             </div>
 
-            <div class="rounded-xl border border-blue-200 bg-blue-50 p-5">
+            <div class="rounded-xl border border-blue-300 bg-blue-50 p-5">
               <p class="text-sm leading-6 text-primary">
                 Setelah pendaftaran dikirim, data dan dokumen tidak dapat diubah
                 melalui halaman ini dan akan masuk ke tahap verifikasi administrasi.
@@ -955,7 +955,7 @@ function resetForm() {
             </div>
           </div>
 
-          <div class="rounded-xl border border-red-200 bg-red-50 p-4">
+          <div class="rounded-xl border border-red-300 bg-red-50 p-4">
             <p class="whitespace-pre-line text-sm leading-6 text-red-800">
               {{ errorModalMessage }}
             </p>

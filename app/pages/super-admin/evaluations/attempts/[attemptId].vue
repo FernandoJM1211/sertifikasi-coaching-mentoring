@@ -213,17 +213,17 @@ function optionKeyClass(option: { is_correct: boolean, is_selected: boolean }) {
       <div class="grid grid-cols-2 gap-3 md:grid-cols-4">
         <div
           class="rounded-xl border p-3.5"
-          :class="data.attempt.passed === null ? 'border-slate-300 bg-slate-50 text-slate-600' : data.attempt.passed ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-rose-200 bg-rose-50 text-rose-700'"
+          :class="data.attempt.passed === null ? 'border-slate-300 bg-slate-50 text-slate-600' : data.attempt.passed ? 'border-emerald-300 bg-emerald-50 text-emerald-700' : 'border-rose-300 bg-rose-50 text-rose-700'"
         >
           <p class="text-sm font-medium">Nilai</p>
           <p class="mt-1 text-2xl font-semibold">{{ data.attempt.score === null ? '-' : formatScore(data.attempt.score) }}</p>
           <p class="text-xs opacity-80">Passing grade {{ data.attempt.passing_grade }} (saat mulai mengerjakan)</p>
         </div>
-        <div class="rounded-xl border border-blue-200 bg-blue-50 p-3.5 text-blue-700">
+        <div class="rounded-xl border border-blue-300 bg-blue-50 p-3.5 text-blue-700">
           <p class="text-sm font-medium">Benar</p>
           <p class="mt-1 text-2xl font-semibold">{{ data.summary.correct }}<span class="text-sm font-normal">/{{ data.summary.total }}</span></p>
         </div>
-        <div class="rounded-xl border border-amber-200 bg-amber-50 p-3.5 text-amber-700">
+        <div class="rounded-xl border border-amber-300 bg-amber-50 p-3.5 text-amber-700">
           <p class="text-sm font-medium">Salah</p>
           <p class="mt-1 text-2xl font-semibold">{{ data.summary.wrong }}</p>
         </div>

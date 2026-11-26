@@ -47,7 +47,7 @@
         </div>
 
         <!-- Pencarian dan filter role -->
-        <div class="mt-5 flex flex-col gap-3 rounded-xl border border-blue-100 bg-blue-50 p-3 sm:flex-row sm:items-center">
+        <div class="mt-5 flex flex-col gap-3 rounded-xl border border-blue-300 bg-blue-50 p-3 sm:flex-row sm:items-center">
           <div class="w-full min-w-0 sm:flex-1">
             <UInput
               v-model="searchQuery"
@@ -73,7 +73,7 @@
       <!-- Pesan error -->
       <div
         v-if="loadError"
-        class="border-b border-red-100 bg-red-50 px-5 py-4 sm:px-8"
+        class="border-b border-red-300 bg-red-50 px-5 py-4 sm:px-8"
       >
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <p class="text-sm text-red-700">
@@ -281,7 +281,7 @@
           <!-- Akun Super Admin dilindungi -->
           <div
             v-if="selectedAccount.role === 'SUPER_ADMIN'"
-            class="flex gap-3 rounded-xl border border-blue-100 bg-blue-50 p-4 text-sm text-slate-700"
+            class="flex gap-3 rounded-xl border border-blue-300 bg-blue-50 p-4 text-sm text-slate-700"
           >
             <UIcon name="i-lucide-shield-check" class="mt-0.5 size-5 shrink-0 text-blue-600" />
             <p>

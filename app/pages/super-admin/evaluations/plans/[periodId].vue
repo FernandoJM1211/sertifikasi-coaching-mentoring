@@ -201,12 +201,12 @@ const filteredItems = computed(() => {
 })
 
 const summaryCards = computed(() => [
-  { key: 'ALL', label: 'Peserta Berhak', value: data.value?.summary.eligible ?? 0, icon: 'i-lucide-users', tone: 'border-blue-200 bg-blue-50 text-blue-700' },
+  { key: 'ALL', label: 'Peserta Berhak', value: data.value?.summary.eligible ?? 0, icon: 'i-lucide-users', tone: 'border-blue-300 bg-blue-50 text-blue-700' },
   { key: 'NOT_STARTED', label: 'Belum Mulai', value: data.value?.summary.notStarted ?? 0, icon: 'i-lucide-clock', tone: 'border-slate-300 bg-slate-50 text-slate-600' },
-  { key: 'IN_PROGRESS', label: 'Mengerjakan', value: data.value?.summary.inProgress ?? 0, icon: 'i-lucide-pencil-line', tone: 'border-amber-200 bg-amber-50 text-amber-700' },
-  { key: 'SUBMITTED', label: 'Selesai', value: data.value?.summary.submitted ?? 0, icon: 'i-lucide-circle-check', tone: 'border-violet-200 bg-violet-50 text-violet-700' },
-  { key: 'PASSED', label: 'Mencapai PG', value: data.value?.summary.passed ?? 0, icon: 'i-lucide-trophy', tone: 'border-emerald-200 bg-emerald-50 text-emerald-700' },
-  { key: 'FAILED', label: 'Di Bawah PG', value: data.value?.summary.failed ?? 0, icon: 'i-lucide-circle-x', tone: 'border-rose-200 bg-rose-50 text-rose-700' },
+  { key: 'IN_PROGRESS', label: 'Mengerjakan', value: data.value?.summary.inProgress ?? 0, icon: 'i-lucide-pencil-line', tone: 'border-amber-300 bg-amber-50 text-amber-700' },
+  { key: 'SUBMITTED', label: 'Selesai', value: data.value?.summary.submitted ?? 0, icon: 'i-lucide-circle-check', tone: 'border-violet-300 bg-violet-50 text-violet-700' },
+  { key: 'PASSED', label: 'Mencapai PG', value: data.value?.summary.passed ?? 0, icon: 'i-lucide-trophy', tone: 'border-emerald-300 bg-emerald-50 text-emerald-700' },
+  { key: 'FAILED', label: 'Di Bawah PG', value: data.value?.summary.failed ?? 0, icon: 'i-lucide-circle-x', tone: 'border-rose-300 bg-rose-50 text-rose-700' },
 ])
 
 const PERIOD_STATUS_LABELS: Record<string, string> = { DRAFT: 'Draft', ACTIVE: 'Aktif', CLOSED: 'Ditutup', COMPLETED: 'Selesai' }
@@ -488,7 +488,7 @@ watch([activeFilter, searchQuery], resetTablePage)
                 Muat Ulang
               </UButton>
             </div>
-            <div class="flex flex-col gap-3 rounded-lg border border-blue-100 bg-blue-50 p-3 sm:flex-row">
+            <div class="flex flex-col gap-3 rounded-lg border border-blue-300 bg-blue-50 p-3 sm:flex-row">
               <UInput v-model="searchQuery" icon="i-lucide-search" placeholder="Cari nama, NIP, atau instansi..." class="w-full" />
               <USelect v-model="activeFilter" :items="FILTERS" value-key="value" label-key="label" class="w-full sm:w-60" />
             </div>
