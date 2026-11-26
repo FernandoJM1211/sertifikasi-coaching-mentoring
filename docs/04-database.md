@@ -4,7 +4,7 @@ Database terdiri dari **dua spreadsheet**:
 
 | Spreadsheet | Env | Isi | Kenapa dipisah |
 | --- | --- | --- | --- |
-| **Auth** | `AUTH_SPREADSHEET_ID` | `users`, `sessions`, `activation_tokens`, `password_reset_tokens` (+ `audit_logs` cadangan, belum dipakai) | Berisi hash kata sandi & token; aksesnya dibatasi lebih ketat. |
+| **Auth** | `AUTH_SPREADSHEET_ID` | `users`, `sessions`, `activation_tokens`, `password_reset_tokens` + `audit_logs` (riwayat tindakan akun) | Berisi hash kata sandi & token; aksesnya dibatasi lebih ketat. |
 | **Data** | `GOOGLE_SPREADSHEET_ID` | Semua data operasional lainnya | Boleh dibuka tim operasional. |
 
 ## Aturan Umum
@@ -73,6 +73,9 @@ Akun login semua role. Repository: `user.repository.ts`. ID: `USR-000001`.
 ### `sessions`
 Sesi login. Repository: `session.repository.ts`. ID: `SES-000001`.
 
+Sesi yang kedaluwarsa/dicabut lebih dari 7 hari **dikosongkan otomatis** (tidak dihapus agar nomor baris
+tidak bergeser) — lihat K-29. Baris kosong boleh dihapus manual hanya saat aplikasi tidak dipakai.
+
 | # | Kolom | Isi |
 | --- | --- | --- |
 | A | `session_id` | ID sesi |
@@ -118,10 +121,41 @@ ID: `RST-000001`. Buat tab ini di spreadsheet **Auth** dengan header persis sepe
 password_reset_tokens  reset_token_id	user_id	token_hash	expires_at	used_at	created_at	request_ip
 ```
 
-### `audit_logs` — cadangan (belum dipakai kode)
-Tab kosong yang sengaja dibiarkan untuk fitur audit log nanti (lihat docs/07). Header saat ini:
-`audit_id, event_time, actor_user_id, action, target_type, target_id, result, ip_address, request_id, details`.
-Jangan diisi manual; kolom dapat disesuaikan saat fiturnya dibuat.
+### `audit_logs` — riwayat tindakan akun (K-30)
+Repository: `audit-log.repository.ts`. ID: `AUD-000001`. Baris hanya ditambah setelah tindakan berhasil,
+tidak pernah diubah/dihapus. **Kata sandi dan token tidak pernah dicatat.** Jangan diisi manual.
+
+| # | Kolom | Isi |
+| --- | --- | --- |
+| A | `audit_id` | ID |
+| B | `event_time` | Waktu (ISO UTC) |
+| C | `actor_user_id` | Pelaku (`users.user_id`); sama dengan target bila dilakukan pemilik akun |
+| D | `action` | `ACCOUNT_CREATE` / `ACCOUNT_PASSWORD_RESET_BY_ADMIN` / `ACCOUNT_STATUS_CHANGE` / `ACCOUNT_EMAIL_CHANGE` / `ACCOUNT_ACTIVATION_RESEND` / `ACCOUNT_ACTIVATE` / `PASSWORD_CHANGE` / `PASSWORD_RESET_BY_EMAIL` |
+| E | `target_type` | `USER` |
+| F | `target_id` | Akun yang dikenai tindakan |
+| G | `result` | `SUCCESS` |
+| H | `ip_address` | IP peminta |
+| I | `request_id` | (kosong, cadangan) |
+| J | `details` | Ringkasan, mis. `ACTIVE → DISABLED`, email lama → baru, peran akun baru (maks. 500 karakter) |
+
+Header siap tempel:
+
+```text
+audit_id	event_time	actor_user_id	action	target_type	target_id	result	ip_address	request_id	details
+```
+
+---
+
+## Backup Harian (K-32)
+
+Setiap hari pukul 02.00 WIB (Vercel Cron) dibuat **spreadsheet baru** `CMSP Backup YYYY-MM-DD HH.MM` di folder Drive
+**CMSP Backup** milik akun Drive aplikasi (terpisah dari folder unggahan). Isi: tab `_info` (waktu, pemicu, jumlah baris
+per tab), semua tab spreadsheet Data, dan tab `auth_users` & `auth_audit_logs` dari spreadsheet Auth (sesi & token tidak ikut).
+Retensi: 14 backup terbaru + backup pertama tiap bulan selama 12 bulan; sisanya dipindah ke Sampah Drive.
+Super Admin dapat menekan **Backup** di beranda. Folder berisi hash kata sandi — **jangan dibagikan**.
+
+**Memulihkan data** (manual, di luar jam pakai): buka file backup, salin isi tab yang dibutuhkan, lalu tempel ke tab yang sama
+di spreadsheet utama (urutan kolom sama). Jangan memindahkan/mengurutkan baris saat aplikasi dipakai (lihat Aturan Umum).
 
 ---
 

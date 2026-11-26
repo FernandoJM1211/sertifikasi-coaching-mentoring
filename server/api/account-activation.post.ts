@@ -34,5 +34,14 @@ export default defineEventHandler(async (event) => {
     15 * 60 * 1000,
   )
 
-  return await activatePesertaAccount({ token, password })
+  const result = await activatePesertaAccount({ token, password })
+
+  await recordAccountAudit(event, {
+    actorUserId: result.userId,
+    action: 'ACCOUNT_ACTIVATE',
+    targetUserId: result.userId,
+  })
+
+  // ID akun tidak perlu dikirim ke halaman publik.
+  return { success: true, email: result.email }
 })

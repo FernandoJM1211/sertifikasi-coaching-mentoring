@@ -26,10 +26,17 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  await changeUserPassword({
+  const { userId } = await changeUserPassword({
     sessionToken,
     currentPassword: body.currentPassword,
     newPassword: body.newPassword,
+  })
+
+  await recordAccountAudit(event, {
+    actorUserId: userId,
+    action: 'PASSWORD_CHANGE',
+    targetUserId: userId,
+    details: 'Semua sesi dicabut',
   })
 
   // Seluruh sesi sudah dicabut oleh service; hapus juga cookie-nya.

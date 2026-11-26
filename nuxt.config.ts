@@ -35,6 +35,10 @@ export default defineNuxtConfig({
 
   nitro: {
     vercel: {
+      config: {
+        // Backup spreadsheet harian pukul 02.00 WIB (19.00 UTC), docs/08 K-32. Butuh env CRON_SECRET.
+        crons: [{ path: '/api/cron/backup', schedule: '0 19 * * *' }],
+      },
       functions: {
         // Batas waktu fungsi di Vercel (Hobby tanpa Fluid Compute default 10 detik).
         // Konversi preview Word → PDF lewat Google Drive bisa ±9 detik saat pertama kali.

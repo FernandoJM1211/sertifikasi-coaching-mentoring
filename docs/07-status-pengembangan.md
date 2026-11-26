@@ -99,22 +99,23 @@ Legenda: ✅ selesai · 🚧 sedang dikerjakan · ❌ belum ada
 | 2 | Peringatan "possibly undefined" di `GuestRegistrationForm.vue` | Hanya strictness TS | Rapikan saat form disentuh |
 | 3 | Prefix ID `PER-` dipakai `persons` **dan** `certification_periods` | Membingungkan saat membaca data | Ganti prefix person (mis. `PSN-`) + migrasi data, atau biarkan dan dokumentasikan |
 | 4 | ~~Generator ID membaca nomor terbesar~~ | Selesai 25 Nov 2026 — semua repository memakai `appendSheetRowsWithIds` (antrean per sheet + verifikasi & penomoran ulang setelah menulis); diuji simulasi 2 instance × 60 penulisan serentak: 0 ID ganda | — |
-| 5 | Sheet `sessions` terus bertambah | Login & cek sesi makin lambat | Hapus sesi kedaluwarsa berkala (script/cron) |
+| 5 | ~~Sheet `sessions` terus bertambah~~ | Selesai 26 Nov 2026 (K-29) — sesi lama dikosongkan otomatis saat login | — |
 | 6 | Rate limiter in-memory | Reset saat server restart; tidak berbagi antar-instance | Cukup untuk satu server |
 | 7 | Halaman periode/pengajuan Super Admin dan Verifikator duplikat | Perubahan harus dilakukan dua kali | Ekstrak ke komponen bersama |
 | 8 | Aturan jadwal tahapan baru diterapkan untuk Pendaftaran | Tahap lain belum terkunci jadwal | Buat helper `assertStageOpen()` |
 | 9 | Alias role lama `VERIFIER`/`PARTICIPANT` di `roles.ts` | — | Hapus setelah sheet `users` diperbarui |
 | 10 | ~~Setiap navigasi memanggil `/api/auth/me` (3 baca sheet)~~ | Dimitigasi 25 Nov 2026 (K-27) — cek sesi `requireUser` memakai cache `sessions`/`users` hingga 20 detik; hasil menolak dicek ulang | — |
 | 11 | ~~Dashboard Super Admin menandai Manajemen Akun "Segera hadir"~~ | Selesai — dashboard diganti Beranda | — |
-| 12 | Tidak ada tombol "Hubungkan Google Drive" di UI, dan tidak ada indikator saat token kedaluwarsa (terjadi 15 Nov 2026: `invalid_grant`) | Unggah & preview dokumen gagal tanpa disadari admin | Tambah tombol hubungkan ulang + status koneksi di dashboard Super Admin. ~~Publish OAuth app~~ ✅ 23 Nov 2026 (In production + token baru, K-18): token tidak lagi kedaluwarsa 7 hari |
+| 12 | ~~Tidak ada indikator saat koneksi Google Drive kedaluwarsa~~ | Selesai 26 Nov 2026 (K-31) — peringatan di beranda Super Admin + langkah perbaikan | Di Vercel menghubungkan ulang tetap lewat lokal + env `GOOGLE_OAUTH_REFRESH_TOKEN` + redeploy (tombol Hubungkan hanya muncul bila server dapat menyimpan token sendiri) |
 | 13 | ~~Halaman verifikasi Verifikator & Super Admin masih punya modal preview sendiri~~ | Selesai 22 Nov 2026 — memakai `<DocumentPreviewModal>` | — |
 | 14 | Peserta mengganti dokumen setelah diterima; Verifikator tidak mendapat penanda | Verifikator bisa tidak sadar dokumen berubah | Tampilkan "diganti peserta pada …" di halaman verifikasi, atau masukkan ke verifikasi CMSP-01 |
 | 15 | ~~Autosave tes tertulis menulis ke sheet (debounce 1,5 detik per peserta)~~ | Selesai 25 Nov 2026 (K-27) — autosave maks. sekali per 60 detik + write-through cache; simulasi 30 peserta serentak + 6 asesor: tulis puncak 35/menit, baca rata-rata ±38/menit | Bila peserta > 40 serentak: ajukan kenaikan kuota atau naikkan interval |
 | 17 | Kuota baca Google Sheets ±60 permintaan/menit per service account; repository membaca satu sheet utuh setiap dipanggil (terjadi 22 Nov 2026: 429 `RESOURCE_EXHAUSTED` saat simpan draft) | Aksi berat (simpan draft, unggah beruntun) bisa gagal "server error" | Sudah dimitigasi di `google-sheets.ts` (cache baca 3 detik + coba ulang 429). Bila masih terjadi saat banyak pengguna: ajukan kenaikan kuota di Google Cloud Console (Sheets API → Quotas), atau gabungkan pembacaan dengan `values.batchGet` |
 | 16 | `replaceChildRows` (baris anak CMSP-01/02) sebelum 16 Nov 2026 salah membaca nomor ID, sehingga ID baris anak baru bisa ganda | Data lama mungkin punya ID ganda di `cmsp01_trainings`/`cmsp01_practices`/`cmsp01_documents`/`cmsp02_evidences` | Sudah diperbaiki; cek ID ganda pada data lama bila diperlukan |
 | 18 | Baris `files` yang tidak dirujuk data mana pun (audit 23 Nov 2026: 21 dari 63) — berkas diganti atau unggahan pendaftaran yang batal | Memakan ruang Google Drive & menambah baris sheet | Pembersihan otomatis berkala: hapus berkas Drive + tandai baris `files` yang tidak dirujuk dan berumur > N hari |
-| 19 | Baris `sessions` kedaluwarsa/dicabut tidak pernah dihapus (audit 23 Nov 2026: 41 dari 45) | Sheet terus bertambah; setiap validasi sesi membaca seluruh sheet | Pembersihan otomatis sesi kedaluwarsa (mis. > 7 hari) |
-| 20 | Tindakan Manajemen Akun (atur ulang kata sandi, ubah status, buat akun petugas) belum tercatat pelakunya; keputusan lain sudah tercatat di sheet masing-masing | Sulit menelusuri perubahan akun | Audit log ringan khusus tindakan akun ke tab cadangan `audit_logs` (Auth), sebelum dipakai resmi |
+| 19 | ~~Baris `sessions` kedaluwarsa/dicabut tidak pernah dihapus~~ | Selesai 26 Nov 2026 (K-29) — dikosongkan otomatis setelah 7 hari | Baris kosong boleh dihapus manual di luar jam pakai |
+| 20 | ~~Tindakan Manajemen Akun belum tercatat pelakunya~~ | Selesai 26 Nov 2026 (K-30) — `audit_logs` + Riwayat Tindakan di detail akun | Pembuatan akun peserta tercatat lewat keputusan verifikasi (`application_verifications`) |
+| 21 | ~~Tidak ada backup otomatis spreadsheet~~ | Selesai 26 Nov 2026 (K-32) — backup harian 02.00 WIB ke folder Drive "CMSP Backup" + tombol Backup di beranda | Wajib isi env `CRON_SECRET` di Vercel; pemulihan manual |
 
 ## Rencana Berikutnya
 

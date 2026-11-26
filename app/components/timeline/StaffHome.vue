@@ -73,6 +73,9 @@ function tasksOf(period: StaffHomePeriod) {
       </p>
     </div>
 
+    <!-- Peringatan khusus role (mis. koneksi Google Drive di beranda Super Admin). -->
+    <slot name="alerts" />
+
     <div v-if="loading" class="space-y-6">
       <USkeleton class="h-48 w-full rounded-xl" />
       <USkeleton class="h-40 w-full rounded-xl" />

@@ -1,5 +1,6 @@
 
 import {
+  clearStaleSessions,
   createSession,
   findSessionByTokenHash,
   revokeAllUserSessions,
@@ -35,6 +36,28 @@ const SESSION_LAST_SEEN_UPDATE_INTERVAL_MS = 5 * 60 * 1000
  * Hasil yang menolak selalu dicek ulang dengan cache normal (3 detik).
  */
 const AUTH_CHECK_READ = { maxAgeMs: 20_000 }
+
+/**
+ * Pembersihan sesi lama (docs/08 K-29): dijalankan saat login, paling sering sekali per
+ * SESSION_CLEANUP_INTERVAL_MS per instance server, tanpa cron. Sesi kedaluwarsa/dicabut lebih dari
+ * SESSION_RETENTION_MS dikosongkan agar setiap cek sesi membaca data yang lebih kecil.
+ */
+const SESSION_CLEANUP_INTERVAL_MS = 6 * 60 * 60 * 1000
+const SESSION_RETENTION_MS = 7 * 24 * 60 * 60 * 1000
+let lastSessionCleanupAt = 0
+
+async function cleanupStaleSessionsOccasionally(): Promise<void> {
+  if (Date.now() - lastSessionCleanupAt < SESSION_CLEANUP_INTERVAL_MS) return
+  lastSessionCleanupAt = Date.now()
+
+  try {
+    const cleared = await clearStaleSessions(SESSION_RETENTION_MS)
+    if (cleared > 0) console.info(`Pembersihan sesi: ${cleared} sesi lama dikosongkan.`)
+  } catch (error) {
+    // Gagal membersihkan tidak boleh menggagalkan login; dicoba lagi pada interval berikutnya.
+    console.error('Gagal membersihkan sesi lama:', error)
+  }
+}
 
 
 export type AuthenticatedUser = {
@@ -120,6 +143,8 @@ export async function loginWithPassword(input: {
     console.error('Gagal memperbarui last_login_at:', error)
   }
 
+  await cleanupStaleSessionsOccasionally()
+
   return {
     user: toAuthenticatedUser(user),
     sessionToken,
@@ -200,7 +225,7 @@ export async function changeUserPassword(input: {
   sessionToken: string
   currentPassword: string
   newPassword: string
-}): Promise<{ success: true }> {
+}): Promise<{ success: true, userId: string }> {
   const sessionToken = input.sessionToken.trim()
   const currentPassword = input.currentPassword
   const newPassword = input.newPassword
@@ -259,5 +284,5 @@ export async function changeUserPassword(input: {
     newPasswordHash,
   )
   await revokeAllUserSessions(user.user_id)
-  return { success: true }
+  return { success: true, userId: user.user_id }
 }

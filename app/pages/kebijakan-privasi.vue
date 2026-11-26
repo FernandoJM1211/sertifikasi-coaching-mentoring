@@ -4,7 +4,7 @@ useHead({ title: 'Kebijakan Privasi' })
 </script>
 
 <template>
-  <LayoutLegalPage title="Kebijakan Privasi" effective-date="25 November 2026">
+  <LayoutLegalPage title="Kebijakan Privasi" effective-date="26 November 2026">
     <p>
       Sistem Sertifikasi Coaching dan Mentoring Sektor Publik ("Sistem") dikelola oleh Direktorat
       Teknologi dan Digitalisasi Pembelajaran, Lembaga Administrasi Negara ("Penyelenggara").
@@ -18,7 +18,7 @@ useHead({ title: 'Kebijakan Privasi' })
         <li><b>Data identitas & kepegawaian:</b> nama lengkap, NIP, email, nomor WhatsApp, instansi, asal daerah, pendidikan terakhir, jabatan, jenis kelamin, tempat dan tanggal lahir.</li>
         <li><b>Berkas pendaftaran dan bukti dukung:</b> dokumen yang diunggah, misalnya KTP, surat tugas, dokumen pendaftaran, serta bukti kompetensi pada self assessment (CMSP-01 dan CMSP-02), termasuk tautan yang Anda cantumkan.</li>
         <li><b>Data proses sertifikasi:</b> status pengajuan, catatan verifikasi, jawaban dan nilai tes tertulis, hasil penilaian asesor, hasil akhir sertifikasi, serta tautan tugas remedial dan catatannya (bila Anda mengikuti remedial).</li>
-        <li><b>Data akun dan keamanan:</b> email login, kata sandi dalam bentuk hash (tidak disimpan dalam bentuk asli), waktu login, dan alamat IP saat login.</li>
+        <li><b>Data akun dan keamanan:</b> email login, kata sandi dalam bentuk hash (tidak disimpan dalam bentuk asli), waktu login, alamat IP saat login, serta catatan perubahan akun (mis. aktivasi, penggantian kata sandi atau email) beserta waktu, pelaku, dan alamat IP-nya.</li>
       </ul>
     </div>
 
@@ -72,7 +72,9 @@ useHead({ title: 'Kebijakan Privasi' })
       <h2>6. Masa Penyimpanan</h2>
       <p>
         Data disimpan selama diperlukan untuk penyelenggaraan sertifikasi serta keperluan
-        administrasi dan arsip Penyelenggara sesuai ketentuan yang berlaku.
+        administrasi dan arsip Penyelenggara sesuai ketentuan yang berlaku. Untuk mencegah kehilangan
+        data, salinan cadangan dibuat setiap hari dan disimpan secara tertutup di Google Drive
+        Penyelenggara, lalu dihapus bertahap (salinan harian 14 hari, salinan bulanan 12 bulan).
       </p>
     </div>
 

@@ -2,10 +2,10 @@ import { changePesertaLoginEmail } from '../../../../services/peserta-account-pr
 
 /** Super Admin mengganti email login akun peserta (docs/08 K-28). */
 export default defineEventHandler(async (event) => {
-  await requireUser(event, ['SUPER_ADMIN'])
+  const currentUser = await requireUser(event, ['SUPER_ADMIN'])
   const userId = requireRouterParam(event, 'id', 'ID akun')
 
-  await requireManageableAccount(userId)
+  const target = await requireManageableAccount(userId)
 
   const body = await readBody<{ email?: unknown }>(event)
   const email = typeof body?.email === 'string' ? body.email : ''
@@ -15,6 +15,13 @@ export default defineEventHandler(async (event) => {
   }
 
   const result = await changePesertaLoginEmail(userId, email)
+
+  await recordAccountAudit(event, {
+    actorUserId: currentUser.user_id,
+    action: 'ACCOUNT_EMAIL_CHANGE',
+    targetUserId: target.user_id,
+    details: `${target.username_email} → ${result.email}${result.activationSent ? '; tautan aktivasi baru dikirim' : ''}`,
+  })
 
   return {
     success: true,

@@ -1,4 +1,5 @@
 import { findUserById } from '../../../repositories/user.repository'
+import { getAccountHistory } from '../../../services/account-audit.service'
 
 export default defineEventHandler(async (event) => {
   await requireUser(event, ['SUPER_ADMIN'])
@@ -16,5 +17,7 @@ export default defineEventHandler(async (event) => {
   return {
     success: true,
     account: toPublicAccount(user),
+    // Riwayat tindakan akun (audit log); kosong bila belum ada catatan.
+    history: await getAccountHistory(user.user_id),
   }
 })

@@ -389,6 +389,7 @@ export const updateSheetRow = dataSheets.updateRow
 export const getAuthSheetValues = authSheets.getValues
 export const appendAuthSheetValues = authSheets.appendRow
 export const updateAuthSheetRow = authSheets.updateRow
+export const updateAuthSheetRows = authSheets.updateRows
 
 export const appendSheetRows = dataSheets.appendRows
 export const updateSheetRows = dataSheets.updateRows
@@ -450,4 +451,38 @@ export async function replaceChildRows(input: {
     (id, index) => input.buildRow(reused + index, id),
     (row) => row,
   )
+}
+
+/**
+ * Membaca seluruh tab satu spreadsheet sekaligus untuk backup (docs/08 K-32): 1 permintaan daftar tab +
+ * 1 permintaan `batchGet`. Tidak memakai cache. `includeTab` menyaring tab yang ikut dibaca.
+ */
+export async function readSpreadsheetSnapshot(
+  spreadsheet: 'DATA' | 'AUTH',
+  includeTab: (title: string) => boolean = () => true,
+): Promise<{ title: string, values: string[][] }[]> {
+  const spreadsheetId = getSpreadsheetId(spreadsheet === 'DATA' ? 'GOOGLE_SPREADSHEET_ID' : 'AUTH_SPREADSHEET_ID')
+  const client = getSheetsClient()
+
+  const meta = await withRetry(() => client.spreadsheets.get({
+    spreadsheetId,
+    fields: 'sheets.properties.title',
+  }))
+  const titles = (meta.data.sheets ?? [])
+    .map((sheet) => sheet.properties?.title ?? '')
+    .filter((title) => title && includeTab(title))
+
+  if (titles.length === 0) return []
+
+  const response = await withRetry(() => client.spreadsheets.values.batchGet({
+    spreadsheetId,
+    ranges: titles.map(quoteSheetName),
+    valueRenderOption: 'UNFORMATTED_VALUE',
+  }))
+
+  return titles.map((title, index) => ({
+    title,
+    values: ((response.data.valueRanges?.[index]?.values ?? []) as unknown[][])
+      .map((row) => row.map((cell) => (cell === null || cell === undefined ? '' : String(cell)))),
+  }))
 }

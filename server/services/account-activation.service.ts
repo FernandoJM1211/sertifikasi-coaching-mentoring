@@ -81,7 +81,7 @@ const STATUS_ERRORS: Record<Exclude<ActivationLinkStatus, 'VALID'>, { statusCode
 export async function activatePesertaAccount(input: {
   token: string
   password: string
-}): Promise<{ success: true, email: string }> {
+}): Promise<{ success: true, email: string, userId: string }> {
   const password = input.password
 
   if (!input.token.trim() || !password) {
@@ -107,5 +107,5 @@ export async function activatePesertaAccount(input: {
   // Tautan aktivasi lain milik akun ini (email sebelumnya) tidak diperlukan lagi.
   await revokeActiveTokensForUser(user.user_id)
 
-  return { success: true, email: user.username_email }
+  return { success: true, email: user.username_email, userId: user.user_id }
 }

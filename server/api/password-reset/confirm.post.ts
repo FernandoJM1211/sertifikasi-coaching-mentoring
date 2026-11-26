@@ -18,7 +18,14 @@ export default defineEventHandler(async (event) => {
 
   assertRateLimit(`password-reset-confirm:ip:${getClientIp(event)}`, 20, 15 * 60 * 1000)
 
-  await resetPesertaPassword({ token, password })
+  const { userId } = await resetPesertaPassword({ token, password })
+
+  await recordAccountAudit(event, {
+    actorUserId: userId,
+    action: 'PASSWORD_RESET_BY_EMAIL',
+    targetUserId: userId,
+    details: 'Semua sesi dicabut',
+  })
 
   return { success: true, message: 'Kata sandi berhasil diatur ulang. Silakan masuk dengan kata sandi baru.' }
 })

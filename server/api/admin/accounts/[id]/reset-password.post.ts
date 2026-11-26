@@ -28,6 +28,13 @@ export default defineEventHandler(async (event) => {
   // Paksa akun target login ulang dengan kata sandi baru.
   await revokeAllUserSessions(updatedUser.user_id)
 
+  await recordAccountAudit(event, {
+    actorUserId: currentUser.user_id,
+    action: 'ACCOUNT_PASSWORD_RESET_BY_ADMIN',
+    targetUserId: updatedUser.user_id,
+    details: 'Semua sesi dicabut',
+  })
+
   return {
     success: true,
     message: 'Kata sandi akun berhasil diatur ulang.',

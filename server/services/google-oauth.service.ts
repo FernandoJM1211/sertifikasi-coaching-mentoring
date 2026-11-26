@@ -124,3 +124,77 @@ export async function getAuthorizedGoogleClient(): Promise<Auth.OAuth2Client> {
 
   return client
 }
+
+/* ------------------------------------------------------------------ */
+/* Status koneksi Google Drive (peringatan di beranda Super Admin, K-31) */
+/* ------------------------------------------------------------------ */
+
+export type GoogleDriveConnectionStatus =
+  /** Refresh token dapat dipakai. */
+  | 'CONNECTED'
+  /** Client OAuth atau refresh token belum diisi. */
+  | 'NOT_CONNECTED'
+  /** Ditolak Google (`invalid_grant`/`invalid_client`): token kedaluwarsa, dicabut, atau kredensial salah. */
+  | 'DISCONNECTED'
+  /** Gagal diperiksa (mis. jaringan); belum tentu terputus. */
+  | 'UNKNOWN'
+
+export type GoogleDriveConnection = {
+  status: GoogleDriveConnectionStatus
+  checkedAt: string
+  /** Server dapat menyimpan token sendiri (file lokal) → tombol "Hubungkan" dapat dipakai langsung. */
+  canReconnectInApp: boolean
+}
+
+const CONNECTED_CHECK_TTL_MS = 5 * 60 * 1000
+const PROBLEM_CHECK_TTL_MS = 60 * 1000
+let lastConnectionCheck: { result: GoogleDriveConnection, at: number } | null = null
+
+function googleErrorCode(error: unknown): string {
+  const value = error as { response?: { data?: { error?: unknown } }, message?: unknown } | null
+  const code = value?.response?.data?.error
+  if (typeof code === 'string') return code
+  const message = typeof value?.message === 'string' ? value.message : ''
+  return message.match(/invalid_(grant|client)/)?.[0] ?? ''
+}
+
+/**
+ * Memeriksa apakah refresh token Drive masih berlaku dengan meminta access token baru ke Google
+ * (tidak memakai kuota Drive). Hasil disimpan sementara di memori: 5 menit bila terhubung,
+ * 1 menit bila bermasalah; `force` memaksa pemeriksaan ulang.
+ */
+export async function checkGoogleDriveConnection(options: { force?: boolean } = {}): Promise<GoogleDriveConnection> {
+  const ttl = lastConnectionCheck?.result.status === 'CONNECTED' ? CONNECTED_CHECK_TTL_MS : PROBLEM_CHECK_TTL_MS
+
+  if (!options.force && lastConnectionCheck && Date.now() - lastConnectionCheck.at < ttl) {
+    return lastConnectionCheck.result
+  }
+
+  const canReconnectInApp = Boolean(process.env.GOOGLE_OAUTH_TOKEN_PATH?.trim())
+    && !process.env.GOOGLE_OAUTH_REFRESH_TOKEN?.trim()
+  const finish = (status: GoogleDriveConnectionStatus) => {
+    const result = { status, checkedAt: new Date().toISOString(), canReconnectInApp }
+    lastConnectionCheck = { result, at: Date.now() }
+    return result
+  }
+
+  const clientId = process.env.GOOGLE_OAUTH_CLIENT_ID?.trim()
+  const clientSecret = process.env.GOOGLE_OAUTH_CLIENT_SECRET?.trim()
+  const tokens = await loadGoogleOAuthTokens()
+
+  if (!clientId || !clientSecret || !tokens?.refresh_token) return finish('NOT_CONNECTED')
+
+  // Klien terpisah agar access token yang tersimpan di klien utama tidak menutupi token yang sudah dicabut.
+  const probe = new google.auth.OAuth2(clientId, clientSecret)
+  probe.setCredentials({ refresh_token: tokens.refresh_token })
+
+  try {
+    const { token } = await probe.getAccessToken()
+    return finish(token ? 'CONNECTED' : 'UNKNOWN')
+  } catch (error) {
+    const code = googleErrorCode(error)
+    if (code === 'invalid_grant' || code === 'invalid_client') return finish('DISCONNECTED')
+    console.error('Gagal memeriksa koneksi Google Drive:', error)
+    return finish('UNKNOWN')
+  }
+}

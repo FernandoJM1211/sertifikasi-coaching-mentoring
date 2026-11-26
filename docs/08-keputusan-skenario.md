@@ -44,6 +44,10 @@ dibahas ulang dari nol.
 | K-26 | [Pengumuman Sertifikasi, remedial, dan Hasil Akhir](#k-26--pengumuman-sertifikasi-remedial-dan-hasil-akhir) | Nov 2026 |
 | K-27 | [Kapasitas tes tertulis serentak (30 peserta) dan hemat kuota Google Sheets](#k-27--kapasitas-tes-tertulis-serentak-30-peserta-dan-hemat-kuota-google-sheets) | 25 Nov 2026 |
 | K-28 | [Tautan aktivasi ganda, halaman aktivasi, dan ubah email akun](#k-28--tautan-aktivasi-ganda-halaman-aktivasi-dan-ubah-email-akun) | 26 Nov 2026 |
+| K-29 | [Pembersihan sesi login lama](#k-29--pembersihan-sesi-login-lama) | 26 Nov 2026 |
+| K-30 | [Audit log tindakan akun](#k-30--audit-log-tindakan-akun) | 26 Nov 2026 |
+| K-31 | [Peringatan koneksi Google Drive di beranda Super Admin](#k-31--peringatan-koneksi-google-drive-di-beranda-super-admin) | 26 Nov 2026 |
+| K-32 | [Backup harian spreadsheet](#k-32--backup-harian-spreadsheet) | 26 Nov 2026 |
 
 ---
 
@@ -685,3 +689,96 @@ diakses tidak dapat ditindaklanjuti karena Super Admin belum bisa mengganti emai
 `server/utils/email.ts` (`sendLoginEmailChangedEmail`, isi email aktivasi), `app/pages/aktivasi-akun.vue`,
 `app/pages/lupa-kata-sandi.vue` (`?email=`), `app/pages/super-admin/accounts/index.vue` (Ubah Email),
 pesan di `auth.service.ts` & `application.service.ts`. Diuji dengan Sheets tiruan + email dicegat: 16/16 lulus.
+
+## K-29 — Pembersihan sesi login lama
+
+**Konteks.** Sheet `sessions` tidak pernah dibersihkan (audit 23 Nov 2026: 41 dari 45 baris sudah kedaluwarsa/
+dicabut), padahal setiap permintaan yang butuh login membaca seluruh sheet ini. Makin lama makin berat dan boros kuota.
+
+**Keputusan.**
+
+- Sesi yang **kedaluwarsa atau dicabut lebih dari 7 hari** dikosongkan otomatis; riwayat login 7 hari terakhir tetap ada.
+- Baris **dikosongkan, bukan dihapus**: menghapus baris menggeser nomor baris sehingga pembaruan sesi lain (yang ditulis
+  berdasarkan nomor baris) bisa mengenai baris yang salah (lihat aturan docs/04). Baris kosong tidak cocok dengan
+  pencarian mana pun dan hampir tidak menambah data yang dibaca.
+- Dijalankan **saat login**, paling sering sekali per 6 jam per instance server — tanpa cron atau pengaturan Vercel.
+  Gagal membersihkan tidak menggagalkan login. Sesi dengan tanggal tak terbaca dibiarkan.
+- "Cabut semua sesi" (ganti/atur ulang kata sandi, Ubah Email) kini ditulis **sekali** untuk semua sesi akun
+  (sebelumnya satu tulis per sesi).
+
+**Penerapan.** `clearStaleSessions()` & `revokeAllUserSessions()` di `session.repository.ts`,
+`cleanupStaleSessionsOccasionally()` di `auth.service.ts`, `updateAuthSheetRows` di `google-sheets.ts`.
+Diuji dengan Sheets tiruan: 12/12 lulus.
+
+## K-30 — Audit log tindakan akun
+
+**Konteks.** Keputusan Verifikator/asesor sudah tercatat pelakunya di sheet masing-masing, tetapi tindakan akun
+(terutama oleh Super Admin, termasuk Ubah Email dari K-28) belum, sehingga perubahan akun sulit ditelusuri.
+
+**Keputusan.**
+
+- Dicatat ke tab `audit_logs` (spreadsheet Auth, sudah disiapkan sebelumnya) **setelah tindakan berhasil**:
+  - oleh Super Admin: buat akun petugas, atur ulang kata sandi, ubah status, Ubah Email, kirim ulang tautan aktivasi;
+  - oleh pemilik akun: aktivasi akun, ganti kata sandi, atur ulang kata sandi lewat email.
+- Isi: waktu, pelaku, tindakan, akun target, IP, dan ringkasan (mis. `ACTIVE → DISABLED`, email lama → baru).
+  **Kata sandi dan token tidak pernah dicatat.**
+- **Best effort**: gagal mencatat hanya ditulis ke log server; tindakan tetap berhasil agar admin tidak terhambat.
+- Ditampilkan di **Manajemen Akun → detail akun → Riwayat Tindakan** (terbaru di atas, maks. 50; pelaku = "pemilik akun"
+  bila dilakukan sendiri).
+- Tidak dicatat: login (sudah ada di `sessions`), pembuatan akun peserta saat pendaftaran diterima (sudah tercatat
+  sebagai keputusan di `application_verifications`).
+- Kebijakan Privasi diperbarui (catatan perubahan akun beserta waktu, pelaku, dan IP).
+
+**Penerapan.** `shared/utils/audit.ts`, `server/utils/audit.ts` (`recordAccountAudit`),
+`server/repositories/audit-log.repository.ts`, `server/services/account-audit.service.ts`, endpoint
+`admin/accounts` (buat, reset-password, status, email, resend-activation), `account-activation.post.ts`,
+`auth/change-password.post.ts`, `password-reset/confirm.post.ts`, `GET /api/admin/accounts/:id` (`history`),
+`app/pages/super-admin/accounts/[id].vue`, `kebijakan-privasi.vue`. Diuji dengan Sheets tiruan: 11/11 lulus.
+
+## K-31 — Peringatan koneksi Google Drive di beranda Super Admin
+
+**Konteks.** Unggah dan preview dokumen bergantung pada refresh token satu akun Google (OAuth). Bila token dicabut,
+kata sandi akun Google diganti, atau kredensial OAuth berubah, fitur dokumen berhenti tanpa tanda apa pun di aplikasi
+(pernah terjadi 15 Nov 2026: `invalid_grant`).
+
+**Keputusan.**
+
+- Beranda Super Admin memeriksa status koneksi Drive (meminta access token baru ke Google; tidak memakai kuota Drive)
+  dan **hanya menampilkan peringatan bila bermasalah**:
+  - `DISCONNECTED` (ditolak Google) → "Koneksi Google Drive terputus";
+  - `NOT_CONNECTED` (token/kredensial belum diisi) → "Google Drive belum terhubung";
+  - `UNKNOWN` (gagal diperiksa, mis. jaringan) → peringatan kuning "belum dapat diperiksa".
+- Hasil pemeriksaan disimpan sementara: 5 menit bila terhubung, 1 menit bila bermasalah; tombol **Periksa Ulang** memaksa
+  pemeriksaan baru.
+- Di Vercel token tidak dapat disimpan dari aplikasi, sehingga peringatan menampilkan **langkah perbaikan**
+  (hubungkan dari lokal → salin token ke env `GOOGLE_OAUTH_REFRESH_TOKEN` → redeploy). Tombol **Hubungkan** hanya
+  muncul bila server dapat menyimpan token sendiri (lokal dengan `GOOGLE_OAUTH_TOKEN_PATH`, tanpa token di env).
+
+**Penerapan.** `checkGoogleDriveConnection()` di `google-oauth.service.ts`, `GET /api/admin/google-drive/status`,
+`app/components/drive/ConnectionAlert.vue`, slot `alerts` di `timeline/StaffHome.vue`, `app/pages/super-admin/index.vue`.
+Diuji: token asli → CONNECTED, token palsu → DISCONNECTED, tanpa token → NOT_CONNECTED, cache bekerja.
+
+## K-32 — Backup harian spreadsheet
+
+**Konteks.** Satu-satunya cadangan data adalah Version History Google Sheets, yang ikut hilang bila file spreadsheet terhapus
+atau akunnya bermasalah, dan hanya bisa dipulihkan per spreadsheet utuh.
+
+**Keputusan (disetujui pemilik proyek).**
+
+- **Backup harian otomatis** pukul 02.00 WIB lewat Vercel Cron (endpoint dilindungi env `CRON_SECRET`).
+- Bentuk: **spreadsheet baru** (dapat dibuka langsung) di folder Drive **CMSP Backup** milik akun Drive aplikasi, terpisah
+  dari folder unggahan. Bukan tab baru di spreadsheet yang sama.
+- Isi: semua tab spreadsheet Data + tab `users` dan `audit_logs` dari spreadsheet Auth (sebagai `auth_users`,
+  `auth_audit_logs`). Sesi dan token tidak ikut karena sementara. Folder berisi hash kata sandi → **jangan dibagikan**.
+- Retensi: **14 backup harian terbaru + backup pertama tiap bulan selama 12 bulan**; sisanya ke Sampah Drive.
+- Beranda Super Admin menampilkan waktu backup terakhir, tombol **Backup** (jeda minimal 2 menit) dan **Folder**;
+  berwarna kuning bila belum ada backup atau backup terakhir lebih dari 2 hari.
+- **Pemulihan manual** (salin tab dari file backup di luar jam pakai), agar tidak ada pemulihan otomatis yang menimpa data benar.
+- Salinan dibuat dengan membaca isi lalu menulis spreadsheet baru (bukan "Make a copy"), karena izin Drive aplikasi
+  (`drive.file`) hanya mencakup file buatan aplikasi.
+- Kebijakan Privasi bagian Masa Penyimpanan menyebut salinan cadangan dan masa simpannya.
+
+**Penerapan.** `server/services/backup.service.ts`, `readSpreadsheetSnapshot()` di `google-sheets.ts`,
+`GET /api/cron/backup`, `GET`/`POST /api/admin/backups`, `nuxt.config.ts` (`nitro.vercel.config.crons`),
+`app/components/backup/StatusAlert.vue`, `app/pages/super-admin/index.vue`, `kebijakan-privasi.vue`.
+Retensi diuji offline (400 hari backup → 26 dipertahankan).

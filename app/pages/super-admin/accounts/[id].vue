@@ -191,6 +191,58 @@
         </div>
       </UCard>
 
+      <!-- Riwayat tindakan (audit log) -->
+      <UCard>
+        <template #header>
+          <div class="flex items-start gap-3">
+            <div class="flex size-10 shrink-0 items-center justify-center rounded-xl border border-amber-300 bg-amber-50">
+              <UIcon
+                name="i-lucide-history"
+                class="size-5 text-amber-600"
+              />
+            </div>
+
+            <div>
+              <h2 class="font-semibold text-slate-900">
+                Riwayat Tindakan
+              </h2>
+
+              <p class="mt-1 text-sm text-slate-600">
+                Perubahan akun beserta pelakunya, terbaru di atas.
+              </p>
+            </div>
+          </div>
+        </template>
+
+        <p v-if="history.length === 0" class="text-sm text-slate-600">
+          Belum ada catatan.
+        </p>
+
+        <ol v-else class="divide-y divide-slate-200">
+          <li
+            v-for="item in history"
+            :key="item.audit_id"
+            class="flex flex-col gap-1 py-3 first:pt-0 last:pb-0 sm:flex-row sm:items-start sm:justify-between sm:gap-4"
+          >
+            <div class="min-w-0">
+              <p class="text-sm font-medium text-slate-900">
+                {{ item.action_label }}
+              </p>
+              <p v-if="item.details" class="mt-0.5 break-words text-xs text-slate-600">
+                {{ item.details }}
+              </p>
+            </div>
+
+            <div class="shrink-0 text-xs text-slate-600 sm:text-right">
+              <p>{{ formatDate(item.event_time) }}</p>
+              <p class="mt-0.5">
+                Oleh {{ item.actor_is_self ? 'pemilik akun' : item.actor_name }}
+              </p>
+            </div>
+          </li>
+        </ol>
+      </UCard>
+
     </template>
   </div>
 </template>
@@ -215,9 +267,20 @@ type ApiAccount = {
   last_login_at: string
 }
 
+type AccountHistoryItem = {
+  audit_id: string
+  event_time: string
+  action: string
+  action_label: string
+  actor_name: string
+  actor_is_self: boolean
+  details: string
+}
+
 type AccountResponse = {
   success: boolean
   account: ApiAccount
+  history?: AccountHistoryItem[]
 }
 
 const route = useRoute()
@@ -239,6 +302,7 @@ const {
 )
 
 const account = computed(() => response.value?.account ?? null)
+const history = computed(() => response.value?.history ?? [])
 
 const roleLabel = computed(() => getRoleLabel(account.value?.role))
 

@@ -12,7 +12,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  await requireManageableAccount(userId)
+  const target = await requireManageableAccount(userId)
 
   const body = await readBody<{ account_status?: unknown }>(event)
   const accountStatus = body?.account_status
@@ -29,6 +29,13 @@ export default defineEventHandler(async (event) => {
   if (accountStatus === 'DISABLED') {
     await revokeAllUserSessions(updatedUser.user_id)
   }
+
+  await recordAccountAudit(event, {
+    actorUserId: currentUser.user_id,
+    action: 'ACCOUNT_STATUS_CHANGE',
+    targetUserId: updatedUser.user_id,
+    details: `${target.account_status} → ${accountStatus}`,
+  })
 
   return {
     success: true,

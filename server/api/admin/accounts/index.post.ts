@@ -12,7 +12,7 @@ type CreateAccountBody = {
 }
 
 export default defineEventHandler(async (event) => {
-  await requireUser(event, ['SUPER_ADMIN'])
+  const currentUser = await requireUser(event, ['SUPER_ADMIN'])
 
   const body = await readBody<CreateAccountBody>(event)
 
@@ -74,6 +74,13 @@ export default defineEventHandler(async (event) => {
     password_hash: await hashPassword(password),
     role: role as StaffRole,
     account_status: 'ACTIVE',
+  })
+
+  await recordAccountAudit(event, {
+    actorUserId: currentUser.user_id,
+    action: 'ACCOUNT_CREATE',
+    targetUserId: user.user_id,
+    details: `Peran ${role}; email ${email}`,
   })
 
   return {

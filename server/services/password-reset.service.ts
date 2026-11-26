@@ -70,7 +70,7 @@ export async function requestPesertaPasswordReset(email: string, requestIp: stri
 }
 
 /** Menyimpan kata sandi baru dari tautan email, lalu mencabut semua sesi & token atur ulang akun. */
-export async function resetPesertaPassword(input: { token: string, password: string }): Promise<void> {
+export async function resetPesertaPassword(input: { token: string, password: string }): Promise<{ userId: string }> {
   validateNewPassword(input.password)
 
   const resetToken = await findPasswordResetTokenByHash(hashAuthToken(input.token))
@@ -92,4 +92,6 @@ export async function resetPesertaPassword(input: { token: string, password: str
   // Token ini (dan token lain yang masih aktif) tidak dapat dipakai lagi; semua perangkat keluar.
   await revokeActiveResetTokensForUser(user.user_id)
   await revokeAllUserSessions(user.user_id)
+
+  return { userId: user.user_id }
 }

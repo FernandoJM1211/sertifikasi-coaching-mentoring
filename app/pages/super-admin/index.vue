@@ -132,5 +132,10 @@ function tasksFor(period: StaffHomePeriod, stage: TimelineStage | undefined): Ti
 </script>
 
 <template>
-  <TimelineStaffHome :tasks-for="tasksFor" />
+  <TimelineStaffHome :tasks-for="tasksFor">
+    <template #alerts>
+      <DriveConnectionAlert />
+      <BackupStatusAlert />
+    </template>
+  </TimelineStaffHome>
 </template>

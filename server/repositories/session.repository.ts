@@ -3,6 +3,7 @@ import {
   appendAuthSheetRowsWithIds,
   getAuthSheetValues,
   updateAuthSheetRow,
+  updateAuthSheetRows,
   type ReadOptions,
 } from '../utils/google-sheets'
 
@@ -258,33 +259,67 @@ export async function revokeAllUserSessions(
   }
 
   const rows = await getAuthSheetValues(SHEET_NAME)
+  const now = new Date().toISOString()
+  const updates: { rowNumber: number, values: string[] }[] = []
 
-  const sessions = rows.slice(1)
-
-  for (let index = 0; index < sessions.length; index++) {
-    const row = sessions[index]
-
-    if (!row || (row[1] ?? '') !== normalizedUserId) {
-      continue
-    }
+  rows.slice(1).forEach((row, index) => {
+    if (!row || (row[1] ?? '') !== normalizedUserId) return
 
     const session = rowToSession(row)
+    if (session.revoked_at) return
 
-    if (session.revoked_at) {
-      continue
-    }
+    updates.push({
+      rowNumber: index + 2,
+      values: [
+        session.session_id,
+        session.user_id,
+        session.session_token_hash,
+        session.expires_at,
+        now,
+        session.created_at,
+        session.last_seen_at,
+        session.ip_address,
+      ],
+    })
+  })
 
-    const rowNumber = index + 2
+  // Satu kali tulis untuk semua sesi akun (hemat kuota).
+  await updateAuthSheetRows(SHEET_NAME, updates)
+}
 
-    await updateAuthSheetRow(SHEET_NAME, rowNumber, [
-      session.session_id,
-      session.user_id,
-      session.session_token_hash,
-      session.expires_at,
-      new Date().toISOString(),
-      session.created_at,
-      session.last_seen_at,
-      session.ip_address,
-    ])
+const SESSION_COLUMN_COUNT = 8
+
+/**
+ * Mengosongkan baris sesi yang kedaluwarsa/dicabut lebih lama dari `retentionMs` (docs/08 K-29).
+ * Baris DIKOSONGKAN, bukan dihapus: menghapus baris menggeser nomor baris sehingga pembaruan sesi
+ * lain (yang menulis berdasarkan nomor baris) bisa mengenai baris yang salah. Baris kosong tidak
+ * cocok dengan pencarian sesi mana pun dan hampir tidak menambah ukuran data yang dibaca.
+ * Mengembalikan jumlah baris yang dikosongkan.
+ */
+export async function clearStaleSessions(retentionMs: number): Promise<number> {
+  const rows = await getAuthSheetValues(SHEET_NAME)
+  const cutoff = Date.now() - retentionMs
+  const isOld = (value: string) => {
+    const time = Date.parse(value)
+    return Number.isFinite(time) && time < cutoff
   }
+
+  const updates: { rowNumber: number, values: string[] }[] = []
+
+  rows.slice(1).forEach((row, index) => {
+    if (!row?.[0]) return
+
+    const session = rowToSession(row)
+    // Tanggal tidak terbaca → dibiarkan (tidak menghapus data yang tidak dipahami).
+    if (!isOld(session.revoked_at) && !isOld(session.expires_at)) return
+
+    updates.push({
+      rowNumber: index + 2,
+      values: Array.from({ length: SESSION_COLUMN_COUNT }, () => ''),
+    })
+  })
+
+  await updateAuthSheetRows(SHEET_NAME, updates)
+
+  return updates.length
 }

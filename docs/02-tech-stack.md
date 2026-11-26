@@ -71,6 +71,7 @@ Salin `.env.example` menjadi `.env` lalu isi.
 | `GOOGLE_OAUTH_REFRESH_TOKEN` | ✅* | Nilai `refresh_token` dari file token — untuk hosting tanpa penyimpanan file (Vercel). Diutamakan bila diisi. |
 | `GMAIL_USER` | ✅ | Alamat Gmail pengirim email aktivasi. |
 | `GMAIL_APP_PASSWORD` | ✅ | App Password Gmail (bukan kata sandi biasa). |
+| `CRON_SECRET` | ✅ (Vercel) | Kunci acak untuk backup harian lewat Vercel Cron (`/api/cron/backup`, 02.00 WIB). Vercel mengirimnya sebagai `Authorization: Bearer …`. Buat dengan `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`. Tanpa ini backup otomatis tidak berjalan (backup manual tetap bisa). |
 
 \* Cukup salah satu dari pasangan tersebut: versi file untuk lokal, versi env untuk Vercel.
 
@@ -84,6 +85,9 @@ memakai akun Google milik instansi lewat OAuth. Super Admin menghubungkannya sek
 `/api/auth/google`; refresh token disimpan di `GOOGLE_OAUTH_TOKEN_PATH`.
 
 ### Troubleshooting: "Koneksi Google Drive sistem sudah kedaluwarsa" (`invalid_grant`)
+
+Beranda Super Admin menampilkan peringatan **"Koneksi Google Drive terputus"** bila refresh token ditolak
+Google (diperiksa lewat `GET /api/admin/google-drive/status`, K-31), beserta langkah di bawah ini.
 
 Refresh token Drive ditolak Google, sehingga unggah & preview dokumen gagal. Penyebab umum:
 OAuth consent screen masih berstatus **Testing** (token hanya berlaku 7 hari), token dicabut

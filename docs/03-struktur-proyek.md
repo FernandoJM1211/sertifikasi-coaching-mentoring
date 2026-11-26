@@ -82,7 +82,9 @@ Untuk role baru (mis. asesor), buat layout tipis serupa yang memakai `LayoutDash
 | `document/LinkPreviewModal.vue` | `<DocumentLinkPreviewModal>` | Modal embed link evidence (video YouTube / file Google Drive); ukuran & header sama dengan `DocumentPreviewModal`. Link lain (folder Drive, website) tidak di-embed, langsung dibuka di tab baru. |
 | `timeline/ProgressBar.vue` | `<TimelineProgressBar>` | Progres bar timeline (Selesai / Sedang Berlangsung / Belum Dimulai). Prop `stages`. |
 | `timeline/CurrentStage.vue` | `<TimelineCurrentStage>` | Kartu "Tahapan Saat Ini" (nama, tanggal mulai & selesai) + panel tombol dinamis dari prop `tasks`. Tombol tetap tampil walau tidak ada tahap berlangsung menurut jadwal (mis. self assessment dibuka lewat override — beranda peserta mengisinya dari status `editable`/`available` server). |
-| `timeline/StaffHome.vue` | `<TimelineStaffHome>` | Beranda staf: semua periode aktif dari `/api/home/periods` + progres bar; props `tasksFor(period, stage)` (dipanggil juga bila tidak ada tahap berlangsung; data pekerjaan di `period.insight`), `showCurrentStage`, `emptyDescription`. |
+| `backup/StatusAlert.vue` | `<BackupStatusAlert>` | Status backup di beranda Super Admin: waktu backup terakhir, tombol Backup & Folder; kuning bila belum ada/terlambat. |
+| `drive/ConnectionAlert.vue` | `<DriveConnectionAlert>` | Peringatan di beranda Super Admin bila koneksi Google Drive bermasalah (langkah perbaikan + Periksa Ulang); tidak tampil bila normal. |
+| `timeline/StaffHome.vue` | `<TimelineStaffHome>` | Beranda staf: semua periode aktif dari `/api/home/periods` + progres bar; props `tasksFor(period, stage)` (dipanggil juga bila tidak ada tahap berlangsung; data pekerjaan di `period.insight`), `showCurrentStage`, `emptyDescription`.  Slot `alerts` di bawah judul (dipakai peringatan Drive).|
 | `period/PeriodPicker.vue` | `<PeriodPicker>` | Kartu pilihan periode sebelum halaman per periode (Verifikasi SA, Penugasan Asesor). Props `title`, `description`, `note`, `actionLabel`, `actionIcon`, `basePath`, `endpoint` (opsional, sumber daftar periode), `stageCode` (opsional; kartu menampilkan "Jadwal" tahap fitur tersebut, mis. `EVALUATION`). |
 | `technical-assessment/List.vue` | `<TechnicalAssessmentList>` | Daftar penilaian CMSP-02 per periode (ringkasan, filter, tabel). Props `periodId`, `basePath`, `backPath`, `showAssessor`. |
 | `technical-assessment/Detail.vue` | `<TechnicalAssessmentDetail>` | Penilaian satu peserta: evidence CMSP-02 + K/BK per unit, catatan, rekomendasi, simpan draf/kirim; buka kunci (Super Admin). Props `applicationId`, `backPath`. |
@@ -195,11 +197,12 @@ Alur: **`api/` → `services/` → `repositories/` → Google Sheets/Drive.**
 | File | Fungsi |
 | --- | --- |
 | `session.ts` | `requireUser(event, roles?)`, `requireRouterParam()`, cookie sesi (`setSessionCookie`, `clearSessionCookie`, `getSessionToken`), `getClientIp()`. |
+| `audit.ts` | `recordAccountAudit(event, { actorUserId, action, targetUserId, details })` — catat tindakan akun ke `audit_logs` (best effort, K-30). |
 | `account-guard.ts` | `requireManageableAccount(userId)` — tolak reset kata sandi/ubah status untuk akun Super Admin (404 bila akun tidak ada). |
 | `rate-limit.ts` | `assertRateLimit()` / `resetRateLimit()` — pembatas percobaan in-memory. |
 | `password.ts` | `hashPassword()`, `verifyPassword()`, `validateNewPassword()` (12–128 karakter). |
 | `auth-token.ts` | `generateAuthToken()` (token acak) dan `hashAuthToken()` (SHA-256). |
-| `google-sheets.ts` | Klien Sheets: `getSheetValues/appendSheetValues/updateSheetRow` (data) dan versi `...Auth...` (autentikasi). Baris baru ber-ID: `appendSheetRowsWithIds` / `appendAuthSheetRowsWithIds` (ID unik walau ditulis serentak). Hemat kuota: cache baca 3 detik per sheet (opsi `maxAgeMs` untuk menerima cache lebih lama, maks. 30 detik; `fresh` untuk baca langsung) + gabung pembacaan bersamaan; update memakai write-through (baris di cache diganti nilai baru), append menghapus cache sheet; coba ulang otomatis saat 429 (baca juga saat 5xx). |
+| `google-sheets.ts` | Klien Sheets: `getSheetValues/appendSheetValues/updateSheetRow` (data) dan versi `...Auth...` (autentikasi). Baris baru ber-ID: `appendSheetRowsWithIds` / `appendAuthSheetRowsWithIds` (ID unik walau ditulis serentak). Hemat kuota: cache baca 3 detik per sheet (opsi `maxAgeMs` untuk menerima cache lebih lama, maks. 30 detik; `fresh` untuk baca langsung) + gabung pembacaan bersamaan; update memakai write-through (baris di cache diganti nilai baru), append menghapus cache sheet; coba ulang otomatis saat 429 (baca juga saat 5xx). `readSpreadsheetSnapshot()` membaca semua tab sekaligus untuk backup. |
 | `email.ts` | Email via Gmail: `sendAccountActivationEmail()`, `sendApplicationAcceptedEmail()` (akun sudah aktif), `sendApplicationAcceptedNoticeEmail()` (email pengajuan ≠ email akun), `sendApplicationRejectedEmail()`. Kapan dipakai: docs/08 K-09. |
 | `account-response.ts` | `toPublicAccount()` — data akun tanpa `password_hash`. |
 | `pdf-file.ts` | `assertValidPdfFile()` (MIME, ukuran, signature), `sanitizeFileNamePart()`, `multipartPartToFile()`. |
@@ -216,6 +219,10 @@ Alur: **`api/` → `services/` → `repositories/` → Google Sheets/Drive.**
 | `GET /api/auth/me` | `auth/me.get.ts` | Login | Data pengguna saat ini. |
 | `POST /api/auth/change-password` | `auth/change-password.post.ts` | Login | Ganti kata sandi, cabut semua sesi. |
 | `GET /api/auth/google` | `auth/google.get.ts` | Super Admin | Mulai OAuth untuk menghubungkan Google Drive. |
+| `GET /api/admin/backups` | `admin/backups/index.get.ts` | Super Admin | Status backup terakhir (waktu, tautan, jumlah salinan, `stale` bila > 2 hari), K-32. |
+| `POST /api/admin/backups` | `admin/backups/index.post.ts` | Super Admin | Backup Sekarang (jeda minimal 2 menit antar-backup). |
+| `GET /api/cron/backup` | `cron/backup.get.ts` | Vercel Cron (`CRON_SECRET`) | Backup harian 02.00 WIB; jadwal di `nuxt.config.ts` → `nitro.vercel.config.crons`. |
+| `GET /api/admin/google-drive/status` | `admin/google-drive/status.get.ts` | Super Admin | Status koneksi Drive (`CONNECTED`/`NOT_CONNECTED`/`DISCONNECTED`/`UNKNOWN`) + `canReconnectInApp`; `?refresh=1` memaksa periksa ulang (K-31). |
 | `GET /api/auth/google/callback` | `auth/google/callback.get.ts` | Super Admin | Simpan refresh token Drive. |
 | `GET /api/account-activation?token=` | `account-activation.get.ts` | Publik (token) | Status tautan aktivasi + email akun (K-28). |
 | `POST /api/account-activation` | `account-activation.post.ts` | Publik (token) | Aktivasi akun peserta; tautan aktivasi lain milik akun dicabut setelah berhasil. |
@@ -261,7 +268,7 @@ Alur: **`api/` → `services/` → `repositories/` → Google Sheets/Drive.**
 | `POST /api/public-assessments/:applicationId/reopen` | `.../[applicationId]/reopen.post.ts` | Super Admin | Buka kunci penilaian CMSP-03 terkirim. |
 | `GET /api/admin/accounts` | `admin/accounts/index.get.ts` | Super Admin | Daftar akun. |
 | `POST /api/admin/accounts` | `admin/accounts/index.post.ts` | Super Admin | Buat akun pegawai. |
-| `GET /api/admin/accounts/:id` | `admin/accounts/[id].get.ts` | Super Admin | Detail akun. |
+| `GET /api/admin/accounts/:id` | `admin/accounts/[id].get.ts` | Super Admin | Detail akun + `history` (riwayat tindakan dari `audit_logs`, K-30). |
 | `POST /api/admin/accounts/:id/reset-password` | `admin/accounts/[id]/reset-password.post.ts` | Super Admin | Atur ulang kata sandi akun lain. |
 | `POST /api/admin/accounts/:id/resend-activation` | `admin/accounts/[id]/resend-activation.post.ts` | Super Admin | Kirim ulang tautan aktivasi ke akun peserta berstatus menunggu aktivasi (tautan lama tetap berlaku sampai kedaluwarsa, K-28). |
 | `PATCH /api/admin/accounts/:id/email` | `admin/accounts/[id]/email.patch.ts` | Super Admin | Ubah email login akun peserta (`{ email }`); sesi & tautan aktivasi lama dicabut, akun belum aktif dikirimi tautan baru (K-28). |
@@ -297,6 +304,8 @@ Alur: **`api/` → `services/` → `repositories/` → Google Sheets/Drive.**
 | File | Fungsi |
 | --- | --- |
 | `auth.service.ts` | Login, validasi sesi (`getAuthenticatedUser`), ganti kata sandi. |
+| `backup.service.ts` | Backup harian spreadsheet ke folder Drive "CMSP Backup": `runSpreadsheetBackup()`, retensi `selectBackupsToRemove()`, `getBackupStatus()` (K-32). |
+| `account-audit.service.ts` | `getAccountHistory(userId)` — riwayat tindakan akun + nama pelaku untuk detail akun Super Admin. |
 | `account-activation.service.ts` | Aktivasi akun peserta dengan token; `getActivationLinkStatus()` untuk halaman aktivasi. |
 | `password-reset.service.ts` | Lupa kata sandi peserta: terbitkan token 1 jam + email (akun menunggu aktivasi → kirim ulang aktivasi), simpan kata sandi baru. |
 | `registration.service.ts` | Pendaftaran dua langkah: `uploadRegistrationDocument` (validasi PDF → unggah Drive → catat berkas, token = ID file Drive) lalu `processRegistration` (validasi data & token: berkas guest, belum tertaut, < 24 jam → simpan pengajuan, tautkan dokumen, ganti nama berkas di Drive). |
@@ -323,7 +332,7 @@ Alur: **`api/` → `services/` → `repositories/` → Google Sheets/Drive.**
 | `peserta-account-provisioning.service.ts` | Buat/ambil akun peserta & token aktivasi, kirim email aktivasi, kirim ulang tautan aktivasi (`resendPesertaActivation`). |
 | `certification-period.service.ts` | Buat periode & aturan transisi status. |
 | `certification-timeline.service.ts` | Validasi & simpan 8 tahapan timeline. |
-| `google-oauth.service.ts` | OAuth Google untuk Drive; simpan/muat refresh token. |
+| `google-oauth.service.ts` | OAuth Google untuk Drive; simpan/muat refresh token; `checkGoogleDriveConnection()` (cache 5 menit bila terhubung, 1 menit bila bermasalah). |
 | `google-drive.service.ts` | Unggah & unduh berkas Drive; `convertGoogleDriveFileToPdf()` (salinan sementara Google Docs → ekspor PDF → hapus salinan) untuk preview Word. |
 
 ### `server/repositories/` — Akses Data
@@ -334,6 +343,7 @@ Satu file per sheet. Detail kolom di [04-database.md](04-database.md).
 | --- | --- | --- |
 | `user.repository.ts` | `users` | Auth |
 | `session.repository.ts` | `sessions` | Auth |
+| `audit-log.repository.ts` | `audit_logs` | Auth |
 | `account-activation-token.repository.ts` | `activation_tokens` | Auth |
 | `password-reset-token.repository.ts` | `password_reset_tokens` | Auth |
 | `person.repository.ts` | `persons` | Data |
@@ -371,6 +381,7 @@ Satu file per sheet. Detail kolom di [04-database.md](04-database.md).
 | `shared/utils/evaluation.ts` | Huruf opsi `A`–`E`, 2–5 opsi, pilihan durasi 30/45/60/90, batas panjang teks tes tertulis. |
 | `shared/utils/evaluation-import.ts` | Import soal Excel: nama kolom template, batas (200 soal, 2 MB), `parseQuestionImportSheet` (baris → soal + galat), kunci duplikat. |
 | `shared/utils/documents.ts` | Jenis dokumen pendaftaran + label/ikon, `MAX_PDF_SIZE_BYTES`. |
+| `shared/utils/audit.ts` | `AUDIT_ACTIONS`, `AUDIT_ACTION_LABELS`, `auditActionLabel()`, `AUDIT_DETAILS_MAX`. |
 | `shared/utils/roles.ts` | `USER_ROLES`, `STAFF_ROLES`, `ROLE_LABELS`, `ROLE_HOME_PATHS`, `ACCOUNT_STATUSES`, `normalizeUserRole()`, `getRoleLabel()`, `getAccountStatusLabel()`. |
 
 ## `scripts/`
